@@ -9,6 +9,9 @@ jobs:
         uses: xu-cheng/latex-action@v2
         with:
           root_file: guia/guia.tex
+      - run: |
+          mkdir guia/build
+          cp guia/guia.pdf guia/build/guia.pdf
       - name: Install SSH Client 🔑
         uses: webfactory/ssh-agent@v0.2.0
         with:
@@ -17,7 +20,5 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@3.5.9
         with:
           BRANCH: guia-ejs
-          FOLDER: guia
+          FOLDER: guia/build
           SSH: true
-          CLEAN: true
-          CLEAN_EXCLUDE: '["guia.pdf"]'
