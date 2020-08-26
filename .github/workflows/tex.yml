@@ -19,3 +19,5 @@ jobs:
           BRANCH: guia-ejs
           FOLDER: guia
           SSH: true
+          CLEAN: true
+          CLEAN_EXCLUDE: '["guia.pdf"]'
