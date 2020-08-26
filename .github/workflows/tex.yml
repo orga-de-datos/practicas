@@ -9,7 +9,6 @@ jobs:
         uses: xu-cheng/latex-action@v2
         with:
           root_file: guia/guia.tex
-          latexmk_use_xelatex: true
       - name: Install SSH Client 🔑
         uses: webfactory/ssh-agent@v0.2.0
         with:
