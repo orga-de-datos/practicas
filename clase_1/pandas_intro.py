@@ -189,3 +189,4 @@ df.groupby("Race").agg(
         'Alignment': perc_good,
     }
 ).head(20)
+# -
