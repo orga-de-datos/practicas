@@ -1,0 +1,38 @@
+\documentclass{article}
+\usepackage[table]{xcolor}
+\usepackage{amsmath}
+\usepackage{braket}
+\usepackage{hyperref}
+\usepackage[shortlabels]{enumitem}
+
+\renewcommand{\emptyset}{\text{\O}}
+\renewcommand{\thesubsection}{\thesection.\alph{subsection}}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=blue,
+}
+
+\title{Guia de Ejercicios}
+
+\author{75.06 - Organización de Datos}
+
+\date{v2020.08}
+
+\begin{document}
+
+\maketitle
+
+\section{Ej 1}
+Descargar el \href{https://gist.githubusercontent.com/CrossNox/6ea7fedb55bfb511449ba67d47d8e071/raw/3158919a26833fc8f2f3170b0e8a4d6f6cf09b8e/iris.csv}{iris dataset} como csv usando \texttt{pandas}.
+
+\begin{enumerate}[a)]
+\item Ver la cantidad de filas.
+\item Ver los tipos de cada columna.
+\item Ver los valores únicos para la columna \texttt{especie}
+\item Calcular el promedio de cada columna (aquellas columnas donde tenga sentido).
+\item Ver la cantidad de filas para cada valor único de la columna \texttt{especie}
+\end{enumerate}
+\end{document}
