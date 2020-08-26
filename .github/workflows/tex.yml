@@ -5,15 +5,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - run: cd guia
       - name: Compilar guía
         uses: xu-cheng/latex-action@v2
         with:
-          root_file: guia/guia.tex
+          root_file: guia.tex
       - run: |
-          mkdir guia/build
-          ls
-          ls guia
-          cp guia.pdf guia/build/guia.pdf
+          mkdir build
+          cp guia.pdf build/guia.pdf
       - name: Install SSH Client 🔑
         uses: webfactory/ssh-agent@v0.2.0
         with:
@@ -22,5 +21,5 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@3.5.9
         with:
           BRANCH: guia-ejs
-          FOLDER: guia/build
+          FOLDER: build
           SSH: true
