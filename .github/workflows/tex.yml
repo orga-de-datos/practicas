@@ -11,8 +11,9 @@ jobs:
           root_file: guia/guia.tex
       - run: |
           mkdir guia/build
+          ls
           ls guia
-          cp guia/guia.pdf guia/build/guia.pdf
+          cp guia.pdf guia/build/guia.pdf
       - name: Install SSH Client 🔑
         uses: webfactory/ssh-agent@v0.2.0
         with:
