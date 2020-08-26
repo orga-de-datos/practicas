@@ -1,0 +1,4 @@
+black==19.10b0
+isort==v4.3.21
+jupytext
+pre-commit
