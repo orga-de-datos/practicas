@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass{report}
 \usepackage[table]{xcolor}
 \usepackage{amsmath}
 \usepackage{braket}
@@ -25,8 +25,12 @@
 
 \maketitle
 
-\section{Ej 1}
-Descargar el \href{https://gist.githubusercontent.com/CrossNox/6ea7fedb55bfb511449ba67d47d8e071/raw/3158919a26833fc8f2f3170b0e8a4d6f6cf09b8e/iris.csv}{iris dataset} como csv usando \texttt{pandas}.
+\tableofcontents{}
+
+\chapter{Pandas}
+
+\section{Ejercicio 1}
+Cargar el \href{https://gist.githubusercontent.com/CrossNox/6ea7fedb55bfb511449ba67d47d8e071/raw/3158919a26833fc8f2f3170b0e8a4d6f6cf09b8e/iris.csv}{iris dataset} como csv usando \texttt{pandas}.
 
 \begin{enumerate}[a)]
 \item Ver la cantidad de filas.
@@ -34,5 +38,16 @@ Descargar el \href{https://gist.githubusercontent.com/CrossNox/6ea7fedb55bfb5114
 \item Ver los valores únicos para la columna \texttt{especie}
 \item Calcular el promedio de cada columna (aquellas columnas donde tenga sentido).
 \item Ver la cantidad de filas para cada valor único de la columna \texttt{especie}
+\item ¿Cuanto es el máximo del largo de los sépalos? ¿Y el mínimo?
+\item Calcular los mínimos, máximos y medias de las columnas numericas por especie.
 \end{enumerate}
+
+\section{Ejercicio 2}
+En \href{https://github.com/woodnathan/MarioKart8-Stats}{este repo} hay datasets sobre los stats de los personajes, vehículos, alas y neumáticos del Mario Kart 8. Responder, utilizando estos datasets, las siguientes preguntas.
+
+\begin{enumerate}[a)]
+\item ¿Cuales son los personajes con mejor stat de velocidad?
+\item ¿Cuantas posibles combinaciones de personaje-vehiculo-neumaticos-ala se pueden armar?
+\end{enumerate}
+
 \end{document}
