@@ -7,9 +7,9 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.2
+#       jupytext_version: 1.5.1
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (venv)
 #     language: python
 #     name: python3
 # ---
@@ -29,14 +29,28 @@
 #
 # Para comenzar, vamos a crear nuestro primer DataFrame a partir de un archivo CSV que contiene un [dataset sobre superhéroes](https://www.kaggle.com/claudiodavi/superhero-set/home).
 
+from collections import Counter
+
 # +
 import pandas as pd
 
 df = pd.read_csv('../datasets/superheroes.csv')
 # -
 
+# También podemos crear dataframes desde listas, diccionarios y otras estructuras.
+
+# ## Inspeccionando un dataframe
+
 # vemos los primeros elementos
 df.head()
+
+df.tail()
+
+df.sample()
+
+df.sample(10)
+
+# ## Información sobre un dataframe
 
 # descripción de cada columna e información general del dataframe
 df.info()
@@ -103,6 +117,12 @@ condition.head()
 df[df['Skin color'] == 'blue']
 
 
+# ## Múltiples condiciones
+
+df[(df['Skin color'] == 'blue') & (df['Publisher'] == 'Marvel Comics')]
+
+df[(df['Skin color'] == 'blue') | (df['Skin color'] == 'green')].sample(10)
+
 # # Transformaciones de datos
 
 # ## Apply
@@ -119,6 +139,8 @@ def rate_height(height):
 
 altos = df['Height'].apply(rate_height)
 altos
+
+# Aprovechamos a ver como asignar una nueva columna
 
 df['Tallness'] = df['Height'].apply(rate_height)
 
@@ -165,7 +187,27 @@ same_skin_color[
     & (same_skin_color.Race_x > same_skin_color.Race_y)
 ]
 
-# # Groupby
+# ### Concatenar tablas
+
+df_1 = pd.DataFrame({'col_1': range(1, 10), 'col_2': range(1, 10)})
+df_2 = pd.DataFrame({'col_1': range(11, 20), 'col_2': range(11, 20)})
+
+df_1.pipe(len)
+
+df_2.pipe(len)
+
+df_1.head()
+
+df_2.head()
+
+df_concat = pd.concat([df_1, df_2])
+df_concat
+
+df_concat.pipe(len)
+
+# # Agrupaciones
+
+# ## Groupby
 
 # queremos ver los nombres
 df = df.reset_index()
@@ -189,3 +231,56 @@ df.groupby("Race").agg(
         'Alignment': perc_good,
     }
 ).head(20)
+# -
+
+# Algunas agregaciones tienen métodos para realizarlos directamente
+
+df.Race.value_counts()
+
+# ## Pivoting
+
+
+pd.pivot_table(
+    df,
+    index='Race',
+    columns=['Gender'],
+    values=['Height', 'Weight', 'Alignment'],
+    aggfunc={
+        'Height': 'mean',
+        'Weight': 'mean',
+        'Alignment': lambda x: Counter(x).most_common(1)[0][0],
+    },
+)
+
+# # Sobre vistas y columnas
+
+df_marvel = df[df.Publisher == 'Marvel Comics']
+
+
+# +
+def alignment_to_numeric(alignment):
+    return {'bad': -1, 'good': 1, 'neutral': 0}[alignment]
+
+
+df_marvel['numeric_alineation'] = df_marvel.Alignment.apply(alignment_to_numeric)
+# -
+
+df_marvel.loc[:, 'numeric_alineation'] = df_marvel.Alignment.apply(alignment_to_numeric)
+
+df_marvel.head()
+
+df_marvel.numeric_alineation.mean()
+
+# # Ordenando
+
+df.sort_index()
+
+df.sort_values(by=['Height', 'Weight'], ascending=False)
+
+# # Operaciones de strings
+
+df.name.str.lower()
+
+# # Cómo seguir
+#
+# La documentación oficial es excelente. Un buen repaso es [10 minutes to pandas](https://pandas.pydata.org/pandas-docs/stable/user_guide/10min.html) y para profundizar, los links de la izquierda.
