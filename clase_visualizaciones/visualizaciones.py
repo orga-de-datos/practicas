@@ -15,17 +15,10 @@
 # ---
 
 import pandas as pd
-import seaborn as sns
 from matplotlib import pyplot as plt
 
-# +
-from pandas_profiling import ProfileReport
-
 # # Descargamos la data
-#
 # Vamos a utilizar los datos de la [encuesta de sueldos 2020.02](https://sysarmy.com/blog/posts/resultados-de-la-encuesta-de-sueldos-2020-2/) de [sysarmy](https://sysarmy.com/es/).
-
-GSPREADHSEET_DOWNLOAD_URL(gid=1980145505)
 
 # +
 GSPREADHSEET_DOWNLOAD_URL = (
@@ -33,9 +26,9 @@ GSPREADHSEET_DOWNLOAD_URL = (
 )
 
 SYSARMY_2020_2_GID = '1FxzaPoS0AkN8E_-aeobpr7FHAAy8U7vWcGE7PY4kJmQ'
+# -
 
 df = pd.read_csv(GSPREADHSEET_DOWNLOAD_URL(gid=SYSARMY_2020_2_GID), skiprows=9)
-# -
 
 # ## Una pequeña preview
 
@@ -80,6 +73,8 @@ plt.show()
 
 # # Seaborn
 
+
+import seaborn as sns
 
 sns.set()
 
@@ -128,6 +123,9 @@ sns.lineplot(
 
 # # Pandas profiling
 
+
+# +
+from pandas_profiling import ProfileReport
 
 report = ProfileReport(
     df, title='Encuesta de sueldos sysarmy 2020.02', explorative=True, lazy=False
