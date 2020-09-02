@@ -17,6 +17,11 @@ Para ver mejor el árbol de contenidos:
 jupyter labextension install @jupyterlab/toc
 ```
 
+## Jupyter widgets
+```bash
+jupyter labextension install @jupyter-widgets/jupyterlab-manager
+```
+
 ## Levantar jupyter lab
 ```bash
 virtualenv -p python3 venv
