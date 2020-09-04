@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.2
+#       jupytext_version: 1.6.0
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -38,9 +38,33 @@ dataset = dataset.replace(-99, np.nan)
 
 # # Conversion
 
+# Vamos a ver que podemos mapear texto en enteros
+
+from sklearn.preprocessing import OneHotEncoder,LabelEncoder
+le = LabelEncoder()
+le.fit_transform(dataset['Eye color'].astype(str))
+
+# Tambien podemos Aplicarle One Hot Encoding a Texto
+
 # +
-# TODO
+from sklearn.preprocessing import LabelEncoder
+
+ohe = OneHotEncoder()
+ohe.fit_transform(dataset['Eye color'].astype(str).values.reshape(-1, 1))[:2].todense()
 # -
+
+# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.KBinsDiscretizer.html#sklearn.preprocessing.KBinsDiscretizer   
+# https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.FeatureHasher.html
+
+
+
+# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.Normalizer.html#sklearn.preprocessing.Normalizer   
+# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.MinMaxScaler.html#sklearn.preprocessing.MinMaxScaler   
+# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.RobustScaler.html#sklearn.preprocessing.RobustScaler   
+
+# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.PolynomialFeatures.html#sklearn.preprocessing.PolynomialFeatures   
+
+
 
 # # Missings
 
@@ -150,3 +174,5 @@ def compare_median_mean_mode_imputers(df, name_col):
 display(compare_median_mean_mode(dataset, 'Weight'))
 display(compare_median_mean_mode(dataset, 'Height'))
 # -
+
+
