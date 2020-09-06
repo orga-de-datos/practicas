@@ -1,3 +1,4 @@
 jupyterlab
 pandas
+pandas-profiling
 sklearn
