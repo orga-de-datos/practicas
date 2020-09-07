@@ -16,7 +16,9 @@
 
 import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 from pandas_profiling import ProfileReport
+from sklearn.feature_extraction import FeatureHasher
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
@@ -26,6 +28,10 @@ dataset = pd.read_csv('../datasets/superheroes.csv')
 # Usando pandas profiling
 report = ProfileReport(dataset, title='superhéroes', minimal=True)
 report.to_notebook_iframe()
+
+dataset.head()
+
+dataset.tail()
 
 # > Se observan nulos codificados con guión, los convertimos
 
@@ -83,16 +89,53 @@ eye_color_dummies = pd.get_dummies(dataset['Eye color'].astype(str))
 display(eye_color_dummies.head(2))
 print(eye_color_dummies.shape)
 
-# >Para evitar problemas de colinealidad se debe excluir una categoría del set (la ausencia de todas - vector de 0s - indica la presencia de la categoría faltante)
+# Para evitar problemas de colinealidad se debe excluir una categoría del set (la ausencia de todas - vector de 0s - indica la presencia de la categoría faltante) <br>
+# La función de pandas ya viene con una parámetro para esto:
 
-# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.KBinsDiscretizer.html#sklearn.preprocessing.KBinsDiscretizer
+eye_color_dummies = pd.get_dummies(dataset['Eye color'].astype(str), drop_first=True)
+display(eye_color_dummies.head(2))
+print(eye_color_dummies.shape)
+
+# ## Categóricas de alta cardinalidad
+
+# Que pasa con la variable *Race* que tiene mas de 60 valores, vamos a crear 60 variables? <br>
+# Veamos la distribución de los mismos
+
+# +
+unique_races = dataset['Race'].value_counts(dropna=False)
+print("count : ", unique_races.shape[0])
+display(unique_races.head(10))
+
+s = sum(unique_races.values)
+h = unique_races.values / s
+c_sum = np.cumsum(h)
+plt.plot(c_sum, label="Distribución de la suma acumulativa de razas")
+plt.grid()
+plt.legend()
+# -
+
+# >Con el top 10 cubrimos mas del 85% de la data
+
+# +
 # https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.FeatureHasher.html
+fh = FeatureHasher(n_features=10, input_type='string')
+hashed_features = fh.fit_transform(
+    dataset['Race'].astype(str).values.reshape(-1, 1)
+).todense()
+
+pd.DataFrame(hashed_features).head(10)
+# -
+
+fh.inp
+
+dataset['Race'].head(10)
 
 # ## Numéricas
 
 # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.Normalizer.html#sklearn.preprocessing.Normalizer
 # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.MinMaxScaler.html#sklearn.preprocessing.MinMaxScaler
 # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.RobustScaler.html#sklearn.preprocessing.RobustScaler
+# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.KBinsDiscretizer.html#sklearn.preprocessing.KBinsDiscretizer
 
 # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.PolynomialFeatures.html#sklearn.preprocessing.PolynomialFeatures
 
