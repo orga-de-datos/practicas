@@ -1,3 +1,6 @@
 dtreeviz
+graphviz
+ipywidgets
 jupyterlab
 pandas
+scikit-learn
