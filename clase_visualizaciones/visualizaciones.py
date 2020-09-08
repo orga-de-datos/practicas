@@ -46,6 +46,8 @@ pd.options.display.max_columns = None
 df.head()
 
 # # Pandas plotting
+#
+#
 
 # ## Pie chart
 
@@ -428,6 +430,14 @@ plt.show()
 sns.palplot(sns.color_palette("husl", 12))
 plt.show()
 # -
+
+# ## Referencias
+#
+# - [Documentación de seaborn](http://seaborn.pydata.org/tutorial/color_palettes.html)
+# - [Diverging Color Maps for Scientific Visualization - Kenneth Moreland](https://cfwebprod.sandia.gov/cfdocs/CompResearch/docs/ColorMapsExpanded.pdf)
+# - [XKCD color survey](https://blog.xkcd.com/2010/05/03/color-survey-results/)
+# - [Subtleties of colors series](https://earthobservatory.nasa.gov/blogs/elegantfigures/2013/08/05/subtleties-of-color-part-1-of-6/)
+# - [Documentación de matplotlib](https://matplotlib.org/tutorials/colors/colormaps.html)
 
 # # Pandas profiling
 
