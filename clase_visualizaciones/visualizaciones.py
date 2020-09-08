@@ -7,15 +7,25 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.2
+#       jupytext_version: 1.5.1
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (venv)
 #     language: python
 #     name: python3
 # ---
 
 import pandas as pd
 from matplotlib import pyplot as plt
+
+# # Intro
+#
+# La visualización de datos es el proceso de proveer una representacion visual de datos. En esta clase revisaremos algunas de las bibliotecas mas comunes para este proposito dentro del ecosistema de python y al final de la misma tendremos herramientas para comunicar datos de una manera efectiva.
+#
+# ## Bibliotecas
+# - Módulo de plotting de pandas
+# - Pyplot
+# - Seaborn
+# - Pandas profiling
 
 # # Descargamos la data
 # Vamos a utilizar los datos de la [encuesta de sueldos 2020.02](https://sysarmy.com/blog/posts/resultados-de-la-encuesta-de-sueldos-2020-2/) de [sysarmy](https://sysarmy.com/es/).
@@ -354,6 +364,70 @@ sns.regplot(
 sns.lineplot(
     data=df, x='Años de experiencia', y='Salario mensual BRUTO (en tu moneda local)'
 )
+
+# # Paletas de colores
+#
+# La elección de colores no es una decisión menor. Permite el mapeo de números a una representación visual y distinción entre grupos distintos. Hay mucha literatura sobre los criterios que debe cumplir una paleta de colores, algunos criterios relevantes son:
+# - que no sean sensitivas a deficiencias visuales
+# - el ordenamiento de los colores debe ser el mismo para todas las personas intuitivamente
+# - la interpolación percibida debe corresponderse con el mapa escalar subyacente
+
+# ## Taxonomía de paletas
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+sns.set()
+
+# ### Cualitativas
+# Se usan para representar colecciones de clases discretas sin orden. Los colores no tienen un ordenamiento, por lo tanto no s on apropiados para mapearse a un valor escalar.
+
+sns.palplot(sns.color_palette('pastel'))
+plt.show()
+sns.palplot(sns.color_palette('colorblind'))
+plt.show()
+sns.palplot(sns.color_palette('muted'))
+plt.show()
+
+# ### Secuenciales
+# Son casi monocromaticas, van de un color altamente saturado hacia distintos niveles de saturación más baja. Se suele aumentar la luminancia a medida que decrece la saturación, de modo que la paleta termina en colores cercanos al blanco. Se usa para representar información que tiene un ordenamiento.
+
+sns.palplot(sns.color_palette('Blues'))
+plt.show()
+sns.palplot(sns.color_palette('Blues_r'))
+plt.show()
+sns.palplot(sns.color_palette('Blues_d'))
+plt.show()
+
+# #### Cubehelix
+# Es un sistema de paletas de colores que tienen un crecimiento/decrecimiento lineal en brillo y alguna variacion de tono. Lo cual implica que **se preserva la información al convertirse a blanco y negro**. Es ideal para **imprimir**.
+
+sns.palplot(sns.color_palette("cubehelix", 12))
+plt.show()
+
+# ### Divergentes
+# Tienen dos componentes principales de color, transicionando entre ambos pasando por un color poco saturado (blanco, amarillo). Se suelen usar para representar vvalores esacalares con un valor significativo cerca de la mediana.
+#
+# Es importante tratar de no usar rojo y verde.
+
+sns.palplot(sns.color_palette('coolwarm', 7))
+plt.show()
+sns.palplot(sns.color_palette('RdBu_r', 7))
+plt.show()
+sns.palplot(sns.color_palette('BrBG', 7))
+plt.show()
+
+# ### Cíclicas
+# Tienen dos componentes principales de color, que se encuentran en el medio y extremos en un color poco saturado. Se usan para valores que ciclan.
+
+# +
+sns.palplot(sns.color_palette("hls", 12))
+plt.show()
+
+# brillo percibido mas uniformemente
+sns.palplot(sns.color_palette("husl", 12))
+plt.show()
+# -
 
 # # Pandas profiling
 
