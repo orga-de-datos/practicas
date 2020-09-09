@@ -538,170 +538,17 @@ axes[1].set_ylabel("Cantidad")
 plt.show()
 
 # +
-# ZZZZZZ
-# -
-
-plt.hist()
-
 plt.figure(dpi=150)
-df['¿Contribuís a proyectos open source?'].value_counts()[
-    ["Sí", "No"]
-].sort_index().plot(kind='pie', autopct='%1.0f%%', colors=['#AEB8AF', "#4AD172"])
-plt.show()
 
-plt.figure(dpi=150)
-df['¿Contribuís a proyectos open source?'].value_counts()[
-    ["Sí", "No"]
-].sort_index().plot(kind='pie', autopct='%1.0f%%', colors=['#AEB8AF', "#4AD172"])
-plt.title('¿Contribuís a proyectos open source?')
-plt.ylabel("")
-plt.show()
+plt.hist(df['¿De qué % fue el ajuste total?'], bins=30, label="Ajuste %")
 
-
-# ## Barplot
-
-plt.figure(dpi=150)
-df['¿Qué SO usás en tu laptop/PC para trabajar?'].value_counts().sort_values(
-    ascending=False
-).plot(kind='bar', color="dimgrey")
-plt.ylabel("Cantidad")
-plt.xlabel("Sistema operativo")
-plt.title('¿Qué SO usás en tu laptop/PC para trabajar?')
-plt.show()
-
-# ## KDE plot
-
-column = df['Salario mensual NETO (en tu moneda local)']
-plt.figure(dpi=150)
-column.plot(kind='kde', color="dimgrey", xlim=[column.min(), column.max()])
-plt.title("Distribución del salario mensual NETO")
-plt.xlabel("Salario mensual NETO")
-plt.show()
-
-column = df['Salario mensual NETO (en tu moneda local)']
-plt.figure(dpi=150)
-column.plot(kind='kde', color="dimgrey", xlim=[column.min(), column.max()])
-plt.title("Distribución del salario mensual NETO")
-plt.xlabel("Salario mensual NETO")
-plt.ylabel("")
-plt.show()
-
-# Queremos sacar el eje Y por completo, una de las funciones de matplotlib es plt.yticks lo que nos permite setear dos listas:
-# * La primer lista indicando los valores en donde queremos texto (en el caso anterior es 0, 2, 4, etc...)
-# * La segunda indicando el texto que queremos en esos valores
-
-column = df['Salario mensual NETO (en tu moneda local)']
-plt.figure(dpi=150)
-column.plot(kind='kde', color="dimgrey", xlim=[column.min(), column.max()])
-plt.title("Distribución del salario mensual NETO")
-plt.xlabel("Salario mensual NETO")
-plt.ylabel("")
-plt.yticks([0], ["cero"])
-plt.show()
-
-# Si dejamos ambas listas vacias nos deshacemos del eje y
-
-column = df['Salario mensual NETO (en tu moneda local)']
-plt.figure(dpi=150)
-column.plot(kind='kde', color="dimgrey", xlim=[column.min(), column.max()])
-plt.title("Distribución del salario mensual NETO")
-plt.xlabel("Salario mensual NETO")
-plt.ylabel("")
-plt.yticks([], [])
-plt.show()
-
-# Observamos que alguien en la encuesta puso que ganaba 2 millones, será por estan en moneda de otro país? Nos quedamos solo con Argentina
-
-column = df[df["Estoy trabajando en"] == "Argentina"][
-    'Salario mensual NETO (en tu moneda local)'
-]
-plt.figure(dpi=150)
-column.plot(kind='kde', color="dimgrey", xlim=[column.min(), column.max()])
-plt.title("Distribución del salario mensual NETO")
-plt.xlabel("Salario mensual NETO")
-plt.ylabel("")
-plt.yticks([], [])
-plt.show()
-
-# Esto no soluciona el problema, al parecer a alguien le parecio gracioso decir que ganaba 2 millones, vamos a limitar el salario neto a 500mil
-
-column = df[df["Estoy trabajando en"] == "Argentina"][
-    'Salario mensual NETO (en tu moneda local)'
-].where(lambda x: x < 500000)
-plt.figure(dpi=150)
-column.plot(kind='kde', color="dimgrey", xlim=[column.min(), column.max()])
-plt.title("Distribución del salario mensual NETO")
-plt.xlabel("Salario mensual NETO")
-plt.ylabel("")
-plt.yticks([], [])
-plt.show()
-
-# ## Scatter plot
-
-plt.figure(dpi=150)
-df[df["Estoy trabajando en"] == "Argentina"].plot(
-    'Salario mensual NETO (en tu moneda local)',
-    'Salario mensual BRUTO (en tu moneda local)',
-    kind='scatter',
-    ax=plt.gca(),
-    color="dimgrey",
-)
-plt.title("Comparación del salario NETO y BRUTO\npara Argentina")
-plt.xlabel("Salario NETO")
-plt.ylabel("Salario BRUTO")
-plt.show()
-
-plt.figure(dpi=150)
-df[
-    (df["Estoy trabajando en"] == "Argentina")
-    & (df['Salario mensual NETO (en tu moneda local)'] < 500000)
-    & (df['Salario mensual BRUTO (en tu moneda local)'] < 500000)
-].plot(
-    'Salario mensual NETO (en tu moneda local)',
-    'Salario mensual BRUTO (en tu moneda local)',
-    kind='scatter',
-    ax=plt.gca(),
-    color="dimgrey",
-)
-plt.title("Comparación del salario NETO y BRUTO\npara Argentina")
-plt.xlabel("Salario NETO")
-plt.ylabel("Salario BRUTO")
-plt.show()
-
-# ## Histograma
-
-plt.figure(dpi=150)
-df['¿De qué % fue el ajuste total?'].plot(kind='hist', color="dimgrey")
-plt.title("Distribución del ajuste porcentual\npor inflación para 2019")
-plt.ylabel("Frecuencia")
-plt.xlabel("% del ajuste de inflación de 2019")
-plt.show()
-
-plt.figure(dpi=150)
-df['¿De qué % fue el ajuste total?'].plot(kind='hist', bins=30, color="dimgrey")
-plt.title("Distribución del ajuste porcentual\npor inflación para 2019")
-plt.ylabel("Frecuencia")
-plt.xlabel("% del ajuste de inflación de 2019")
-plt.show()
-
-# Matplotlib nos permite graficar plots uno encima del otro, usa la misma variable global
-
-plt.figure(dpi=150)
-df['¿De qué % fue el ajuste total?'].plot(kind='hist', bins=30, color="dimgrey")
-plt.title("Distribución del ajuste porcentual\npor inflación para 2019")
-plt.ylabel("Frecuencia")
-plt.xlabel("% del ajuste de inflación de 2019")
-plt.axvline(x=40, color="darkred")
-plt.show()
-
-plt.figure(dpi=150)
-df['¿De qué % fue el ajuste total?'].plot(kind='hist', bins=30, color="dimgrey")
 plt.title("Distribución del ajuste porcentual\npor inflación para 2019")
 plt.ylabel("Frecuencia")
 plt.xlabel("% del ajuste de inflación de 2019")
 plt.axvline(x=53.8, color="darkred", label="Inflación según INDEC")
 plt.legend()
 plt.show()
+# -
 
 # # Seaborn
 
@@ -710,7 +557,7 @@ import seaborn as sns
 
 sns.set()
 
-# Seaborn tambien usa matplotlib al igual que pandas, por lo que todas las funciones de matplotlib tambien le sirven
+# [Seaborn](http://seaborn.pydata.org) tambien usa matplotlib al igual que pandas, por lo que todas las funciones de matplotlib tambien le sirven
 
 # ## Distribution plots
 
@@ -874,6 +721,23 @@ plt.show()
 sns.palplot(sns.color_palette("husl", 12))
 plt.show()
 # -
+
+# ## Algunos casos prácticos
+
+plt.figure(dpi=150)
+df['¿Contribuís a proyectos open source?'].value_counts()[
+    ["Sí", "No"]
+].sort_index().plot(kind='pie', autopct='%1.0f%%', colors=['#AEB8AF', "#4AD172"])
+plt.show()
+
+plt.figure(dpi=150)
+df['¿Contribuís a proyectos open source?'].value_counts()[
+    ["Sí", "No"]
+].sort_index().plot(kind='pie', autopct='%1.0f%%', colors=['#AEB8AF', "#4AD172"])
+plt.title('¿Contribuís a proyectos open source?')
+plt.ylabel("")
+plt.show()
+
 
 # ## Referencias
 #
