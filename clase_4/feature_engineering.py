@@ -16,11 +16,20 @@
 
 import numpy as np
 import pandas as pd
+import plotly.express as px
 from matplotlib import pyplot as plt
 from pandas_profiling import ProfileReport
 from sklearn.feature_extraction import FeatureHasher
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.preprocessing import (
+    LabelEncoder,
+    MinMaxScaler,
+    Normalizer,
+    OneHotEncoder,
+    PowerTransformer,
+    RobustScaler,
+    StandardScaler,
+)
 
 # leemos el dataset a explorar
 dataset = pd.read_csv('../datasets/superheroes.csv')
@@ -63,12 +72,18 @@ le = LabelEncoder()
 int_values = le.fit_transform(dataset['Eye color'].astype(str))
 
 # Mostramos primeros 15 valores
-int_values[:15]
-
-# Inversión
-le.inverse_transform(int_values)[:15]
+pd.concat(
+    [
+        pd.Series(int_values[:15], name='encoded'),
+        # inversión de la transformación
+        pd.Series(le.inverse_transform(int_values)[:15], name='reverted'),
+    ],
+    axis=1,
+)
 
 # >Observamos que los nulos se codifican con un valor entero propio
+
+# >Recordar que esta transformación es conveniente en categóricas ordinales (no es el caso del ejemplo) ya que asigna un orden a los elementos
 
 # ### One Hot Encoding
 
@@ -95,6 +110,13 @@ print(eye_color_dummies.shape)
 eye_color_dummies = pd.get_dummies(dataset['Eye color'].astype(str), drop_first=True)
 display(eye_color_dummies.head(2))
 print(eye_color_dummies.shape)
+
+# La necesidad de eliminar una columna se más claramente para una categórica de dos valores, veamos el caso de *Gender*
+
+gender_dummies = pd.get_dummies(dataset['Gender'])
+display(gender_dummies.tail(5))
+
+# >Con una sola columna tenemos toda la información necesaria
 
 # ## Categóricas de alta cardinalidad
 
@@ -123,21 +145,76 @@ hashed_features = fh.fit_transform(
     dataset['Race'].astype(str).values.reshape(-1, 1)
 ).todense()
 
-pd.DataFrame(hashed_features).head(10)
+pd.DataFrame(hashed_features).add_prefix('Race_').head(10).join(
+    dataset['Race'].head(10)
+)
 # -
-
-fh.inp
-
-dataset['Race'].head(10)
 
 # ## Numéricas
 
-# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.Normalizer.html#sklearn.preprocessing.Normalizer
-# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.MinMaxScaler.html#sklearn.preprocessing.MinMaxScaler
-# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.RobustScaler.html#sklearn.preprocessing.RobustScaler
-# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.KBinsDiscretizer.html#sklearn.preprocessing.KBinsDiscretizer
+# En el set tenemos dos variables numéricas, *Weight* y *Height* veamos su distribución
 
-# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.PolynomialFeatures.html#sklearn.preprocessing.PolynomialFeatures
+# +
+df = dataset[dataset.Alignment != 'neutral']
+
+
+def plot_weight_vs_height(df, title=""):
+    fig = px.scatter(
+        df.dropna(),
+        x="Weight",
+        y="Height",
+        color="Alignment",
+        marginal_x="box",
+        marginal_y="box",
+        hover_name='name',
+        title="Peso vs altura " + title,
+    )
+    fig.update_layout(autosize=False, width=1000)
+    fig.show()
+    display(df[['Weight', 'Height']].describe())
+
+
+plot_weight_vs_height(
+    df[['name', 'Weight', 'Height', 'Alignment']], "- Valores originales"
+)
+
+
+# -
+
+# >Se observa una dispersión mucho mas grande de valores en el peso que en la altura.
+
+# Aparece el concepto de *Scaler*, una transformación por la cual escalamos a un determinado rango/distribución, veamos distintas implementaciones:
+
+# +
+def get_fitted_scaler(cols, scaler_instance):
+    '''Devuelve el scaler entrenado para las columnas informadas'''
+    # fit del scaler
+    values = cols.values
+    scaler_instance.fit(values)
+    return scaler_instance
+
+
+def transform(df, cols_to_transform, scaler):
+    scaler = get_fitted_scaler(df[cols_to_transform].dropna(), scaler)
+    values = scaler.transform(df[cols_to_transform].dropna())
+    return df[['name', 'Alignment']].join(
+        pd.DataFrame(values, columns=cols_to_transform)
+    )
+
+
+cols_to_transform = ['Weight', 'Height']
+
+scalers = [
+    StandardScaler(),  # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html
+    MinMaxScaler(),  # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.MinMaxScaler.html
+    RobustScaler(),  # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.RobustScaler.html
+    PowerTransformer(),  # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.PowerTransformer.html
+    Normalizer(),  # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.Normalizer.html
+]
+for i in scalers:
+    plot_weight_vs_height(transform(df, cols_to_transform, i), i.__class__.__name__)
+
+# -
 
 
 # # Missings
