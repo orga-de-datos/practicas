@@ -155,7 +155,7 @@ pd.DataFrame(hashed_features).add_prefix('Race_').head(10).join(
 # En el set tenemos dos variables numéricas, *Weight* y *Height* veamos su distribución
 
 # +
-df = dataset[dataset.Alignment != 'neutral']
+df = dataset[dataset.Alignment != 'neutral'].reset_index(drop=True)
 
 
 def plot_weight_vs_height(df, title=""):
@@ -182,6 +182,8 @@ plot_weight_vs_height(
 # -
 
 # >Se observa una dispersión mucho mas grande de valores en el peso que en la altura.
+
+# ### Scalers
 
 # Aparece el concepto de *Scaler*, una transformación por la cual escalamos a un determinado rango/distribución, veamos distintas implementaciones:
 
@@ -216,6 +218,24 @@ for i in scalers:
 
 # -
 
+
+# ### Discretización
+
+# Tranformación por la cual convertimos una variable continua en categórica
+
+df = dataset['Weight'].dropna().reset_index(drop=True)
+X = df.values.reshape(-1, 1)
+enc = KBinsDiscretizer(n_bins=4, encode='ordinal')
+X_binned = enc.fit_transform(X)
+result = pd.concat([df, pd.DataFrame(X_binned, columns=['Weight_bins'])], axis=1)
+display(result.head(5))
+print("Límites bins:", enc.bin_edges_)
+
+# mismo ejemplo con pandas
+result, bins = pd.qcut(df, 4, labels=[0, 1, 2, 3], retbins=True)
+result = pd.concat([df, pd.Series(result, name='Weight_bins')], axis=1)
+display(result.head(5))
+print("Límites bins:", bins)
 
 # # Missings
 
