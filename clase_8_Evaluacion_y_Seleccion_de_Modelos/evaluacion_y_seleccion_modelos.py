@@ -19,6 +19,8 @@ from sklearn.preprocessing import OneHotEncoder
 import pandas as pd
 
 
+# !echo{USER}
+
 # +
 # # !pip install kaggle
 # # !mkdir /Users/jcollinet/.kaggle
@@ -138,20 +140,33 @@ accuracy_score(clf.predict(X), y)
 y.value_counts(True)
 
 # ## Recall
+#
+# https://scikit-learn.org/stable/modules/generated/sklearn.metrics.recall_score.html
+#
 # Recall = TP / (TP + FN)  
-# En criollo: cuantos consigue "aggarrar"
+# TP: True Positives , Cuando el modelo dice que es positivo y efectivamente es positivo  
+# FN: False Negatives, Cuando el modelo dice que es negativo y le pifea porque en realidad era positivo  
+#
+# En criollo: cuantos consigue "agarrar"
 
 from sklearn.metrics import recall_score
-recall_score(clf.predict(X), y)
+recall_score(clf.predict(X), y,  pos_label=0)
 
 # ## Precision
+#
+# https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_score.html
+#
 # Precision = TP / (TP + FP)   
+# FP: False Positives, Cuando el modelo dice que es positivo, pero en realidad es negativo 
+#
 # En criollo: de los que aggarró, cuan puros son?
 
 from sklearn.metrics import precision_score
-precision_score(clf.predict(X), y,  pos_label=0), precision_score(clf.predict(X), y, pos_label=1) 
+precision_score(clf.predict(X), y)
 
 # ## Score F1
+#
+# https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html
 #
 # F1 = (2 x Recall X Precision) / (Recall + Precision)   
 # En criollo: un numero que me junta otras dos metricas, me es mas facil leer este (LOL)
@@ -166,11 +181,20 @@ f1_score(clf.predict(X), y)
 # -
 
 # ## Herramienta todo-en-uno de sklearn
+#
+# https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html
+#
+# Note that in binary classification, recall of the positive class is also known as “sensitivity”; recall of the negative class is “specificity”.
+#
 
 from sklearn.metrics import classification_report
 print(classification_report(clf.predict(X), y))
 
+
+
 # ## ROC y AUC
+# https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html  
+# https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc.html#sphx-glr-auto-examples-model-selection-plot-roc-py
 
 # +
 import matplotlib.pyplot as plt
@@ -230,19 +254,121 @@ plot_confusion_matrix(clf.predict(X), y, {0: 'no fraude', 1:'te estafaron amigo'
 # -
 
 from sklearn.metrics import plot_confusion_matrix
-fig, ax = plt.subplots(figsize=(10, 10))
+fig, ax = plt.subplots(figsize=(15, 7))
 plt.grid(False)
 plot_confusion_matrix(clf, X, y, cmap=plt.cm.Blues, display_labels=['TODO PIOLA', 'ESTAFA'], ax=ax)
 
 # ## Evaluacion de calibracion
+#
+# muy interesante como explica las pecularidades de porque random forest nunca va a dar scores cercanos a 0 o a 1 
+# https://scikit-learn.org/stable/modules/calibration.html
+
+# +
+
+import matplotlib.pyplot as plt
+
+from sklearn import datasets
+from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import LinearSVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import brier_score_loss, precision_score, recall_score, f1_score
+from sklearn.calibration import CalibratedClassifierCV, calibration_curve
+from sklearn.model_selection import train_test_split
 
 
+# Create dataset of classification task with many redundant and few
+# informative features
+
+
+
+def plot_calibration_curve(est, X, y, name, fig_index=0):
+#     X, y = datasets.make_classification(n_samples=100000, n_features=20,
+#                                     n_informative=2, n_redundant=10,
+#                                     random_state=42)
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
+
+    """Plot calibration curve for est w/o and with calibration. """
+    # Calibrated with isotonic calibration
+    isotonic = CalibratedClassifierCV(est, method='isotonic')
+
+    # Calibrated with sigmoid calibration
+    sigmoid = CalibratedClassifierCV(est, method='sigmoid')
+
+    # Logistic regression with no calibration as baseline
+    lr = LogisticRegression(C=1.)
+
+    fig = plt.figure(fig_index, figsize=(17, 12))
+    ax1 = plt.subplot2grid((3, 1), (0, 0), rowspan=2)
+    ax2 = plt.subplot2grid((3, 1), (2, 0))
+
+    ax1.plot([0, 1], [0, 1], "k:", label="Perfectly calibrated")
+    for clf, name in [(lr, 'Logistic'),
+                      (est, name),
+                      (isotonic, name + ' + Isotonic'),
+                      (sigmoid, name + ' + Sigmoid')]:
+        clf.fit(X_train, y_train)
+        y_pred = clf.predict(X_test)
+        if hasattr(clf, "predict_proba"):
+            prob_pos = clf.predict_proba(X_test)[:, 1]
+        else:  # use decision function
+            prob_pos = clf.decision_function(X_test)
+            prob_pos = (prob_pos - prob_pos.min()) / (prob_pos.max() - prob_pos.min())
+
+        clf_score = brier_score_loss(y_test, prob_pos, pos_label=y.max())
+        print("%s:" % name)
+        print("\tBrier: %1.3f" % (clf_score))
+        print("\tPrecision: %1.3f" % precision_score(y_test, y_pred))
+        print("\tRecall: %1.3f" % recall_score(y_test, y_pred))
+        print("\tF1: %1.3f\n" % f1_score(y_test, y_pred))
+
+        fraction_of_positives, mean_predicted_value = calibration_curve(y_test, prob_pos, n_bins=10)
+
+        ax1.plot(mean_predicted_value, fraction_of_positives, "s-", label="%s (%1.3f)" % (name, clf_score))
+
+        ax2.hist(prob_pos, range=(0, 1), bins=10, label=name, histtype="step", lw=2)
+
+    ax1.set_ylabel("Fraction of positives")
+    ax1.set_ylim([-0.05, 1.05])
+    ax1.legend(loc="lower right")
+    ax1.set_title('Calibration plots  (reliability curve)')
+
+    ax2.set_xlabel("Mean predicted value")
+    ax2.set_ylabel("Count")
+    ax2.legend(loc="upper center", ncol=2)
+
+    plt.tight_layout()
+
+
+plot_calibration_curve(RandomForestClassifier(max_depth=2, random_state=0), X, y, "Random Forest", 1)
+
+plt.show()
+print('The x axis represents the average predicted probability in each bin. The y axis is the fraction of positives, i.e. the proportion of samples whose class is the positive class (in each bin).')
+# -
+
+# # Momento!!
+# En la teorica se dijo algo como que usar los mismos datos para sacar las metricas que los que usamos para entrenar 
+# es como subir una foto y darte like a vos mismo.  
+#
+#
+# no sirve?  
+#
+#
+# Bueno, no todo es blanco y negro, aplicar metricas al set de entrenamiento sirve para saber si el modelo puede aprender algo
+# o si ni siquiera puede adaptarse a los datos de entrenamiento.
+#
+# Para evaluar correctamente al modelo necesitamos dividir el set en 2 o 3 (como vimos en la teorica) y evaluar en los datos que NO fueron usados para entrenar.  
+# De esa manera podemos entender como funciona el modelo ante datos no vistos cuando entrenaba.
+#
+#
 
 # # 5) K Fold
 #
 # En base a lo que vimos en la teorica:
 # - Vamos a dividir al dataset en k partes.
 # - Entrenamos con k-1 y aplicamos las metricas anteriormente usadas en la parte restante.
+#
+# NOTA: hablamos de stratify para mantener la distribucion entre los cortes?
 
 # # 6) Grid Search y Random Search
 #
