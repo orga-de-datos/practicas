@@ -20,8 +20,10 @@ import plotly.express as px
 from matplotlib import pyplot as plt
 from pandas_profiling import ProfileReport
 from sklearn.feature_extraction import FeatureHasher
+from sklearn.feature_selection import VarianceThreshold
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import (
+    KBinsDiscretizer,
     LabelEncoder,
     MinMaxScaler,
     Normalizer,
@@ -358,3 +360,38 @@ def compare_imputers(df, name_col, k=-99):
 
 display(compare_imputers(dataset, 'Weight'))
 display(compare_imputers(dataset, 'Height'))
+# # Selección de variables
+
+# La librería sklearn tiene un [apartado exclusivo](https://scikit-learn.org/stable/modules/feature_selection.html) con herramientas implementadas para la selección de variables <br>
+# Veamos algunas implementaciones
+
+# Por varianza, se define un umbral mínimo para considerar variables. Por defecto elimina las features de varianza 0 (sin cambios) <br>
+# Como en el set no tenemos ejemplos, agreguemos variables con esas condiciones
+
+df = dataset.copy()
+df['with_zero_variance'] = 10
+df['with_low_variance'] = np.random.uniform(0, 0.2, df.shape[0])
+
+df.head()
+
+df.var()
+
+
+# +
+def filter_by_variance(df, threshold):
+    '''Devuelve el dataset filtrado por varianza para las columnas que corresponda'''
+    # Columnas con varianza calculable
+    cols = df.var().index.values
+
+    selector = VarianceThreshold(threshold=threshold)
+    # calculo varianzas
+    vt = selector.fit(df[cols])
+
+    ## vt.get_support() me da los indices de las columnas que quedaron
+    result = df[cols].loc[:, vt.get_support()]
+    return df.loc[:, ~df.columns.isin(cols)].join(result)
+
+
+display(filter_by_variance(df, 0).head(2))
+display(filter_by_variance(df, 0.5).head(2))
+# -
