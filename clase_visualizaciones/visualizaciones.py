@@ -506,7 +506,7 @@ df_submm = df[
     & (df['Salario mensual NETO (en tu moneda local)'] > 1e4)
 ]
 
-for conformity in np.sort(aux_df['¿Qué tan conforme estás con tu sueldo?'].unique()):
+for conformity in np.sort(df_submm['¿Qué tan conforme estás con tu sueldo?'].unique()):
     conformity_df = df_submm[
         df_submm['¿Qué tan conforme estás con tu sueldo?'] == conformity
     ]
