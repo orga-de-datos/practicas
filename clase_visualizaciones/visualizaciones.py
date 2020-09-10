@@ -7,9 +7,9 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.1
+#       jupytext_version: 1.5.2
 #   kernelspec:
-#     display_name: Python 3 (venv)
+#     display_name: Python 3
 #     language: python
 #     name: python3
 # ---
@@ -131,11 +131,16 @@ df['¿De qué % fue el ajuste total?'].plot(kind='hist', bins=50)
 # Siguiendo la línea de los salarios netos y brutos... ¿Cuánto es la media? ¿La mediana? Podemos tener un resumen estadístico con un [box plot](https://pandas.pydata.org/pandas-docs/stable/user_guide/visualization.html#box-plots)
 
 df[
+    (df['Salario mensual NETO (en tu moneda local)'] < 500000)
+    & (df['Salario mensual BRUTO (en tu moneda local)'] < 500000)
+][
     [
         'Salario mensual NETO (en tu moneda local)',
         'Salario mensual BRUTO (en tu moneda local)',
     ]
-].plot(kind='box')
+].plot(
+    kind='box'
+)
 
 # Los labels quedan feos... como un hack, podemos renombrarlos:
 
@@ -388,11 +393,15 @@ df['¿Contribuís a proyectos open source?'].value_counts().sort_index().plot(
 )
 plt.show()
 
+# Las fuentes estan en terminos relativos al dpi
+
 plt.figure(figsize=(6.4, 4.8), dpi=150)
 df['¿Contribuís a proyectos open source?'].value_counts().sort_index().plot(
     kind='pie', autopct='%1.0f%%'
 )
 plt.show()
+
+# Recomendamos cambiar el tamaño con DPI si lo que se quiere es ver la visualizacion "mas grande", si lo que se quiere es cambiar la forma se puede usar el figsize
 
 # ## Plots con pyplot
 #
@@ -448,7 +457,9 @@ plt.show()
 
 # ¿Sería interesante ver que tan conforme está la gente con sus salarios no? Podemos introducir esa columna como color del scatter plot.
 
+# +
 plt.figure(dpi=(125))
+
 plt.scatter(
     x=df['Salario mensual NETO (en tu moneda local)'],
     y=df['Salario mensual BRUTO (en tu moneda local)'],
@@ -459,13 +470,14 @@ plt.ylabel("Salario bruto")
 plt.xlabel("Salario neto")
 plt.title('Relación entre salario neto y salario bruto')
 plt.show()
+# -
 
 # No tenemos ni idea de que es cada color. Pongamos un [legend](https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html#matplotlib.pyplot.legend)!
 
 # +
 fig, ax = plt.subplots(dpi=150)
 
-for conformity in df['¿Qué tan conforme estás con tu sueldo?'].unique():
+for conformity in np.sort(df['¿Qué tan conforme estás con tu sueldo?'].unique()):
     conformity_df = df[df['¿Qué tan conforme estás con tu sueldo?'] == conformity]
     ax.scatter(
         x=conformity_df['Salario mensual NETO (en tu moneda local)'],
@@ -475,24 +487,26 @@ for conformity in df['¿Qué tan conforme estás con tu sueldo?'].unique():
         alpha=0.65,
     )
 
-ax.legend()
+ax.legend(title="Conformidad con el salario")
 plt.ylabel("Salario bruto")
 plt.xlabel("Salario neto")
 plt.title('Relación entre salario neto y salario bruto')
 plt.show()
 # -
 
-# Pero hay outliers que nos complican... veamos los que están dentro del millón para ambas variables
+# Pero hay outliers que nos complican... veamos los que están entre 10mil y 500mil
 
 # +
 fig, ax = plt.subplots(dpi=150)
 
 df_submm = df[
-    (df['Salario mensual NETO (en tu moneda local)'] < 1e6)
-    & (df['Salario mensual BRUTO (en tu moneda local)'] < 1e6)
+    (df['Salario mensual NETO (en tu moneda local)'] < 5e5)
+    & (df['Salario mensual BRUTO (en tu moneda local)'] < 5e5)
+    & (df['Salario mensual BRUTO (en tu moneda local)'] > 1e4)
+    & (df['Salario mensual NETO (en tu moneda local)'] > 1e4)
 ]
 
-for conformity in df_submm['¿Qué tan conforme estás con tu sueldo?'].unique():
+for conformity in np.sort(df_submm['¿Qué tan conforme estás con tu sueldo?'].unique()):
     conformity_df = df_submm[
         df_submm['¿Qué tan conforme estás con tu sueldo?'] == conformity
     ]
@@ -504,12 +518,14 @@ for conformity in df_submm['¿Qué tan conforme estás con tu sueldo?'].unique()
         alpha=0.65,
     )
 
-ax.legend()
+ax.legend(title="Conformidad con el salario")
 plt.ylabel("Salario bruto")
 plt.xlabel("Salario neto")
 plt.title('Relación entre salario neto y salario bruto')
 plt.show()
 # -
+
+# Como la conformidad 4 fue la ultima en ser ploteada ofusca el plot, además los colores no parecen adecuados, ya solucionaremos esto
 
 # ### Histograma
 #
@@ -536,16 +552,51 @@ axes[1].set_xlabel("Salario")
 axes[1].set_ylabel("Cantidad")
 
 plt.show()
+# -
+
+# Sabiendo que podemos superponerlos, podriamos superponer los histogramas
+
+# +
+df_submm = df[
+    (df['Salario mensual NETO (en tu moneda local)'] < 1e6)
+    & (df['Salario mensual BRUTO (en tu moneda local)'] < 1e6)
+]
+
+plt.figure(dpi=150)
+
+plt.hist(
+    df_submm['Salario mensual BRUTO (en tu moneda local)'],
+    bins=25,
+    label="Salario bruto",
+    alpha=0.5,
+)
+plt.hist(
+    df_submm['Salario mensual NETO (en tu moneda local)'],
+    bins=25,
+    label="Salario neto",
+    alpha=0.5,
+)
+plt.title("Distribución del salario neto y bruto")
+plt.xlabel("Salario")
+plt.ylabel("Cantidad")
+plt.legend()
+
+plt.show()
+# -
+
+# Para comparar distribuciones continuas podriamos usar tambien boxplots y violinplots.
+#
+# Podemos aprovechar la superposicion de plots para señalar cosas que creamos importantes.
 
 # +
 plt.figure(dpi=150)
 
 plt.hist(df['¿De qué % fue el ajuste total?'], bins=30, label="Ajuste %")
 
-plt.title("Distribución del ajuste porcentual\npor inflación para 2019")
+plt.title("Distribución del ajuste porcentual\npor inflación para 2020")
 plt.ylabel("Frecuencia")
-plt.xlabel("% del ajuste de inflación de 2019")
-plt.axvline(x=53.8, color="darkred", label="Inflación según INDEC")
+plt.xlabel("% del ajuste de inflación de 2020")
+plt.axvline(x=13.6, color="darkred", label="Inflación 1er semestre INDEC")
 plt.legend()
 plt.show()
 # -
@@ -565,6 +616,7 @@ sns.set()
 #
 # El countplot es la forma que tiene seaborn de hacer gráficos de barras, permitiendo dividirlo de distintas formas.
 
+plt.figure(dpi=150)
 sns.countplot(x="Trabajo de", data=df)
 plt.ylabel("Cantidad")
 plt.xlabel("Profesión")
@@ -573,6 +625,7 @@ plt.show()
 
 # Podemos usar el parametro order para indicar el orden en el que lo queremos pero tambien cuales profesiones queremos
 
+plt.figure(dpi=150)
 sns.countplot(
     x="Trabajo de", data=df, order=df["Trabajo de"].value_counts().iloc[:20].index
 )
@@ -582,9 +635,32 @@ plt.title("Cantidad de encuestados según profesión")
 plt.xticks(rotation=90)
 plt.show()
 
+# ### Density plot
+
+# Podemos ver la distribución del salario como habíamos visto con el histograma
+
+# +
+df_submm = df[
+    (df['Salario mensual NETO (en tu moneda local)'] < 1e6)
+    & (df['Salario mensual BRUTO (en tu moneda local)'] < 1e6)
+]
+
+plt.figure(dpi=150)
+
+sns.kdeplot(
+    df_submm['Salario mensual NETO (en tu moneda local)'], label="Salario mensual neto"
+)
+plt.title("Distribución del salario neto")
+plt.xlabel("Salario")
+plt.yticks([], [])
+
+plt.show()
+# -
+
 # ### Violinplot
 
 df['Tiene gente a cargo'] = df['¿Gente a cargo?'] > 0
+plt.figure(dpi=150)
 plt.title("Salario NETO según si tiene gente a cargo\nen Argentina")
 sns.violinplot(
     data=df[
@@ -599,6 +675,7 @@ plt.ylabel("Salario NETO")
 plt.show()
 
 df['Tiene gente a cargo'] = df['¿Gente a cargo?'] > 0
+plt.figure(dpi=150)
 plt.title("Distribución del salario NETO según\nsi tiene gente a cargo en Argentina")
 sns.violinplot(
     data=df[
@@ -615,6 +692,7 @@ plt.show()
 
 # ### Boxplot
 
+plt.figure(dpi=150)
 plt.title("Distribución del salario NETO según\nsi tiene gente a cargo en Argentina")
 sns.boxplot(
     data=df[
@@ -630,6 +708,66 @@ plt.xticks([False, True], ["No", "Sí"])
 plt.show()
 
 # ## Comparison plots
+# ### Scatter plot
+
+# Recordemos el último scatter que hicimos
+
+# +
+fig, ax = plt.subplots(dpi=150)
+
+df_submm = df[
+    (df['Salario mensual NETO (en tu moneda local)'] < 5e5)
+    & (df['Salario mensual BRUTO (en tu moneda local)'] < 5e5)
+    & (df['Salario mensual BRUTO (en tu moneda local)'] > 1e4)
+    & (df['Salario mensual NETO (en tu moneda local)'] > 1e4)
+]
+
+for conformity in np.sort(df_submm['¿Qué tan conforme estás con tu sueldo?'].unique()):
+    conformity_df = df_submm[
+        df_submm['¿Qué tan conforme estás con tu sueldo?'] == conformity
+    ]
+    ax.scatter(
+        x=conformity_df['Salario mensual NETO (en tu moneda local)'],
+        y=conformity_df['Salario mensual BRUTO (en tu moneda local)'],
+        s=2,
+        label=conformity,
+        alpha=0.65,
+    )
+
+ax.legend(title="Conformidad con el salario")
+plt.ylabel("Salario bruto")
+plt.xlabel("Salario neto")
+plt.title('Relación entre salario neto y salario bruto')
+plt.show()
+# -
+
+# Al haber ploteado en orden los distintos puntos se superponen de forma que no nos permite ver diferencias. Con el hue de seaborn podemos hacer que la superposición sea random.
+
+# +
+df_submm = df[
+    (df['Salario mensual NETO (en tu moneda local)'] < 5e5)
+    & (df['Salario mensual BRUTO (en tu moneda local)'] < 5e5)
+    & (df['Salario mensual BRUTO (en tu moneda local)'] > 1e4)
+    & (df['Salario mensual NETO (en tu moneda local)'] > 1e4)
+]
+
+plt.figure(dpi=150)
+sns.scatterplot(
+    x='Salario mensual NETO (en tu moneda local)',
+    y='Salario mensual BRUTO (en tu moneda local)',
+    hue=df_submm['¿Qué tan conforme estás con tu sueldo?'].tolist(),
+    data=df_submm,
+    alpha=0.7,
+)
+plt.legend(title="Conformidad con el salario")
+plt.ylabel("Salario bruto")
+plt.xlabel("Salario neto")
+plt.title('Relación entre salario neto y salario bruto')
+plt.show()
+# -
+
+# Ahora se puede aprecias el gradiente de colores a medida el salario aumenta
+
 # ### Heatmap
 
 cooccurrence = pd.pivot_table(
@@ -639,24 +777,32 @@ cooccurrence = pd.pivot_table(
     '¿Qué tan conforme estás con tu sueldo?',
     'count',
 ).sort_index()
+cooccurrence
+
+plt.figure(dpi=150)
 plt.ylabel("Cómo creés que está tu sueldo con respecto al último semestre", fontsize=9)
 sns.heatmap(cooccurrence.reindex([4, 3, 2, 1]), square=True, cmap="Wistia")
+plt.show()
 
 # ## Regression plots
 # ### Regplot
 
+plt.figure(dpi=150)
 sns.regplot(
     data=df,
     x='Salario mensual NETO (en tu moneda local)',
     y='Salario mensual BRUTO (en tu moneda local)',
 )
+plt.show()
 
 # ## Relational plots
 # ### Lineplot
 
+plt.figure(dpi=150)
 sns.lineplot(
     data=df, x='Años de experiencia', y='Salario mensual BRUTO (en tu moneda local)'
 )
+plt.show()
 
 # # Paletas de colores
 #
@@ -724,11 +870,37 @@ plt.show()
 
 # ## Algunos casos prácticos
 
-plt.figure(dpi=150)
-df['¿Contribuís a proyectos open source?'].value_counts()[
-    ["Sí", "No"]
-].sort_index().plot(kind='pie', autopct='%1.0f%%', colors=['#AEB8AF', "#4AD172"])
-plt.show()
+# Podemos indicar que color queremos con una tupla RGB donde cada elemento de la tupla es un número de 0 a 1 que indica la intensidad de alguno de los 3 colores primarios de la luz (__Rojo__, __Verde__, __Azul__) o lo que es lo mismo su codigo **hexadecimal**
+
+# +
+from __future__ import print_function
+from ipywidgets import interact, interactive, fixed, interact_manual
+import ipywidgets as widgets
+
+
+def rgb_to_hex(rgb):
+    return '%02x%02x%02x' % rgb
+
+
+def plot_color(r, g, b):
+    print(
+        "Hexadecimal: %s" % rgb_to_hex((round(r * 255), round(g * 255), round(b * 255)))
+    )
+    sns.palplot([(r, 0, 0), (0, g, 0), (0, 0, b), (r, g, b)])
+    plt.xticks([0, 1, 2, 3], ["Rojo", "Azul", "Verde", "(r,g,b)"])
+    plt.grid(False)
+    plt.show()
+
+
+# -
+
+interact(
+    plot_color, r=(0.0, 1.0, 1 / 255), g=(0.0, 1.0, 1 / 255), b=(0.0, 1.0, 1 / 255)
+)
+
+# Pueden jugar con más en: https://color.adobe.com/
+
+# Recordando el pie plot podriamos elegir colores más adecuados en donde comunicamos tener gente a cargo como algo más "positivo"
 
 plt.figure(dpi=150)
 df['¿Contribuís a proyectos open source?'].value_counts()[
@@ -738,6 +910,90 @@ plt.title('¿Contribuís a proyectos open source?')
 plt.ylabel("")
 plt.show()
 
+
+# Recordemos el countplot que hicimos
+
+plt.figure(dpi=125)
+sns.countplot(
+    x="Trabajo de", data=df, order=df["Trabajo de"].value_counts().iloc[:20].index
+)
+plt.ylabel("Cantidad")
+plt.xlabel("Profesión")
+plt.title("Cantidad de encuestados según profesión")
+plt.xticks(rotation=90)
+plt.show()
+
+# Podemos pensar el color como una dimensión más, que sentido tienen en esta visualización los colores? Está scrum master relacionado con developer por tener colores parecidos?
+
+plt.figure(dpi=125)
+sns.countplot(
+    x="Trabajo de",
+    data=df,
+    order=df["Trabajo de"].value_counts().iloc[:20].index,
+    color=(0.23, 0.72, 0.41),
+)
+plt.ylabel("Cantidad")
+plt.xlabel("Profesión")
+plt.title("Cantidad de encuestados según profesión")
+plt.xticks(rotation=90)
+plt.show()
+
+# Teníamos el siguiente scatter plot
+
+# +
+df_submm = df[
+    (df['Salario mensual NETO (en tu moneda local)'] < 5e5)
+    & (df['Salario mensual BRUTO (en tu moneda local)'] < 5e5)
+    & (df['Salario mensual BRUTO (en tu moneda local)'] > 1e4)
+    & (df['Salario mensual NETO (en tu moneda local)'] > 1e4)
+]
+
+plt.figure(dpi=125)
+sns.scatterplot(
+    x='Salario mensual NETO (en tu moneda local)',
+    y='Salario mensual BRUTO (en tu moneda local)',
+    hue=df_submm['¿Qué tan conforme estás con tu sueldo?'].tolist(),
+    data=df_submm,
+    alpha=0.7,
+)
+plt.legend(title="Conformidad con el salario")
+plt.ylabel("Salario bruto")
+plt.xlabel("Salario neto")
+plt.title('Relación entre salario neto y salario bruto')
+plt.show()
+# -
+
+# Podemos cambiar los colores para dar a entender que una conformidad de 1 es "mala" y una conformidad de 4 es "buena"
+
+sns.color_palette("RdYlGn_r", 4)
+
+sns.palplot(sns.color_palette("RdYlGn_r", 4))
+
+sns.palplot(list(reversed(sns.color_palette("RdYlGn_r", 4))))
+
+# +
+df_submm = df[
+    (df['Salario mensual NETO (en tu moneda local)'] < 5e5)
+    & (df['Salario mensual BRUTO (en tu moneda local)'] < 5e5)
+    & (df['Salario mensual BRUTO (en tu moneda local)'] > 1e4)
+    & (df['Salario mensual NETO (en tu moneda local)'] > 1e4)
+]
+
+plt.figure(dpi=125)
+sns.scatterplot(
+    x='Salario mensual NETO (en tu moneda local)',
+    y='Salario mensual BRUTO (en tu moneda local)',
+    hue=df_submm['¿Qué tan conforme estás con tu sueldo?'].tolist(),
+    data=df_submm,
+    alpha=0.7,
+    palette=list(reversed(sns.color_palette("RdYlGn_r", 4))),
+)
+plt.legend(title="Conformidad con el salario")
+plt.ylabel("Salario bruto")
+plt.xlabel("Salario neto")
+plt.title('Relación entre salario neto y salario bruto')
+plt.show()
+# -
 
 # ## Referencias
 #
