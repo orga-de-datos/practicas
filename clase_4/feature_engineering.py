@@ -28,6 +28,7 @@ from sklearn.preprocessing import (
     MinMaxScaler,
     Normalizer,
     OneHotEncoder,
+    OrdinalEncoder,
     PowerTransformer,
     RobustScaler,
     StandardScaler,
@@ -61,24 +62,30 @@ dataset.shape
 
 # # Conversion
 
-# En esta sección mostraremos las principales estrategias para convertir variables según su tipo. <br>Cabe aclarar que veremos un set de posibilidades sin evaluar el algoritmo a utilizar, que es parte fundamental de la decisión final que se tome sobre el manejo de cada variable.
+# En esta sección mostraremos las principales estrategias para convertir variables según su tipo. <br>
+# Cabe aclarar que veremos un set de posibilidades sin evaluar el algoritmo a utilizar, que es parte fundamental de la decisión final que se tome sobre el manejo de cada variable.
 
 # ## Categóricas de baja cardinalidad
 
 # Aparece el concepto de *Encoder*, asociado a transformaciones sobre variables categóricas. Tenemos muchos tipos de encoders veamos los principales.
 
-# ### Label Encoder
+# ### Ordinal Encoder
 
-le = LabelEncoder()
+# Por cada valor de la variable categórica asigna un valor entero
+
+oe = OrdinalEncoder()
+columns_to_encode = ['Eye color', 'Gender']
 # Convertimos nulos a string 'nan', es decir un valor posible mas
-int_values = le.fit_transform(dataset['Eye color'].astype(str))
+int_values = oe.fit_transform(dataset[columns_to_encode].astype(str))
 
 # Mostramos primeros 15 valores
 pd.concat(
     [
-        pd.Series(int_values[:15], name='encoded'),
+        pd.DataFrame(int_values[:15], columns=columns_to_encode).add_suffix('_encoded'),
         # inversión de la transformación
-        pd.Series(le.inverse_transform(int_values)[:15], name='reverted'),
+        pd.DataFrame(
+            oe.inverse_transform(int_values)[:15], columns=columns_to_encode
+        ).add_suffix('_reverted'),
     ],
     axis=1,
 )
@@ -87,7 +94,27 @@ pd.concat(
 
 # >Recordar que esta transformación es conveniente en categóricas ordinales (no es el caso del ejemplo) ya que asigna un orden a los elementos
 
+# ### Label Encoder
+
+# Es exactamente la misma idea pero esperando una sola variable ya que se usa para encodear la variable target de un modelo predictivo
+
+le = LabelEncoder()
+# Convertimos nulos a string 'nan', es decir un valor posible mas
+int_values = le.fit_transform(dataset['Alignment'].astype(str))
+
+# Mostramos primeros 15 valores
+pd.concat(
+    [
+        pd.Series(int_values[:5], name='encoded'),
+        # inversión de la transformación
+        pd.Series(le.inverse_transform(int_values)[:5], name='reverted'),
+    ],
+    axis=1,
+)
+
 # ### One Hot Encoding
+
+# Crea una columna binaria por cada valor de la variable
 
 pd.options.display.max_columns = None
 
@@ -95,25 +122,30 @@ ohe = OneHotEncoder()
 cols = ohe.fit_transform(
     dataset['Eye color'].astype(str).values.reshape(-1, 1)
 ).todense()
-cols = pd.DataFrame(cols, columns=ohe.categories_)
+# creo dataframe con las columnas creadas
+cols = pd.DataFrame(cols, columns=ohe.categories_[0]).add_prefix('Eye color_')
+# agrego al dataframe y elimino variable origen
+cols = pd.concat([dataset, cols], axis=1).drop(['Eye color'], axis=1)
 print("Valores únicos: ", dataset['Eye color'].nunique() + 1)  # +1 por null value
 display(cols.head(2))
 print(cols.shape)
 
 # Otra solución para OneHotEncoding implementada en pandas:
 
-eye_color_dummies = pd.get_dummies(dataset['Eye color'].astype(str))
-display(eye_color_dummies.head(2))
-print(eye_color_dummies.shape)
+with_dummies = pd.get_dummies(dataset, columns=['Eye color'], dummy_na=True)
+display(with_dummies.head(2))
+print(with_dummies.shape)
 
 # Para evitar problemas de colinealidad se debe excluir una categoría del set (la ausencia de todas - vector de 0s - indica la presencia de la categoría faltante) <br>
 # La función de pandas ya viene con una parámetro para esto:
 
-eye_color_dummies = pd.get_dummies(dataset['Eye color'].astype(str), drop_first=True)
-display(eye_color_dummies.head(2))
-print(eye_color_dummies.shape)
+with_dummies = pd.get_dummies(
+    dataset, columns=['Eye color'], dummy_na=True, drop_first=True
+)
+display(with_dummies.head(2))
+print(with_dummies.shape)
 
-# La necesidad de eliminar una columna se más claramente para una categórica de dos valores, veamos el caso de *Gender*
+# La necesidad de eliminar una columna se ve más claramente para una categórica de dos valores, veamos el caso de *Gender*
 
 gender_dummies = pd.get_dummies(dataset['Gender'])
 display(gender_dummies.tail(5))
@@ -173,7 +205,7 @@ def plot_weight_vs_height(df, title=""):
     )
     fig.update_layout(autosize=False, width=1000)
     fig.show()
-    display(df[['Weight', 'Height']].describe())
+    display(round(df[['Weight', 'Height']].describe(), 2))
 
 
 plot_weight_vs_height(
@@ -198,15 +230,12 @@ def get_fitted_scaler(cols, scaler_instance):
     return scaler_instance
 
 
-def transform(df, cols_to_transform, scaler):
-    scaler = get_fitted_scaler(df[cols_to_transform].dropna(), scaler)
-    values = scaler.transform(df[cols_to_transform].dropna())
+def transform(cols, cols_to_transform, scaler):
+    values = scaler.transform(cols)
     return df[['name', 'Alignment']].join(
         pd.DataFrame(values, columns=cols_to_transform)
     )
 
-
-cols_to_transform = ['Weight', 'Height']
 
 scalers = [
     StandardScaler(),  # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html
@@ -215,8 +244,14 @@ scalers = [
     PowerTransformer(),  # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.PowerTransformer.html
     Normalizer(),  # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.Normalizer.html
 ]
+
+cols_to_transform = ['Weight', 'Height']
+df_to_scale = df[cols_to_transform].dropna()
+
 for i in scalers:
-    plot_weight_vs_height(transform(df, cols_to_transform, i), i.__class__.__name__)
+    fitted_scaler = get_fitted_scaler(df_to_scale, i)
+    df_transformed = transform(df_to_scale, cols_to_transform, fitted_scaler)
+    plot_weight_vs_height(df_transformed, i.__class__.__name__)
 
 # -
 
@@ -262,12 +297,22 @@ less_rows.shape
 
 # Nos quedarían 50 registros válidos en el set
 
+# eliminar filas con alto porcentaje de nulos
+null_max = 0.75
+display(dataset[dataset.isnull().sum(axis=1) / (dataset.shape[1] - 1) > null_max])
+dataset[~(dataset.isnull().sum(axis=1) / (dataset.shape[1] - 1) > null_max)].shape
+
 # eliminar columnas con nulos
 less_cols = dataset.dropna(axis=1)
 less_cols.shape
 
-
 # Nos quedaría una sola columna sin nulos
+
+# eliminar columnas con alto porcentaje de nulos
+null_max = 0.75
+display(dataset.loc[:, dataset.isnull().sum(axis=0) / dataset.shape[0] > null_max])
+dataset.loc[:, ~(dataset.isnull().sum(axis=0) / dataset.shape[0] > null_max)].shape
+
 
 # ## Categóricas
 
@@ -361,6 +406,7 @@ def compare_imputers(df, name_col, k=-99):
 display(compare_imputers(dataset, 'Weight'))
 display(compare_imputers(dataset, 'Height'))
 # # Selección de variables
+# # Selección de variables
 
 # La librería sklearn tiene un [apartado exclusivo](https://scikit-learn.org/stable/modules/feature_selection.html) con herramientas implementadas para la selección de variables <br>
 # Veamos algunas implementaciones
@@ -395,3 +441,135 @@ def filter_by_variance(df, threshold):
 display(filter_by_variance(df, 0).head(2))
 display(filter_by_variance(df, 0.5).head(2))
 # -
+
+# # Poniendo todo en práctica
+
+# Supongamos que tenemos que predecir el bando de un superhéroe dadas las variables del set. <br> Apliquemos lo visto hasta ahora
+
+# empezamos de cero, leyendo el dataset
+dataset = pd.read_csv('../datasets/superheroes.csv')
+dataset.shape
+
+# 1- Reemplazamos valores codificados como null
+
+dataset = dataset.replace('-', np.nan)
+dataset = dataset.replace(-99, np.nan)
+
+# 2- Eliminamos filas duplicadas
+
+dataset = dataset.drop_duplicates().reset_index(drop=True)
+
+# 3- Eliminamos filas con mas de 75% de nulos
+
+dataset = dataset[
+    ~(dataset.isnull().sum(axis=1) / (dataset.shape[1] - 1) > 0.75)
+].reset_index(drop=True)
+
+# 4-Eliminamos filas con bando nulo o neutral
+
+dataset = dataset[~dataset.Alignment.isin(['neutral', np.nan])].reset_index(drop=True)
+dataset.shape
+
+# Vemos como quedo la distribución por bando
+
+fig = px.pie(
+    values=dataset['Alignment'].value_counts().values,
+    names=dataset['Alignment'].value_counts().index,
+    title='Distribución por bando',
+)
+fig.update_layout(autosize=False, width=1000)
+fig.show()
+
+# 5- Análisis sobre *Skin color*
+
+dataset['Skin color'].value_counts(dropna=False)
+
+# n de casos por color de piel / bando
+skin_group = (
+    dataset.fillna('nulls')
+    .groupby(['Skin color', 'Alignment'])
+    .size()
+    .to_frame('count')
+)
+# porcentaje por color de piel / bando
+skin_group = skin_group.join(
+    skin_group.groupby(level=0)
+    .apply(lambda x: 100 * x / float(x.sum()))
+    .rename(columns={'count': 'percent'})
+).reset_index()
+# ordeno por cantidad de casos
+skin_group = skin_group.sort_values(by='count', ascending=False)
+# bar chart
+px.bar(
+    skin_group,
+    x='Skin color',
+    y='percent',
+    color='Alignment',
+    hover_data=['percent', 'count'],
+)
+
+# >Claramente la variable tiene muy pocos datos, tal vez un relevamiento mas preciso pueda hacer que tenga peso en el futuro. Por ahora no vamos a considerarla.
+
+# Eliminamos skin color
+dataset.drop(columns=['Skin color'], inplace=True)
+dataset.shape
+
+# 6- Paso todas las categóricas a minúsculas
+
+dataset.loc[:, dataset.dtypes == 'object'] = dataset.loc[
+    :, dataset.dtypes == 'object'
+].apply(lambda x: x.str.lower(), axis=1)
+
+# 7- Análisis sobre *name*
+
+# Nombres duplicados
+dataset['name'].value_counts()[dataset['name'].value_counts() > 1]
+
+dataset[dataset['name'] == 'spider-man']
+
+
+# +
+def most_common(x):
+    if x.value_counts().size == 0:
+        return np.nan
+    return x.value_counts().index[0]
+
+
+# defino la forma de agregación para cada variable
+dataset = (
+    dataset.groupby('name')
+    .agg(
+        {
+            'Gender': most_common,
+            'Eye color': most_common,
+            'Race': most_common,
+            'Hair color': most_common,
+            'Height': 'mean',
+            'Publisher': most_common,
+            'Alignment': most_common,
+            'Weight': 'mean',
+        },
+        axis=0,
+    )
+    .reset_index()
+)
+
+dataset.shape
+# -
+
+# 8- Creamos nuevas variables
+
+# Investigando sobre la composición de los nombres, vemos que los que contienen *captain* son buenos
+
+# aux = dataset.groupby('Alignment').apply(lambda x: x['name'].str.split().apply(pd.Series).stack()).to_frame('word').reset_index()[['Alignment','word']].groupby('Alignment')['word'].value_counts().to_frame('n').reset_index()
+# aux.groupby('Alignment').head(5)
+display(dataset.loc[dataset.name.str.contains('captain'), ['name', 'Alignment']])
+dataset['is_captain'] = np.where(dataset['name'].str.contains('captain'), 1, 0)
+dataset.shape
+
+# pocas mujeres superheroes, menos aún villanas
+dataset.groupby(['Alignment', 'Gender']).size().groupby(level=0).apply(
+    lambda x: 100 * x / float(x.sum())
+)
+
+# 9- Encodeamos categóricas
