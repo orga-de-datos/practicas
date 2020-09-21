@@ -1,2 +1,4 @@
 jupyterlab
+nltk
 pandas
+wordcloud
