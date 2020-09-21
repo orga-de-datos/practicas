@@ -14,6 +14,7 @@
 #     name: python3
 # ---
 
+import miceforest as mf
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -21,7 +22,7 @@ from matplotlib import pyplot as plt
 from pandas_profiling import ProfileReport
 from sklearn.feature_extraction import FeatureHasher
 from sklearn.feature_selection import VarianceThreshold
-from sklearn.impute import SimpleImputer
+from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.preprocessing import (
     KBinsDiscretizer,
     LabelEncoder,
@@ -314,11 +315,15 @@ display(dataset.loc[:, dataset.isnull().sum(axis=0) / dataset.shape[0] > null_ma
 dataset.loc[:, ~(dataset.isnull().sum(axis=0) / dataset.shape[0] > null_max)].shape
 
 
-# ## Categóricas
+# ## Univariadas
+
+# Usa sólo información de la columna en cuestión para completar nulos
+
+# ### Categóricas
 
 # Como vimos, los encoders solucionan el problema de nulos ya que imputan con la misma lógica que para los demás valores de la variable
 
-# ## Numéricas
+# ### Numéricas
 
 # Completar con la mediana, promedio, moda o constante
 
@@ -400,12 +405,112 @@ def compare_imputers(df, name_col, k=-99):
             pd.Series(constant_values, name='constant'),
         ],
         axis=1,
-    )[df[name_col].isna()].head(1)
+    )
 
 
-display(compare_imputers(dataset, 'Weight'))
-display(compare_imputers(dataset, 'Height'))
-# # Selección de variables
+display(
+    dataset[['name']]
+    .join(compare_imputers(dataset, 'Weight'))[dataset['Weight'].isna()]
+    .head(5)
+)
+display(
+    dataset[['name']]
+    .join(compare_imputers(dataset, 'Height'))[dataset['Height'].isna()]
+    .head(5)
+)
+
+
+# ## Multivariada
+
+# Usa información de todas las variables para la imputación.<br>
+
+# Veamos un ejemplo con KNN (lo verán en detalle en las próximas clases).
+
+# +
+def hashing_encoding(df, cols, data_percent=0.85, verbose=False):
+    for i in cols:
+        val_counts = df[i].value_counts(dropna=False)
+        s = sum(val_counts.values)
+        h = val_counts.values / s
+        c_sum = np.cumsum(h)
+        c_sum = pd.Series(c_sum)
+        n = c_sum[c_sum > data_percent].index[0]
+        if verbose:
+            print("n hashing para ", i, ":", n)
+        if n > 0:
+            fh = FeatureHasher(n_features=n, input_type='string')
+            hashed_features = fh.fit_transform(
+                df[i].astype(str).values.reshape(-1, 1)
+            ).todense()
+            df = df.join(pd.DataFrame(hashed_features).add_prefix(i + '_'))
+    return df.drop(columns=cols)
+
+
+def knn_imputer(df):
+
+    cat_cols = ['Gender', 'Eye color', 'Race', 'Hair color', 'Publisher', 'Skin color']
+
+    # Aplicamos hashing para las categoricas
+    df = hashing_encoding(df, cat_cols)
+    # Eliminamos name y alignment para imputar
+    df = df.drop(columns=['name', 'Alignment'])
+
+    # definimos un n arbitrario
+    imputer = KNNImputer(n_neighbors=2, weights="uniform")
+    df = pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
+    return df
+
+
+knn_imputation = knn_imputer(dataset).add_suffix('_knn')
+display(
+    dataset[['name', 'Weight', 'Height']]
+    .join(knn_imputation[['Weight_knn', 'Height_knn']])[
+        (dataset.Weight.isna() | dataset.Height.isna())
+    ]
+    .head(5)
+)
+
+
+# -
+
+# Otro ejemplo, esta vez con RandomForest (también entraremos en detalle próximamente).
+
+# +
+def forest_imputer(df):
+
+    cat_cols = ['Gender', 'Eye color', 'Race', 'Hair color', 'Publisher', 'Skin color']
+
+    # Aplicamos hashing para las categoricas
+    df = hashing_encoding(df, cat_cols)
+    # Eliminamos name y alignment para imputar
+    df = df.drop(columns=['name', 'Alignment'])
+    # df.iloc[:,2:] = df.iloc[:,2:].apply(lambda x: x.astype('category'),axis=1)
+
+    # El ampute se puede usar para validar el imputador sobre data conocida
+    # df_amp = mf.ampute_data(df, perc=0.25, random_state=0)
+
+    kernel = mf.KernelDataSet(
+        df,
+        save_all_iterations=True,
+        random_state=0,
+        variable_schema=['Weight', 'Height'],
+    )
+
+    # Run the MICE algorithm for 20 iterations on each of the datasets
+    kernel.mice(20, n_jobs=2)
+    return kernel.complete_data()
+
+
+forest_imputation = forest_imputer(dataset).add_suffix('_forest')
+display(
+    dataset[['name', 'Weight', 'Height']]
+    .join(forest_imputation[['Weight_forest', 'Height_forest']])[
+        (dataset.Weight.isna() | dataset.Height.isna())
+    ]
+    .head(5)
+)
+# -
+
 # # Selección de variables
 
 # La librería sklearn tiene un [apartado exclusivo](https://scikit-learn.org/stable/modules/feature_selection.html) con herramientas implementadas para la selección de variables <br>
@@ -447,34 +552,32 @@ display(filter_by_variance(df, 0.5).head(2))
 # Supongamos que tenemos que predecir el bando de un superhéroe dadas las variables del set. <br> Apliquemos lo visto hasta ahora
 
 # empezamos de cero, leyendo el dataset
-dataset = pd.read_csv('../datasets/superheroes.csv')
-dataset.shape
+df = pd.read_csv('../datasets/superheroes.csv')
+df.shape
 
 # 1- Reemplazamos valores codificados como null
 
-dataset = dataset.replace('-', np.nan)
-dataset = dataset.replace(-99, np.nan)
+df = df.replace('-', np.nan)
+df = df.replace(-99, np.nan)
 
 # 2- Eliminamos filas duplicadas
 
-dataset = dataset.drop_duplicates().reset_index(drop=True)
+df = df.drop_duplicates().reset_index(drop=True)
 
 # 3- Eliminamos filas con mas de 75% de nulos
 
-dataset = dataset[
-    ~(dataset.isnull().sum(axis=1) / (dataset.shape[1] - 1) > 0.75)
-].reset_index(drop=True)
+df = df[~(df.isnull().sum(axis=1) / (df.shape[1] - 1) > 0.75)].reset_index(drop=True)
 
 # 4-Eliminamos filas con bando nulo o neutral
 
-dataset = dataset[~dataset.Alignment.isin(['neutral', np.nan])].reset_index(drop=True)
-dataset.shape
+df = df[~df.Alignment.isin(['neutral', np.nan])].reset_index(drop=True)
+df.shape
 
 # Vemos como quedo la distribución por bando
 
 fig = px.pie(
-    values=dataset['Alignment'].value_counts().values,
-    names=dataset['Alignment'].value_counts().index,
+    values=df['Alignment'].value_counts().values,
+    names=df['Alignment'].value_counts().index,
     title='Distribución por bando',
 )
 fig.update_layout(autosize=False, width=1000)
@@ -482,14 +585,11 @@ fig.show()
 
 # 5- Análisis sobre *Skin color*
 
-dataset['Skin color'].value_counts(dropna=False)
+df['Skin color'].value_counts(dropna=False)
 
 # n de casos por color de piel / bando
 skin_group = (
-    dataset.fillna('nulls')
-    .groupby(['Skin color', 'Alignment'])
-    .size()
-    .to_frame('count')
+    df.fillna('nulls').groupby(['Skin color', 'Alignment']).size().to_frame('count')
 )
 # porcentaje por color de piel / bando
 skin_group = skin_group.join(
@@ -511,21 +611,21 @@ px.bar(
 # >Claramente la variable tiene muy pocos datos, tal vez un relevamiento mas preciso pueda hacer que tenga peso en el futuro. Por ahora no vamos a considerarla.
 
 # Eliminamos skin color
-dataset.drop(columns=['Skin color'], inplace=True)
-dataset.shape
+df.drop(columns=['Skin color'], inplace=True)
+df.shape
 
 # 6- Paso todas las categóricas a minúsculas
 
-dataset.loc[:, dataset.dtypes == 'object'] = dataset.loc[
-    :, dataset.dtypes == 'object'
-].apply(lambda x: x.str.lower(), axis=1)
+df.loc[:, df.dtypes == 'object'] = df.loc[:, df.dtypes == 'object'].apply(
+    lambda x: x.str.lower(), axis=1
+)
 
 # 7- Análisis sobre *name*
 
 # Nombres duplicados
-dataset['name'].value_counts()[dataset['name'].value_counts() > 1]
+df['name'].value_counts()[df['name'].value_counts() > 1]
 
-dataset[dataset['name'] == 'spider-man']
+df[df['name'] == 'spider-man']
 
 
 # +
@@ -536,8 +636,8 @@ def most_common(x):
 
 
 # defino la forma de agregación para cada variable
-dataset = (
-    dataset.groupby('name')
+df = (
+    df.groupby('name')
     .agg(
         {
             'Gender': most_common,
@@ -554,22 +654,27 @@ dataset = (
     .reset_index()
 )
 
-dataset.shape
+df.shape
 # -
 
 # 8- Creamos nuevas variables
 
 # Investigando sobre la composición de los nombres, vemos que los que contienen *captain* son buenos
 
-# aux = dataset.groupby('Alignment').apply(lambda x: x['name'].str.split().apply(pd.Series).stack()).to_frame('word').reset_index()[['Alignment','word']].groupby('Alignment')['word'].value_counts().to_frame('n').reset_index()
+# aux = df.groupby('Alignment').apply(lambda x: x['name'].str.split().apply(pd.Series).stack()).to_frame('word').reset_index()[['Alignment','word']].groupby('Alignment')['word'].value_counts().to_frame('n').reset_index()
 # aux.groupby('Alignment').head(5)
-display(dataset.loc[dataset.name.str.contains('captain'), ['name', 'Alignment']])
-dataset['is_captain'] = np.where(dataset['name'].str.contains('captain'), 1, 0)
-dataset.shape
+display(df.loc[df.name.str.contains('captain'), ['name', 'Alignment']])
+df['is_captain'] = np.where(df['name'].str.contains('captain'), 1, 0)
+df.shape
 
 # pocas mujeres superheroes, menos aún villanas
-dataset.groupby(['Alignment', 'Gender']).size().groupby(level=0).apply(
+df.groupby(['Alignment', 'Gender']).size().groupby(level=0).apply(
     lambda x: 100 * x / float(x.sum())
 )
 
 # 9- Encodeamos categóricas
+
+cat_cols = ['Gender', 'Eye color', 'Race', 'Hair color', 'Publisher']
+# Aplicamos hashing para las categoricas
+df = hashing_encoding(df, cat_cols, verbose=True)
+df.head()

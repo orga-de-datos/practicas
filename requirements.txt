@@ -1,5 +1,6 @@
 ipywidgets
 jupyterlab
+miceforest
 pandas
 pandas-profiling
 plotly
