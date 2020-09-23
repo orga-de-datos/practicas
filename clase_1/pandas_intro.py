@@ -7,9 +7,9 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.1
+#       jupytext_version: 1.5.2
 #   kernelspec:
-#     display_name: Python 3 (venv)
+#     display_name: Python 3
 #     language: python
 #     name: python3
 # ---
@@ -280,6 +280,55 @@ df.sort_values(by=['Height', 'Weight'], ascending=False)
 # # Operaciones de strings
 
 df.name.str.lower()
+
+# # Manejo de fechas
+
+# ### Timestamp
+
+pd.Timestamp("2020-09-30 04:32:18 PM")
+
+# ### DatetimeIndex
+
+fechas = ['2020-03-20', '2020-03-18', '2020/09/30']
+indice_fechas = pd.DatetimeIndex(fechas)
+indice_fechas
+
+descripciones = ['cuarentena', 'cumpleañito', 'hoy']
+desc_serie = pd.Series(data=descripciones, index=indice_fechas)
+
+# ### to_datetime
+
+pd.to_datetime('2020/03/30 17:43:09')
+
+pd.to_datetime(fechas)
+
+serie_fechas = pd.Series(
+    ['September 22nd, 2019', '22, 09, 2020', 'Una fecha', 'Oct 15th, 2020']
+)
+pd.to_datetime(serie_fechas, errors='coerce')
+
+# ### Rangos
+
+rango_de_tiempo = pd.date_range(start='25/06/2019', end='25/06/2020', freq='D')
+rango_de_tiempo
+
+rango_de_tiempo = pd.date_range(start='25/06/2019', end='25/06/2022', freq='A')
+rango_de_tiempo
+
+# + jupyter={"outputs_hidden": true}
+desc_serie
+# -
+
+# ### Filtro por fecha
+
+bicis_df = pd.read_csv('../datasets/bicis.csv').set_index('datetime')
+bicis_df
+
+bicis_df.loc['2012-12-19 20:00:00']
+
+bicis_df.loc['2012-11-19 20:00:00':'2012-12-30 20:00:00']
+
+bicis_df.truncate(before='2012-11-19 22:00:00', after='2012-12-01 00:00:00')
 
 # # Cómo seguir
 #
