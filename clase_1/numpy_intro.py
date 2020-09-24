@@ -1,69 +1,58 @@
 #!/usr/bin/env python
 # coding: utf-8
-# %%
-
-# # Clase 1 - Introducción a numpy
-
+# %% [markdown]
+#
+# ## Clase 1 - Introducción a numpy
+#
 # Numpy es una biblioteca para Python que facilita el manejo de arreglos multidimensionales y ofrece varias herramientas para trabajar con ellos. Muchas de las bibliotecas de Python que son ampliamente usadas hoy en día, como pandas, están construidas sobre numpy.
-
-# ## Listas de Python vs arreglos de Numpy
-
+#
+# ### Listas de Python vs arreglos de Numpy
+#
 # A primera vista, un arreglo de numpy puede resultar idéntico a una lista de python, pero a medida que la cantidad de datos comienza a incrementar, los arreglos de numpy terminan ofreciendo un manejo más eficiente de la memoria.
-
+#
 # Para comenzar, vamos a crear un arreglo de numpy:
 
 # %%
-
-
 import numpy as np
 
 np.array([1, 2, 3, 4])
 
-
+# %% [markdown]
 # Los arreglos pueden ser también multidimensionales:
 
 # %%
-
-
 np.array([[1, 2, 3, 4], [5, 6, 7, 8]])
 
-
+# %% [markdown]
 # Es importante tener en cuenta que un arreglo de numpy tiene un tipo fijo de datos, entonces si se quiere agregar un dato de un tipo diferente al de la mayoría, este va a ser modificado para adaptarse al resto
 
 # %%
-
-
 enteros = np.array([1, 2, 3, 4])
 
+# %% [markdown]
 # Agrego un elemento de tipo flotante en la posición 1
 
+# %%
 enteros[1] = 8.4727
 enteros
 
-
-# Numpy también nos permite crear arreglos con valores aleatorios del 0 al 1
+# %% [markdown]
+# Numpy también nos permite crear arreglos con valores aleatorios del 0 al 1.
+# Basta con pasarle las dimensiones del arreglo que queremos crear.
 
 # %%
-
-
-# Basta con pasarle las dimensiones del arreglo que queremos crear
-
 np.random.rand(2, 3)
 
-
+# %% [markdown]
 # ## Slicing
-
+#
 # De la misma forma que con las listas de python, pueden obtenerse slices de los arreglos de numpy
 
 # %%
-
-
 enteros[:2]
 
 
 # %%
-
-
 matriz_de_enteros = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
 
 print('Original: ')
@@ -73,6 +62,23 @@ print()
 
 print('Recortada: ')
 print(matriz_de_enteros[:2, :3])
+
+# %%
+# 3D
+x = np.arange(45).reshape(3, 3, 5)
+x
+
+# %%
+x[0]
+
+# %% [markdown]
+#
+# ¿Cómo conseguimos estos valores?
+#
+# ![image.png](attachment:be6a47c6-e384-4c25-8bcd-ef7302285747.png)
+
+# %%
+x[1:, 0:2, 1:4]
 
 # %% [markdown]
 # ### Copia de arreglos
@@ -199,5 +205,40 @@ a > 5
 
 # %%
 a[a > 5]
+
+# %% [markdown]
+# ### Broadcasting
+
+# %% [markdown]
+# Permite realizar operaciones entre dos numpy arrays de distintas dimensiones.
+# Igualmente deben alguna de las siguientes características:
+# 1. Tener alguna dimensión en común
+# 2. Tener dimensión 1
+
+# %%
+a = np.array([[5, 2, 1, 8], [26, 4, 17, 9]])
+a
+
+# %%
+b = np.array([5, 2, 1, 8])
+print("a: " + str(a.shape))
+print("b: " + str(b.shape))
+a + b
+
+# %%
+b = np.array([5, 1, 8])
+print("a: " + str(a.shape))
+print("b: " + str(b.shape))
+a + b
+
+# %%
+b = np.array([[2], [1]])
+print("a: " + str(a.shape))
+print("b: " + str(b.shape))
+a + b
+
+# %%
+b = 4
+a + b
 
 # %%
