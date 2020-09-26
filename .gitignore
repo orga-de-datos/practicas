@@ -2,3 +2,4 @@
 venv
 **.swp
 **.DS_Store
+clase_*/*.ipynb
