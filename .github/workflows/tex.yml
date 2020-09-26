@@ -1,0 +1,26 @@
+name: Compilar guía de ejercicios
+on: [push]
+jobs:
+  build_latex:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Compilar guía
+        uses: xu-cheng/latex-action@v2
+        with:
+          working_directory: guia
+          root_file: guia.tex
+          post_compile: "latexmk -c"
+      - run: |
+          mkdir guia/build
+          cp guia/guia.pdf guia/build/guia.pdf
+      - name: Install SSH Client 🔑
+        uses: webfactory/ssh-agent@v0.2.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+      - name: Deployar guía 🚀
+        uses: JamesIves/github-pages-deploy-action@3.5.9
+        with:
+          BRANCH: guia-ejs
+          FOLDER: guia/build
+          SSH: true
