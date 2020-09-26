@@ -4,6 +4,9 @@ miceforest
 plotly
 matplotlib
 pandas
+dtreeviz
+graphviz
+scikit-learn
 sklearn
 matplotlib
 black==19.10b0

@@ -1,3 +1,4 @@
 **.ipynb_checkpoints
 venv
 .DS_Store
+clase_*/*.ipynb
