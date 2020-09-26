@@ -19,7 +19,7 @@ Para ver mejor el árbol de contenidos:
 jupyter labextension install @jupyterlab/toc
 ```
 
-## Widgets
+## Jupyter widgets
 Para ver gráficos interactivos:
 ```bash
 jupyter labextension install jupyterlab-plotly@4.9.0
