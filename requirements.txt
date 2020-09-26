@@ -1,4 +1,7 @@
+ipywidgets
 jupyterlab
+miceforest
+plotly
 matplotlib
 pandas
 sklearn
