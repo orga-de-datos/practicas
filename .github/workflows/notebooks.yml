@@ -5,9 +5,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
       - name: Instalar dependencias
         run: |
-          python3 -m pip install --user pipx
+          python3 -m pip install pipx
           python3 -m pipx ensurepath
           pipx install jupyterlab
           pipx install jupytext
