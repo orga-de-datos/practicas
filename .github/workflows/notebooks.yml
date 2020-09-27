@@ -18,7 +18,9 @@ jobs:
       - name: Compilar notebooks
         continue-on-error: true
         run: |
-          for D in clases/*/; do jupytext --to notebook --execute ${D}*.py; done
+          for D in clases/*/; do jupytext --to notebook --execute ${D}*.py || true; done
+      - name: Copiar notebooks
+        run: |
           mkdir -p build/notebooks
           cp clases/**/*.ipynb --parents build/notebooks
       - name: Install SSH Client 🔑
