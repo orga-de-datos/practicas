@@ -16,6 +16,7 @@ jobs:
           pipx install jupytext
           pip install -r requirements.txt
       - name: Compilar notebooks
+        continue-on-error: true
         run: |
           for D in clases/*/; do jupytext --to notebook --execute ${D}*.py; done
           mkdir -p build/notebooks
