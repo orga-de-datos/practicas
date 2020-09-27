@@ -3,3 +3,4 @@ venv
 **.swp
 **.DS_Store
 **.ipynb
+build
