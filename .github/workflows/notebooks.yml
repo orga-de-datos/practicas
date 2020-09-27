@@ -10,9 +10,12 @@ jobs:
           pip3 install pipx
           pipx install jupyterlab
           pipx install jupytext
+          pip install -r requirements.txt
       - name: Compilar notebooks
         runs: |
-
+          for D in clases/*/; do jupytext --to notebook --execute ${D}*.py; done
+          mkdir -p build/notebooks
+          cp clases/**/*.ipynb --parents build/notebooks
       - name: Install SSH Client 🔑
         uses: webfactory/ssh-agent@v0.2.0
         with:
@@ -21,5 +24,5 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@3.5.9
         with:
           BRANCH: notebooks
-          FOLDER: clases/build
+          FOLDER: build/notebooks/clases
           SSH: true
