@@ -7,9 +7,9 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.1
+#       jupytext_version: 1.5.2
 #   kernelspec:
-#     display_name: Python 3 (venv)
+#     display_name: Python 3
 #     language: python
 #     name: python3
 # ---
@@ -80,8 +80,6 @@ plt.show()
 # +
 from sklearn.metrics import pairwise_distances_argmin
 
-images = []
-
 
 def find_clusters(X, n_clusters, rseed=2):
     # 1. Seleccionamos de manera aleatoria los primeros valores de los centroides
@@ -120,16 +118,50 @@ plt.xlabel("X1", fontsize=20, weight="bold")
 # Observamos ahora como se mueven los centroides en las iteraciones del código anterior:
 
 # +
-def show_gif(fname):
-    import base64
-    from IPython import display
-
-    with open(fname, 'rb') as fd:
-        b64 = base64.b64encode(fd.read()).decode('ascii')
-    return display.HTML(f'<img src="data:image/gif;base64,{b64}" />')
+from __future__ import print_function
+from ipywidgets import interact, interactive, fixed, interact_manual
+import ipywidgets as widgets
+from functools import partial
 
 
-show_gif('images/movie.gif')
+def find_clusters_limited_iters(X, n_clusters, iters, rseed=2):
+    # 1. Seleccionamos de manera aleatoria los primeros valores de los centroides
+    rng = np.random.RandomState(rseed)
+    i = rng.permutation(X.shape[0])[:n_clusters]
+    centers = X[i]
+    j = 0
+    for i in range(iters):
+        """2a. Asignamos a qué cluster pertenece según su cercanía al centroide
+           pairwise_distances_argmin retorna array de indices, cada índice corresponde con el índice del controide
+           más cercano para ese punto"""
+
+        labels = pairwise_distances_argmin(X, centers)
+
+        """2b. Buscamos los nuevo centroides, calculados como el promedio (en cada dimension) de los puntos de
+           cada cluster"""
+        new_centers = np.array([X[labels == i].mean(0) for i in range(n_clusters)])
+
+        # 2c. si los centroides no cambiaron respecto al paso anterior, stop
+        if np.all(centers == new_centers):
+            break
+        centers = new_centers
+
+    return centers, labels
+
+
+def plot_clusters(X, n_clusters, iters, rseed=2):
+    plt.figure(figsize=(20, 10))
+    centers, labels = find_clusters_limited_iters(X, n_clusters, iters, rseed=rseed)
+    plt.scatter(X[:, 0], X[:, 1], c=labels, s=90, cmap='viridis')
+    plt.scatter(centers[:, 0], centers[:, 1], c='black', s=200, alpha=0.5)
+    plt.ylabel("X2", fontsize=20, weight="bold")
+    plt.xlabel("X1", fontsize=20, weight="bold")
+    plt.show()
+
+
+interact(
+    plot_clusters, X=fixed(X), n_clusters=fixed(4), rseed=fixed(2), iters=(1, 10, 1)
+)
 # -
 
 # ¿Qué pasa cuando la inicialización de los centroides no es muy feliz?
@@ -141,7 +173,9 @@ plt.scatter(centers[:, 0], centers[:, 1], c='black', s=200, alpha=0.5)
 plt.ylabel("X2", fontsize=20, weight="bold")
 plt.xlabel("X1", fontsize=20, weight="bold")
 
-show_gif('gif2/movie.gif')
+interact(
+    plot_clusters, X=fixed(X), n_clusters=fixed(4), rseed=fixed(0), iters=(1, 10, 1)
+)
 
 clusters = np.unique(labels)
 ordered_points = X[np.where(y_kmeans == clusters[0])]
