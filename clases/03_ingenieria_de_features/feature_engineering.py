@@ -552,7 +552,7 @@ display(filter_by_variance(df, 0.5).head(2))
 # Supongamos que tenemos que predecir el bando de un superhéroe dadas las variables del set. <br> Apliquemos lo visto hasta ahora
 
 # empezamos de cero, leyendo el dataset
-df = pd.read_csv('../datasets/superheroes.csv')
+df = pd.read_csv('../../datasets/superheroes.csv')
 df.shape
 
 # 1- Reemplazamos valores codificados como null
