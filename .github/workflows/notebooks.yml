@@ -1,5 +1,8 @@
 name: Compilar notebooks de clases
-on: [push]
+on:
+  push:
+    branches:
+      - master
 jobs:
   build_notebooks:
     runs-on: ubuntu-latest
