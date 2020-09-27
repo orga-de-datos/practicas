@@ -81,6 +81,14 @@ plt.show()
 from sklearn.metrics import pairwise_distances_argmin
 
 
+def kmeans_distorsion(X, centers):
+    distortion = 0
+    labels = pairwise_distances_argmin(X, centers)
+    for i in range(len(labels)):
+        distortion += np.linalg.norm(X[i] - centers[labels[i]])
+    return distortion
+
+
 def find_clusters(X, n_clusters, rseed=2):
     # 1. Seleccionamos de manera aleatoria los primeros valores de los centroides
     rng = np.random.RandomState(rseed)
@@ -103,11 +111,11 @@ def find_clusters(X, n_clusters, rseed=2):
             break
         centers = new_centers
 
-    return centers, labels
+    return centers, labels, kmeans_distorsion(X, centers)
 
 
 plt.figure(figsize=(20, 10))
-centers, labels = find_clusters(X, 4)
+centers, labels, error = find_clusters(X, 4)
 plt.scatter(X[:, 0], X[:, 1], c=labels, s=90, cmap='viridis')
 plt.scatter(centers[:, 0], centers[:, 1], c='black', s=200, alpha=0.5)
 plt.ylabel("X2", fontsize=20, weight="bold")
@@ -145,17 +153,19 @@ def find_clusters_limited_iters(X, n_clusters, iters, rseed=2):
         if np.all(centers == new_centers):
             break
         centers = new_centers
-
-    return centers, labels
+    return centers, labels, kmeans_distorsion(X, centers)
 
 
 def plot_clusters(X, n_clusters, iters, rseed=2):
     plt.figure(figsize=(20, 10))
-    centers, labels = find_clusters_limited_iters(X, n_clusters, iters, rseed=rseed)
+    centers, labels, error = find_clusters_limited_iters(
+        X, n_clusters, iters, rseed=rseed
+    )
     plt.scatter(X[:, 0], X[:, 1], c=labels, s=90, cmap='viridis')
     plt.scatter(centers[:, 0], centers[:, 1], c='black', s=200, alpha=0.5)
     plt.ylabel("X2", fontsize=20, weight="bold")
     plt.xlabel("X1", fontsize=20, weight="bold")
+    plt.title("Distortion: %f" % error, fontsize=20)
     plt.show()
 
 
