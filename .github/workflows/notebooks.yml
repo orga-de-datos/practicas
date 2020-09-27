@@ -1,0 +1,25 @@
+name: Compilar notebooks de clases
+on: [push]
+jobs:
+  build_notebooks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Instalar dependencias
+        run: |
+          pip3 install pipx
+          pipx install jupyterlab
+          pipx install jupytext
+      - name: Compilar notebooks
+        runs: |
+
+      - name: Install SSH Client 🔑
+        uses: webfactory/ssh-agent@v0.2.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+      - name: Deployar notebooks 📓🚀
+        uses: JamesIves/github-pages-deploy-action@3.5.9
+        with:
+          BRANCH: notebooks
+          FOLDER: clases/build
+          SSH: true
