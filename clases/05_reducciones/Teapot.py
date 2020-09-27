@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 
 # Vamos a usar un dataset que tiene forma de tetera 3D
 
-teapot = pd.read_csv("../datasets/teapot.csv")
+teapot = pd.read_csv("../../datasets/teapot.csv")
 
 # +
 fig = plt.figure(figsize=(10, 10))

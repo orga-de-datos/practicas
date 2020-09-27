@@ -7,9 +7,9 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.6.0
+#       jupytext_version: 1.5.1
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (venv)
 #     language: python
 #     name: python3
 # ---
@@ -37,7 +37,9 @@ import pandas as pd
 # +
 # https://www.kaggle.com/c/ieee-fraud-detection/data?select=train_transaction.csv
 
-df_train_transactions = pd.read_csv('dataset/train_transaction.csv')
+df_train_transactions = pd.read_csv(
+    '../../datasets/ieee-fraud-detection/train_transaction.csv'
+)
 df_train_identity = pd.read_csv('dataset/train_identity.csv')
 
 df_test_transaction = pd.read_csv('dataset/test_transaction.csv')
