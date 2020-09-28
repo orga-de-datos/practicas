@@ -13,6 +13,8 @@ Ver PRs de notebooks es dificil, porque son JSONs. Si fueron ejecutados, además
 o texto largo. Para ayudar con este problema podemos usar [jupytext](https://jupytext.readthedocs.io/en/latest/introduction.html).
 Está en las dependencias de desarrollo incluido.
 
+Para poder usarlo, es necesario tener instalado [node](https://nodejs.org/en/).
+
 ## ToC
 Para ver mejor el árbol de contenidos:
 ```bash
