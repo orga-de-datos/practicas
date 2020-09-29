@@ -34,7 +34,7 @@ from collections import Counter
 # +
 import pandas as pd
 
-df = pd.read_csv('../datasets/superheroes.csv')
+df = pd.read_csv('../../datasets/superheroes.csv')
 # -
 
 # También podemos crear dataframes desde listas, diccionarios y otras estructuras.
