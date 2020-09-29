@@ -153,7 +153,9 @@ for elemento in lista:
 for i, elemento in enumerate(lista):
     print(f"{i}-ésimo elemento: {elemento}")
 
+# + tags=["raises-exception"]
 sorted(lista)
+# -
 
 lista.remove("dos")
 
@@ -167,7 +169,7 @@ lista
 #
 # Las tuplas son inmutables. No se pueden agregar elementos luego de creadas.
 
-# + slideshow={"slide_type": "slide"}
+# + slideshow={"slide_type": "slide"} tags=["raises-exception"]
 tupla = (1, 2)
 
 print(tupla)
@@ -211,7 +213,9 @@ print(numeros)
 numeros = numeros[::-1]
 print(numeros)
 
+# + tags=["raises-exception"]
 print(numeros[15])  # Falla. No se puede acceder a una posición inexistente
+# -
 
 palabra = 'palabra'
 print(palabra)
@@ -269,7 +273,9 @@ print(diccionario)
 
 diccionario['clave1']
 
+# + tags=["raises-exception"]
 diccionario['clave1000']
+# -
 
 # La segunda forma es con `get`:
 
@@ -378,7 +384,7 @@ print(busqueda_binaria([1, 2, 3, 4, 5], 4))
 print(busqueda_binaria([1, 4, 6, 7, 9, 10], 2))
 
 
-# + slideshow={"slide_type": "slide"}
+# + slideshow={"slide_type": "slide"} tags=["raises-exception"]
 def suma(a, b):
     return a + b
 
@@ -438,7 +444,9 @@ print(pi)
 #
 # Se pueden encapsular errores esperados en un bloque 'try/except' para evitar cortar el flujo del programa
 
+# + tags=["raises-exception"]
 division(1, 0)  # No se puede dividir por cero
+# -
 
 try:
     division(1, 0)
