@@ -198,9 +198,9 @@ a[a > 5]
 # ### Broadcasting
 
 # Permite realizar operaciones entre dos numpy arrays de distintas dimensiones.
-# Igualmente deben cumplir alguna de las siguientes características:
-# 1. Tener la misma cantidad de filas o de columnas
-# 2. Ser un escalar
+# Para lograr esto, las dimensiones de los mismos deben ser compatibles. Dos dimensiones son compatibles cuando:
+# 1. Son iguales
+# 2. Alguna de las dos es 1
 
 a = np.array([[5, 2, 1, 8], [26, 4, 17, 9]])
 a
