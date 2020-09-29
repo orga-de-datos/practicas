@@ -7,9 +7,9 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.6.0
+#       jupytext_version: 1.5.1
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (venv)
 #     language: python
 #     name: python3
 # ---
@@ -266,11 +266,15 @@ def alignment_to_numeric(alignment):
 df_marvel['numeric_alineation'] = df_marvel.Alignment.apply(alignment_to_numeric)
 # -
 
+df_marvel = df[df.Publisher == 'Marvel Comics'].copy()
+
 df_marvel.loc[:, 'numeric_alineation'] = df_marvel.Alignment.apply(alignment_to_numeric)
 
 df_marvel.head()
 
 df_marvel.numeric_alineation.mean()
+
+# Una excelente guía al respecto: [link](https://www.dataquest.io/blog/settingwithcopywarning/)
 
 # # Ordenando
 
