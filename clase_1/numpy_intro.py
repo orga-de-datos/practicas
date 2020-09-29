@@ -1,8 +1,20 @@
-#!/usr/bin/env python
-# coding: utf-8
-# %% [markdown]
-#
-# ## Clase 1 - Introducción a numpy
+# -*- coding: utf-8 -*-
+# ---
+# jupyter:
+#   jupytext:
+#     formats: ipynb,py:light
+#     text_representation:
+#       extension: .py
+#       format_name: light
+#       format_version: '1.5'
+#       jupytext_version: 1.6.0
+#   kernelspec:
+#     display_name: Python 3
+#     language: python
+#     name: python3
+# ---
+
+# ## Clase 1 - Introducción a Numpy
 #
 # Numpy es una biblioteca para Python que facilita el manejo de arreglos multidimensionales y ofrece varias herramientas para trabajar con ellos. Muchas de las bibliotecas de Python que son ampliamente usadas hoy en día, como pandas, están construidas sobre numpy.
 #
@@ -12,47 +24,38 @@
 #
 # Para comenzar, vamos a crear un arreglo de numpy:
 
-# %%
+# +
 import numpy as np
 
 np.array([1, 2, 3, 4])
+# -
 
-# %% [markdown]
 # Los arreglos pueden ser también multidimensionales:
 
-# %%
 np.array([[1, 2, 3, 4], [5, 6, 7, 8]])
 
-# %% [markdown]
 # Es importante tener en cuenta que un arreglo de numpy tiene un tipo fijo de datos, entonces si se quiere agregar un dato de un tipo diferente al de la mayoría, este va a ser modificado para adaptarse al resto
 
-# %%
 enteros = np.array([1, 2, 3, 4])
 
-# %% [markdown]
 # Agrego un elemento de tipo flotante en la posición 1
 
-# %%
 enteros[1] = 8.4727
 enteros
 
-# %% [markdown]
 # Numpy también nos permite crear arreglos con valores aleatorios del 0 al 1.
 # Basta con pasarle las dimensiones del arreglo que queremos crear.
 
-# %%
 np.random.rand(2, 3)
 
-# %% [markdown]
 # ## Slicing
 #
 # De la misma forma que con las listas de python, pueden obtenerse slices de los arreglos de numpy
 
-# %%
 enteros[:2]
 
 
-# %%
+# +
 matriz_de_enteros = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
 
 print('Original: ')
@@ -62,183 +65,163 @@ print()
 
 print('Recortada: ')
 print(matriz_de_enteros[:2, :3])
+# -
 
-# %%
 # 3D
 x = np.arange(45).reshape(3, 3, 5)
 x
 
-# %%
 x[0]
 
-# %% [markdown]
 #
-# ¿Cómo conseguimos estos valores?
+# ¿Cómo conseguimos estos valores? ([fuente](https://towardsdatascience.com/indexing-and-slicing-of-1d-2d-and-3d-arrays-in-numpy-e731afff0bbe))
 #
-# ![image.png](attachment:be6a47c6-e384-4c25-8bcd-ef7302285747.png)
+# ![title](img/matrix.png)
 
-# %%
 x[1:, 0:2, 1:4]
 
-# %% [markdown]
 # ### Copia de arreglos
 
-# %%
+# +
 # Los arreglos no se copian con asignación
 
 a = np.array([1, 2, 3, 4])
 b = a
 b
+# -
 
-# %%
 b[1] = 20
 b
 
-# %%
 a
 
-# %%
+# +
 # Para copiar un arreglo a otra variable debemos usar copy()
 
 a = np.array([1, 2, 3, 4])
 b = a.copy()
 b[1] = 20
 b
+# -
 
-# %%
 a
 
-# %% [markdown]
 # ### Modificación de dimensiones
 
-# %% [markdown]
 # Existen varias operaciones para cambiar la forma de un arreglo de numpy
 
-# %%
+# +
 # Obtener las dimensiones del arreglo
 
 matriz_de_enteros.ndim
 
-# %%
+# +
 # Obtener la forma del arreglo
 
 matriz_de_enteros.shape
 
-# %%
+# +
 # Modificar la forma de un arreglo
 
 enteros = np.array([3, 6, 9, 12])
 np.reshape(enteros, (2, 2))
 
-# %%
+# +
 # Aplanar un arreglo
 
 a = np.ones((2, 2))
 a
+# -
 
-# %%
 a.flatten()
 
-# %%
 a
 
 
-# %% [markdown]
 # ### Combinación de arreglos (Stacking)
 
-# %%
+# +
 # Los arreglos se pueden combinar verticalmente (se incrementa la cantidad de filas)
 
 a = np.arange(0, 5)
 a
+# -
 
-# %%
 b = np.arange(5, 10)
 b
 
-# %%
 combinados_verticalmente = np.vstack((a, b))
 combinados_verticalmente
 
-# %%
+# +
 # También se pueden combinar horizontalmente (se incrementa la cantidad de columnas)
 
 combinados_horizontalmente = np.hstack((a, b))
 combinados_horizontalmente
+# -
 
-# %% [markdown]
 # ### Operaciones matemáticas
 
-# %%
+# +
 a = np.array([1, 2, 3, 4])
 
 a + 2
+# -
 
-# %%
 a ** 2
 
-# %%
 b = np.ones(4)
 a + b
 
-# %% [markdown]
 # ### Estadística
 
-# %%
+# +
 a = np.array([[5, 2, 1, 8], [26, 4, 17, 9]])
 
 np.min(a)
+# -
 
-# %%
 np.max(a)
 
-# %%
 np.sum(a)
 
-# %% [markdown]
 # ### Más magia
 
-# %%
+# +
 a = np.array([[5, 2, 1, 8], [26, 4, 17, 9]])
 
 a > 5
+# -
 
-# %%
 a[a > 5]
 
-# %% [markdown]
 # ### Broadcasting
 
-# %% [markdown]
 # Permite realizar operaciones entre dos numpy arrays de distintas dimensiones.
-# Igualmente deben alguna de las siguientes características:
-# 1. Tener alguna dimensión en común
-# 2. Tener dimensión 1
+# Igualmente deben cumplir alguna de las siguientes características:
+# 1. Tener la misma cantidad de filas o de columnas
+# 2. Ser un escalar
 
-# %%
 a = np.array([[5, 2, 1, 8], [26, 4, 17, 9]])
 a
 
-# %%
+# Armamos un array que tenga la misma cantidad de columnas que a
 b = np.array([5, 2, 1, 8])
-print("a: " + str(a.shape))
-print("b: " + str(b.shape))
+print(f"a: {a.shape}")
+print(f"b: {b.shape}")
 a + b
 
-# %%
+# Armamos un array que tenga distinta cantidad de filas y columnas que a
 b = np.array([5, 1, 8])
-print("a: " + str(a.shape))
-print("b: " + str(b.shape))
+print(f"a: {a.shape}")
+print(f"b: {b.shape}")
 a + b
 
-# %%
+# Armamos un array que tenga la misma cantidad de filas que a
 b = np.array([[2], [1]])
-print("a: " + str(a.shape))
-print("b: " + str(b.shape))
+print(f"a: {a.shape}")
+print(f"b: {b.shape}")
 a + b
 
-# %%
 b = 4
 a + b
-
-# %%

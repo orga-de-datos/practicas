@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.2
+#       jupytext_version: 1.6.0
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -157,6 +157,7 @@ df['Skin color']
 # ## Eliminar filas con nulos
 
 df = df.dropna(subset=['Skin color'])
+df
 
 # # Unir información de distintas tablas
 #
@@ -281,6 +282,8 @@ df.sort_values(by=['Height', 'Weight'], ascending=False)
 
 df.name.str.lower()
 
+# Entre [otras](https://pandas.pydata.org/pandas-docs/stable/user_guide/text.html)
+
 # # Manejo de fechas
 
 # ### Timestamp
@@ -315,11 +318,11 @@ rango_de_tiempo
 rango_de_tiempo = pd.date_range(start='25/06/2019', end='25/06/2022', freq='A')
 rango_de_tiempo
 
-# + jupyter={"outputs_hidden": true}
 desc_serie
-# -
 
 # ### Filtro por fecha
+#
+# Usamos un dataset que registra el clima y demás datos para distintas fechas de [alquiler de bicicletas](https://www.kaggle.com/c/bike-sharing-demand/data?select=train.csv)
 
 bicis_df = pd.read_csv('../datasets/bicis.csv').set_index('datetime')
 bicis_df
@@ -329,6 +332,19 @@ bicis_df.loc['2012-12-19 20:00:00']
 bicis_df.loc['2012-11-19 20:00:00':'2012-12-30 20:00:00']
 
 bicis_df.truncate(before='2012-11-19 22:00:00', after='2012-12-01 00:00:00')
+
+# ### `dt` accessor
+
+# Permite obtener propiedades de tipo fecha de una Series
+fechas_series = pd.Series(pd.date_range('2020-09-30 00:00:41', periods=3, freq='s'))
+fechas_series
+
+fechas_series.dt.second
+
+fechas_series = pd.date_range(
+    start='22/06/2019', end='28/06/2019', freq='D'
+).to_series()
+fechas_series.dt.dayofweek
 
 # # Cómo seguir
 #
