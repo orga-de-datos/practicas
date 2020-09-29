@@ -26,6 +26,7 @@ jobs:
         run: |
           mkdir -p build/notebooks
           cp clases/**/*.ipynb --parents build/notebooks
+          cp requirements.txt build/notebooks/clases
       - name: Install SSH Client 🔑
         uses: webfactory/ssh-agent@v0.2.0
         with:
