@@ -7,9 +7,9 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.6.0
+#       jupytext_version: 1.5.1
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (venv)
 #     language: python
 #     name: python3
 # ---
@@ -211,11 +211,13 @@ print(f"a: {a.shape}")
 print(f"b: {b.shape}")
 a + b
 
+# + tags=["raises-exception"]
 # Armamos un array que tenga distinta cantidad de filas y columnas que a
 b = np.array([5, 1, 8])
 print(f"a: {a.shape}")
 print(f"b: {b.shape}")
 a + b
+# -
 
 # Armamos un array que tenga la misma cantidad de filas que a
 b = np.array([[2], [1]])
