@@ -7,9 +7,9 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.6.0
+#       jupytext_version: 1.5.1
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (venv)
 #     language: python
 #     name: python3
 # ---
@@ -34,7 +34,13 @@ from collections import Counter
 # +
 import pandas as pd
 
-df = pd.read_csv('../../datasets/superheroes.csv')
+GSPREADHSEET_DOWNLOAD_URL = (
+    "https://docs.google.com/spreadsheets/d/{gid}/export?format=csv&id={gid}".format
+)
+
+df = pd.read_csv(
+    GSPREADHSEET_DOWNLOAD_URL(gid="1nuJAaaH_IP8Q80CsyS940EVaePkbmqhN3vlorDxYMnA")
+)
 # -
 
 # También podemos crear dataframes desde listas, diccionarios y otras estructuras.
@@ -156,6 +162,8 @@ df['Skin color']
 
 # ## Eliminar filas con nulos
 
+df
+
 df = df.dropna(subset=['Skin color'])
 df
 
@@ -167,9 +175,7 @@ df.merge(df, left_on='Skin color', right_on='Skin color')[['Race_x', 'Race_y']]
 
 # Tenemos duplicados!
 
-df.merge(df, left_on='Skin color', right_on='Skin color')[
-    ['Race_x', 'Race_y']
-].drop_duplicates()
+df.merge(df, left_on='Skin color', right_on='Skin color')[['Race_x', 'Race_y']]
 
 # Tenemos que sacar los que son iguales en ambas columnas!
 
@@ -177,6 +183,32 @@ same_skin_color = df.merge(df, left_on='Skin color', right_on='Skin color')[
     ['Race_x', 'Race_y']
 ].drop_duplicates()
 same_skin_color[same_skin_color.Race_x != same_skin_color.Race_y]
+
+# +
+# pd.merge?
+# -
+
+df1 = pd.DataFrame({'col': [1, 2, 3], 'val': [10, 11, 12]})
+df2 = pd.DataFrame({'col': [2, 3, 4], 'val': [13, 14, 15]})
+
+df1
+
+df2
+
+pd.merge(df1, df2, how='left', left_on='col', right_on='col')
+
+pd.merge(df1, df2, how='inner', left_on='col', right_on='col')
+
+pd.merge(df1, df2, how='right', left_on='col', right_on='col')
+
+pd.merge(df1, df2, how='outer', left_on='col', right_on='col')
+
+# +
+# df1.merge?
+
+# +
+# df1.join?
+# -
 
 # Por último, para ver los pares únicos
 
@@ -213,9 +245,17 @@ df_concat.pipe(len)
 # queremos ver los nombres
 df = df.reset_index()
 
+df
+
 df.groupby("Race")
 
-df.columns
+df.groupby("Race").agg(list)
+
+(df['Alignment'] == 'good').mean() * 100
+
+(df['Alignment'] == 'good').sum() / (df['Alignment'] == 'good').size
+
+df.groupby("Race")['Alignment'].apply(len)
 
 
 # +
@@ -237,6 +277,25 @@ df.groupby("Race").agg(
 # Algunas agregaciones tienen métodos para realizarlos directamente
 
 df.Race.value_counts()
+
+# Y si lo queremos como porcentajes?
+
+df.Race.value_counts() / df.Race.value_counts().sum() * 100
+
+df.Race.value_counts(normalize=True)
+
+# Veamos como podemos obtener las filas del dataframe original donde la columna `Race` este entre aquellos valores con mas del 5% de repeticiones.
+
+over5 = df.Race.value_counts(normalize=True) > 0.05
+mutants_over5 = df.Race.value_counts()[over5]
+
+# Teniendo la indexacion, veamos como resolverlo con `isin`
+
+df[df.Race.isin(mutants_over5.index)].head(5)
+
+# Alternativamente, con `merge`
+
+df.merge(mutants_over5, left_on='Race', right_index=True, how='inner')
 
 # ## Pivoting
 
@@ -278,13 +337,13 @@ df_marvel.numeric_alineation.mean()
 
 # # Ordenando
 
-df.sort_index()
+df.set_index('name').sort_index()
 
 df.sort_values(by=['Height', 'Weight'], ascending=False)
 
 # # Operaciones de strings
 
-df.name.str.lower()
+df.name.apply(lambda x: x.lower())
 
 # Entre [otras](https://pandas.pydata.org/pandas-docs/stable/user_guide/text.html)
 
@@ -328,14 +387,19 @@ desc_serie
 #
 # Usamos un dataset que registra el clima y demás datos para distintas fechas de [alquiler de bicicletas](https://www.kaggle.com/c/bike-sharing-demand/data?select=train.csv)
 
-bicis_df = pd.read_csv('../datasets/bicis.csv').set_index('datetime')
+bicis_df = pd.read_csv(
+    GSPREADHSEET_DOWNLOAD_URL(gid="1YocUXbrd6uYpOLpU53uMS-AD9To8y_r30KbZdsSSiVQ")
+).set_index('datetime')
 bicis_df
 
 bicis_df.loc['2012-12-19 20:00:00']
 
+# + tags=["raises-exception"]
 bicis_df.loc['2012-11-19 20:00:00':'2012-12-30 20:00:00']
 
+# + tags=["raises-exception"]
 bicis_df.truncate(before='2012-11-19 22:00:00', after='2012-12-01 00:00:00')
+# -
 
 # ### `dt` accessor
 
