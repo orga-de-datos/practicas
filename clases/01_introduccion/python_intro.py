@@ -63,6 +63,9 @@ print("Hello World!")
 
 # Los strings en python puden escribirse tanto con comillas simples (`'`) como comillas dobles (`"`). Normalmente vemos texto entre comillas triples para escribir _docstrings_, segun la guia de estilo de Python, el PEP8.
 
+"""Esto es un docstring.
+"""
+
 # ### Declaracion de variables
 
 string = 'Hola'
@@ -97,7 +100,6 @@ print(nada)
 
 # Ojo que las variables pueden cambiar de tipo!
 
-# +
 elemento = 1
 print(elemento)
 print(type(elemento))
@@ -107,7 +109,7 @@ print(elemento)
 print(type(elemento))
 
 # +
-elemento = ['dos']
+elemento = [2]
 
 print(elemento)
 print(type(elemento))
@@ -134,21 +136,30 @@ lista
 lista.append(1)  # Inserto un 1 al final
 lista.append("dos")  # Inserto un "dos" al final
 lista.append(3.0)  # Inserto un 3.0 al final
+lista
+# -
+
 lista.insert(2, 10)  # Inserto en posicion 2 un 10
 print(lista)
-# -
 
 len(lista)
 
 lista.pop()
+
+lista
 
 lista.index(10)
 
 lista.remove(10)
 lista
 
+# + tags=["raises-exception"]
 for elemento in lista:
     print(elemento)
+    print(elemento + 1)
+# -
+
+lista
 
 for i, elemento in enumerate(lista):
     print(f"{i}-ésimo elemento: {elemento}")
@@ -177,6 +188,13 @@ print(tupla[0])
 print(tupla[1])
 
 tupla[1] = 3  # Falla. No se puede mutar
+# -
+
+l = [1, 2]
+l
+
+l[1] = 3
+l
 
 # + [markdown] slideshow={"slide_type": "slide"}
 # #### Diferencia entre lista y tupla
@@ -193,9 +211,15 @@ print(numeros)
 
 print(numeros[2])  # Imprimo elemento en la posición 2
 
+numeros[len(numeros) - 1]
+
 print(numeros[-1])  # # Imprimo elemento en la última posición
 
-print(numeros[0:2])  # Imprimo de la pos 0 a la pos 2
+
+numeros[-2]
+
+
+print(numeros[0:3])  # Imprimo de la pos 0 a la pos 2
 
 print(numeros[-4:-2])
 
@@ -205,7 +229,16 @@ print(numeros[:3])
 
 print(numeros[3:])
 
-print(numeros[::2])
+print(numeros[0:10:2])
+
+# ```python
+# lista[<inicio>:<final>:<step>]
+# ```
+
+l1 = [1, 2]
+l2 = [3, 4]
+l1 + l2
+
 
 numeros[7] = 'siete'  # Las listas se pueden mutar
 print(numeros)
@@ -224,11 +257,11 @@ print(palabra[:3])
 print(palabra[3:])
 
 # +
-tupla = (0, 1)
+tupla = (0, 1, 2, 3, 4)
 
 print(tupla)
-print(tupla[0])
-print(tupla[1])
+print(tupla[:2])
+print(tupla[2:])
 
 # + [markdown] slideshow={"slide_type": "slide"}
 # #### Diccionarios de Python
@@ -281,12 +314,25 @@ diccionario['clave1000']
 
 # +
 # diccionario.get?
+# -
+
+help(diccionario.get)
 
 # + slideshow={"slide_type": "slide"}
-diccionario.get('clave1000', 2)
+print(diccionario.get('clave1000'))
 
 # + slideshow={"slide_type": "slide"}
 print('clave1' in diccionario)  # Verifico si la clave está en el diccionario
+# -
+
+l = [1, 2, 3, 4]
+2 in l
+
+for clave, valor in diccionario.items():
+    print("la clave es %s y el valor es %s" % (clave, valor))
+
+for clave, valor in diccionario.items():
+    print("la clave es {} y el valor es {}".format(clave, valor))
 
 # + slideshow={"slide_type": "slide"}
 # Cómo iterar un diccionario elemento por elemento
@@ -297,7 +343,7 @@ for (
     diccionario.items()
 ):  # diccionario.items() va devolviendo tuplas con el formato (clave,valor)
     print(
-        f"{clave}: {valor}"
+        f"la clave es {clave} y el valor es {valor}"
     )  # con esta sintaxis se desempaquetan en clave y valor (similar a enumerate)
 
 # + slideshow={"slide_type": "slide"}
@@ -340,6 +386,15 @@ set([1, 2, 2, 3])
 #
 # Algo importante para notar es que los bloques se definen por **niveles de identacion**.
 
+v = 1
+if v == 1:
+    print("uno")
+elif v == 2:
+    print("dos")
+else:
+    print("ni idea")
+    print(v)
+
 # ## Iteraciones
 #
 # ```python
@@ -354,13 +409,20 @@ set([1, 2, 2, 3])
 #
 # Para iterar sobre un rango de valores, usamos `range`
 
-for i in range(1, 11, 2):
+for i in range(1, 11, 3):
     print(i)
-
 
 # ## Operadores logicos
 #
 # `not`, `or`, `and`
+
+if True or False:
+    print("yay")
+
+1 == 2
+
+1 != 2
+
 
 # + [markdown] slideshow={"slide_type": "slide"}
 # ## Funciones en Python
@@ -384,6 +446,16 @@ print(busqueda_binaria([1, 2, 3, 4, 5], 4))
 print(busqueda_binaria([1, 4, 6, 7, 9, 10], 2))
 
 
+# +
+def a(b):
+    if a == 1:
+        print(a)
+    return (b, b, b)
+
+
+print(a(3))
+
+
 # + slideshow={"slide_type": "slide"} tags=["raises-exception"]
 def suma(a, b):
     return a + b
@@ -401,13 +473,18 @@ print(suma("1", 3))  # Falla
 # El valor por default de divisor es 1
 
 
-def division(dividendo, divisor=1):
+def division(dividendo, divisor=2):
     return dividendo / divisor
 
 
 print(division(4))  # Usa el valor por default
+
+# + tags=["raises-exception"]
 print(division(1, 2))  # Parámetros por orden
 print(division(dividendo=1, divisor=2))  # Parámetros por nombre
+print(division(divisor=2))
+# -
+
 print(division(divisor=2, dividendo=1))
 
 # +
@@ -422,7 +499,7 @@ print(lista_ordenada)
 
 separadas = "hola, don, pepito".split(",")
 print(separadas)
-unidas = "".join(separadas)
+unidas = " - ".join(separadas)
 print(unidas)
 # -
 
@@ -435,10 +512,13 @@ import math
 
 print(math.pi)
 
-from math import pi
+# +
+from math import pi, e
 
-print(pi)
+print(pi, e)
 # -
+
+math.gcd(56, 78)
 
 # ## Manejo de excepciones
 #
@@ -450,8 +530,10 @@ division(1, 0)  # No se puede dividir por cero
 
 try:
     division(1, 0)
-except ZeroDivisionError:
-    print('No se puede dividir por cero, ojo!')
+except (ZeroDivisionError, TypeError) as e:
+    print('No se puede dividir por cero, ojo!', e)
+finally:
+    print(1)
 
 # + [markdown] slideshow={"slide_type": "slide"}
 # ## Lectura y escritura de archivos
@@ -480,6 +562,10 @@ with open('archivo.csv', 'r') as f:
 
 with open('archivo.csv', 'r') as f:
     print(f.read())
+
+f = open('archivo.csv', 'w')
+f.write("algo, algo")
+f.close()
 
 
 # + [markdown] slideshow={"slide_type": "slide"}
