@@ -7,9 +7,9 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.1
+#       jupytext_version: 1.5.2
 #   kernelspec:
-#     display_name: Python 3 (venv)
+#     display_name: Python 3
 #     language: python
 #     name: python3
 # ---
@@ -361,6 +361,7 @@ indice_fechas
 
 descripciones = ['cuarentena', 'cumpleañito', 'hoy']
 desc_serie = pd.Series(data=descripciones, index=indice_fechas)
+desc_serie
 
 # ### to_datetime
 
@@ -395,6 +396,8 @@ bicis_df
 bicis_df.loc['2012-12-19 20:00:00']
 
 # + tags=["raises-exception"]
+# Para poder quedarnos con un rango de fechas, debemos tener el índice ordenado
+bicis_df = bicis_df.sort_index()
 bicis_df.loc['2012-11-19 20:00:00':'2012-12-30 20:00:00']
 
 # + tags=["raises-exception"]
