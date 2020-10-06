@@ -7,9 +7,9 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.2
+#       jupytext_version: 1.5.1
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (venv)
 #     language: python
 #     name: python3
 # ---
@@ -389,12 +389,20 @@ desc_serie
 
 # ### Filtro por fecha
 #
-# Usamos un dataset que registra el clima y demás datos para distintas fechas de [alquiler de bicicletas](https://www.kaggle.com/c/bike-sharing-demand/data?select=train.csv)
+# Usamos un dataset que registra el clima y demás datos para distintas fechas de [alquiler de bicicletas](https://www.kaggle.com/c/bike-sharing-demand/data?select=train.csv).
+#
+# `pd.read_csv` nos deja leer archivos csv desde una URL. Este dataset esta tambien disponible en el drive de la materia. Leemos el dataset sin bajarlo a un archivo intermedio.
+
+# +
+GSPREADHSEET_DOWNLOAD_URL = (
+    "https://docs.google.com/spreadsheets/d/{gid}/export?format=csv&id={gid}".format
+)
 
 bicis_df = pd.read_csv(
     GSPREADHSEET_DOWNLOAD_URL(gid="1YocUXbrd6uYpOLpU53uMS-AD9To8y_r30KbZdsSSiVQ")
 ).set_index('datetime')
 bicis_df
+# -
 
 bicis_df.loc['2012-12-19 20:00:00']
 
