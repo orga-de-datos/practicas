@@ -400,7 +400,6 @@ bicis_df.loc['2012-12-19 20:00:00']
 bicis_df = bicis_df.sort_index()
 bicis_df.loc['2012-11-19 20:00:00':'2012-12-30 20:00:00']
 
-# + tags=["raises-exception"]
 bicis_df.truncate(before='2012-11-19 22:00:00', after='2012-12-01 00:00:00')
 # -
 
