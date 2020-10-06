@@ -8,7 +8,7 @@ Para ello desea entender la informacion que estuvo recolectando durante los ulti
 sobre los clientes que fueron a ver la pelicula frozen 3.
 
 
-Esta encuesta pesentada a cada usuario que fue a ver la pelicula tenia una serie de preguntas
+Esta encuesta presentada a cada usuario que fue a ver la pelicula tenia una serie de preguntas
 personales y finalmente le preguntaba si en un futuro salia frozen 4, si la volvería a ver
 en ese cine o no.
 
@@ -29,7 +29,8 @@ Si bien la empresa quiere empezar a usar tecnicas avanzadas de prediccion e inte
 todavia tiene desconfianza en las mismas (personalmente comentaron que tienen miedo que las maquinas
 se revelen contra ellos) por lo que inicialmente no quieren nada complicado sino una serie muy simples
 de desiciones logicas que les permitan en poco tiempo hacer una primera ronda de campaña digital. Se
-espera que el este codigo simple (baseline) tenga al menos X de accuracy.
+espera que el este codigo simple (baseline) tenga un accuracy aceptable y que esté basada y justificada
+en la investigación previa.
 
 
 ### Entrega:
@@ -58,7 +59,7 @@ anteriores puntos.
 - **amigos**: cantidad de amigos con los que fue a ver la pelicula (frozen 3)
 - **parientes**: cantidad de familiares con los que fue a ver la pelicula (frozen 3)
 - **ticket**: codigo del ticket
-- **precio**: precio pagado por el ticket
+- **precio**: precio pagado por el ticket, en franjas de valor odenadas de 1 a 50.
 - **fila**: fila dentro de la sala
 - **cine**: nombre del cine [FiuMark tiene varias sedes]
 - **nombre**: nombre del usuario que completa la encuesta.
@@ -67,7 +68,8 @@ Nota: algunos campos en la encuesta **pueden estar vacios**.
 
 
 ### Fecha de Entrega
-TODO: poner la fecha de entrega
+- Entrega del notebook: Miercoles 28 de octubre.
+- Defensa oral del tp: Martes 3 de noviembre.
 
 ### Condiciones de una entrega valida:
 - El notebook debe poder ser ejecutado de principio a fin por su corrector, todas las dependencias de librerias
