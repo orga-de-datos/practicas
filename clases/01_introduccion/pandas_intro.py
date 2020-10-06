@@ -30,17 +30,20 @@
 # Para comenzar, vamos a crear nuestro primer DataFrame a partir de un archivo CSV que contiene un [dataset sobre superhéroes](https://www.kaggle.com/claudiodavi/superhero-set/home).
 
 from collections import Counter
+import requests
+
+# Empezamos por descargarlo del drive de la materia.
+
+with requests.get(
+    "https://docs.google.com/spreadsheets/d/1nuJAaaH_IP8Q80CsyS940EVaePkbmqhN3vlorDxYMnA/export?format=csv"
+) as r, open("superheroes.csv", "wb") as f:
+    for chunk in r.iter_content():
+        f.write(chunk)
 
 # +
 import pandas as pd
 
-GSPREADHSEET_DOWNLOAD_URL = (
-    "https://docs.google.com/spreadsheets/d/{gid}/export?format=csv&id={gid}".format
-)
-
-df = pd.read_csv(
-    GSPREADHSEET_DOWNLOAD_URL(gid="1nuJAaaH_IP8Q80CsyS940EVaePkbmqhN3vlorDxYMnA")
-)
+df = pd.read_csv("superheroes.csv")
 # -
 
 # También podemos crear dataframes desde listas, diccionarios y otras estructuras.

@@ -4,3 +4,4 @@ venv
 **.DS_Store
 **.ipynb
 build
+clases/**/*.csv
