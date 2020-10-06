@@ -72,7 +72,7 @@ Nota: algunos campos en la encuesta **pueden estar vacios**.
 - Defensa oral del tp: Martes 3 de noviembre.
 
 ### Condiciones de una entrega valida:
-- El notebook debe poder ser ejecutado de principio a fin por su corrector, todas las dependencias de librerias
+- El notebook debe poder ser ejecutado de forma secuencial de principio a fin por su corrector, todas las dependencias de librerias
 deben estar en un requirements.txt.
 - La funcion baseline debe llamarse baseline(X: pd.DataFrame) -> List[int].
 la cual debe recibir un pandas dataframe producido de la lectura del archivo de testeo original y devolver una li
