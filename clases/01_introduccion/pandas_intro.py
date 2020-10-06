@@ -395,7 +395,6 @@ bicis_df
 
 bicis_df.loc['2012-12-19 20:00:00']
 
-# + tags=["raises-exception"]
 # Para poder quedarnos con un rango de fechas, debemos tener el índice ordenado
 bicis_df = bicis_df.sort_index()
 bicis_df.loc['2012-11-19 20:00:00':'2012-12-30 20:00:00']
