@@ -556,12 +556,12 @@ def hashing_encoding(df, cols, data_percent=0.85, verbose=False):
 
 def knn_imputer(df):
 
-    cat_cols = ['Gender', 'Eye color', 'Race', 'Hair color', 'Publisher', 'Skin color']
+    cat_cols = ['gender', 'eye_color', 'race', 'hair_color', 'publisher', 'skin_color']
 
     # Aplicamos hashing para las categoricas
     df = hashing_encoding(df, cat_cols)
     # Eliminamos name y alignment para imputar
-    df = df.drop(columns=['name', 'Alignment'])
+    df = df.drop(columns=['name', 'alignment'])
 
     # definimos un n arbitrario
     imputer = KNNImputer(n_neighbors=2, weights="uniform")
@@ -569,54 +569,52 @@ def knn_imputer(df):
     return df
 
 
-knn_imputation = knn_imputer(dataset).add_suffix('_knn')
+knn_imputation = knn_imputer(df).add_suffix('_knn')
 display(
-    dataset[['name', 'Weight', 'Height']]
-    .join(knn_imputation[['Weight_knn', 'Height_knn']])[
-        (dataset.Weight.isna() | dataset.Height.isna())
+    df[['name', 'weight', 'height']]
+    .join(knn_imputation[['weight_knn', 'weight_knn']])[
+        (df.weight.isna() | df.height.isna())
     ]
     .head(5)
 )
-
-
 # -
 
 # Otro ejemplo, esta vez con RandomForest (también entraremos en detalle próximamente).
 
 # +
-def forest_imputer(df):
+# def forest_imputer(df):
 
-    cat_cols = ['Gender', 'Eye color', 'Race', 'Hair color', 'Publisher', 'Skin color']
+#     cat_cols = ['gender', 'eye_color', 'race', 'hair_color', 'publisher', 'skin_color']
 
-    # Aplicamos hashing para las categoricas
-    df = hashing_encoding(df, cat_cols)
-    # Eliminamos name y alignment para imputar
-    df = df.drop(columns=['name', 'Alignment'])
-    # df.iloc[:,2:] = df.iloc[:,2:].apply(lambda x: x.astype('category'),axis=1)
+#     # Aplicamos hashing para las categoricas
+#     df = hashing_encoding(df, cat_cols)
+#     # Eliminamos name y alignment para imputar
+#     df = df.drop(columns=['name', 'alignment'])
+#     # df.iloc[:,2:] = df.iloc[:,2:].apply(lambda x: x.astype('category'),axis=1)
 
-    # El ampute se puede usar para validar el imputador sobre data conocida
-    # df_amp = mf.ampute_data(df, perc=0.25, random_state=0)
+#     # El ampute se puede usar para validar el imputador sobre data conocida
+#     # df_amp = mf.ampute_data(df, perc=0.25, random_state=0)
 
-    kernel = mf.KernelDataSet(
-        df,
-        save_all_iterations=True,
-        random_state=0,
-        variable_schema=['Weight', 'Height'],
-    )
+#     kernel = mf.KernelDataSet(
+#         df,
+#         save_all_iterations=True,
+#         random_state=0,
+#         variable_schema=['weight', 'height'],
+#     )
 
-    # Run the MICE algorithm for 20 iterations on each of the datasets
-    kernel.mice(20, n_jobs=2)
-    return kernel.complete_data()
+#     # Run the MICE algorithm for 20 iterations on each of the datasets
+#     kernel.mice(20, n_jobs=2)
+#     return kernel.complete_data()
 
 
-forest_imputation = forest_imputer(dataset).add_suffix('_forest')
-display(
-    dataset[['name', 'Weight', 'Height']]
-    .join(forest_imputation[['Weight_forest', 'Height_forest']])[
-        (dataset.Weight.isna() | dataset.Height.isna())
-    ]
-    .head(5)
-)
+# forest_imputation = forest_imputer(df).add_suffix('_forest')
+# display(
+#     df[['name', 'weight', 'height']]
+#     .join(forest_imputation[['weight_forest', 'height_forest']])[
+#         (df.weight.isna() | dataset.height.isna())
+#     ]
+#     .head(5)
+# )
 # -
 
 # # Selección de variables
@@ -627,13 +625,13 @@ display(
 # Por varianza, se define un umbral mínimo para considerar variables. Por defecto elimina las features de varianza 0 (sin cambios) <br>
 # Como en el set no tenemos ejemplos, agreguemos variables con esas condiciones
 
-df = dataset.copy()
-df['with_zero_variance'] = 10
-df['with_low_variance'] = np.random.uniform(0, 0.2, df.shape[0])
+_df = df.copy()
+_df['with_zero_variance'] = 10
+_df['with_low_variance'] = np.random.uniform(0, 0.2, _df.shape[0])
 
-df.head()
+_df.head()
 
-df.var()
+_df.var()
 
 
 # +
@@ -651,8 +649,8 @@ def filter_by_variance(df, threshold):
     return df.loc[:, ~df.columns.isin(cols)].join(result)
 
 
-display(filter_by_variance(df, 0).head(2))
-display(filter_by_variance(df, 0.5).head(2))
+display(filter_by_variance(_df, 0).head(2))
+display(filter_by_variance(_df, 0.5).head(2))
 # -
 
 
