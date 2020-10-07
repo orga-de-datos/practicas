@@ -69,7 +69,7 @@ report
 tienen_guion = df.astype('str').eq('-').any(0)
 tienen_guion
 
-# > Vemos que las columnas:
+# > Vemos que estas columnas columnas tienen valores con "-":
 # - gender
 # - eye_color
 # - race
@@ -101,7 +101,7 @@ df.astype('str').eq('').any()
 # #### Chequeo de variables numericas:
 #
 # > Ahora vamos a chequear los limites de las columnas que tengan valores numericos.  
-# > las columnas edad y peso no deberian tener valores negativos
+# Las columnas edad y peso no deberian tener valores negativos.
 
 columnas_con_numeros = ['height', 'weight']
 (df[columnas_con_numeros] < 0).any()
@@ -204,7 +204,7 @@ le.inverse_transform(df.alignment_encoded)[:10]
 
 #
 # Preguntas V/F:
-# - esta bien aplicar LabelEncoder() a la columna "Alignment".
+# - esta bien aplicar LabelEncoder() a la columna "alignment".
 # - OrdinalEncoder() o LabelEncoder() de sklearn pueden trabajar con una supuesta columna "orden" cuyos valores son \['primero','segundo','tercero'] y van a realizar el encoding correctamente.
 
 
@@ -279,8 +279,6 @@ pd.concat([df[['race']], hashed_features], ignore_index=True, axis=1)
 
 # En el set tenemos dos variables numéricas, *Weight* y *Height* veamos su distribución
 
-# !pip freeze | grep pl
-
 # +
 def plot_weight_vs_height(df, title=""):
     fig = px.scatter(
@@ -295,27 +293,11 @@ def plot_weight_vs_height(df, title=""):
     )
     fig.update_layout(autosize=False, width=1000)
     fig.show()
-#     plt.plot()
     display(round(df[['weight', 'height']].describe(), 2))
 
 
 # _df = df[df.alignment != 'neutral'].reset_index(drop=True)
 plot_weight_vs_height(df , "- Valores originales")
-# _df = _df[['name', 'weight', 'height', 'alignment']]
-# fig = px.scatter(
-#     _df.dropna(),
-#     x="weight",
-#     y="height",
-#     color="alignment",
-#     marginal_x="box",
-#     marginal_y="box",
-#     hover_name='name',
-#     title="Peso vs altura " + 'pepe',
-# )
-# fig.update_layout(autosize=False, width=1000)
-# fig.show()
-# display(round(df[['weight', 'height']].describe(), 2))
-
 # -
 
 # >Se observa una dispersión mucho mas grande de valores en el peso que en la altura.
@@ -325,12 +307,12 @@ plot_weight_vs_height(df , "- Valores originales")
 # Aparece el concepto de *Scaler*, una transformación por la cual escalamos a un determinado rango/distribución, veamos distintas implementaciones:
 
 # +
-def get_fitted_scaler(cols, scaler_instance):
-    '''Devuelve el scaler entrenado para las columnas informadas'''
-    # fit del scaler
-    values = cols.values
-    scaler_instance.fit(values)
-    return scaler_instance
+# def get_fitted_scaler(cols, scaler_instance):
+#     '''Devuelve el scaler entrenado para las columnas informadas'''
+#     # fit del scaler
+#     values = cols.values
+#     scaler_instance.fit(values)
+#     return scaler_instance
 
 
 def transform(cols, cols_to_transform, scaler):
@@ -348,13 +330,15 @@ scalers = [
     Normalizer(),  # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.Normalizer.html
 ]
 
+_df = df[['name', 'alignment', 'weight', 'height']].dropna()
 cols_to_transform = ['weight', 'height']
-df_to_scale = df[cols_to_transform].dropna()
+df_to_scale = _df[cols_to_transform]
 
-for i in scalers:
-    fitted_scaler = get_fitted_scaler(df_to_scale, i)
-    df_transformed = transform(df_to_scale, cols_to_transform, fitted_scaler)
-    plot_weight_vs_height(df_transformed, i.__class__.__name__)
+for scaler in scalers:
+    scaled_values = scaler.fit_transform(df_to_scale)
+    scaled_values = pd.DataFrame(scaled_values, columns=cols_to_transform)
+    df_transformed = _df[['name', 'alignment']].join(scaled_values)
+    plot_weight_vs_height(df_transformed, str(scaler.__class__.__name__))
 
 # -
 
@@ -378,7 +362,8 @@ enc = KBinsDiscretizer(n_bins=4, encode='ordinal')
 
 _df = df[['weight']].dropna().reset_index(drop=True)
 X_binned = enc.fit_transform(_df)
-result = pd.concat([_df, pd.DataFrame(X_binned.astype(int), columns=['weight_bins'])], axis=1)
+X_binned = pd.DataFrame(X_binned.astype(int), columns=['weight_bins'])
+result = pd.concat([_df, X_binned], axis=1)
 
 display(result.head(10))
 print("Límites bins:", enc.bin_edges_)
@@ -386,11 +371,16 @@ print("Límites bins:", enc.bin_edges_)
 
 # ##### pd.qcut
 
+# +
 # mismo ejemplo con pandas
-result, bins = pd.qcut(df['weight'], 4, labels=[0, 1, 2, 3], retbins=True)
-result = pd.concat([df, pd.Series(result, name='weight_bins')], axis=1)
-display(result.head(5))
+_df = df.copy()
+
+result, bins = pd.qcut(_df['weight'], 4, labels=[0, 1, 2, 3], retbins=True)
+_df['weight_bins'] = result
+
+display(_df)
 print("Límites bins:", bins)
+# -
 
 # # Missings (Trabajando con valores faltantes)
 
@@ -477,56 +467,40 @@ def show_strategies(df, name_col, k=-99):
 show_strategies(df, 'weight')
 # -
 
-# Si implementamos el mismo ejemplo con sklearn, aparece el concepto de *imputer*, el mismo se entrena en un set de datos y puede ser aplicado en otro set de datos luego.
+# > Si implementamos el mismo ejemplo con sklearn, aparece el concepto de *imputer*
 
 
-def get_imputer(col, strategy, k=-99):
-    '''Devuelve el imputer de dicha columna para la estrategia indicada.
-    Valores de estrategias: "median", "mean", "most_frequent", "constant"'''
-    imputer = SimpleImputer(strategy=strategy, fill_value=k)
-    # fit del imputer
-    values = col.values
-    imputer.fit(values)
-    return imputer
+# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.FunctionTransformer.html
+#     
+# lo salteo
+
+def compare_imputers(df, name_col, k):
+    '''Devuelve el valor de imputacion de las estrategias para esa columna'''
+    
+    median_imputer = SimpleImputer(strategy='median', fill_value=k)
+    mean_imputer = SimpleImputer(strategy='mean', fill_value=k)
+    mode_imputer = SimpleImputer(strategy='most_frequent', fill_value=k)
+    constant_imputer = SimpleImputer(strategy='constant', fill_value=1234)
+
+    _df = df.copy()    
+    _df['median'] = median_imputer.fit_transform(df[[name_col]])
+    _df['mean'] = mean_imputer.fit_transform(df[[name_col]])
+    _df['mode'] = mode_imputer.fit_transform(df[[name_col]])
+    _df['constant'] = constant_imputer.fit_transform(df[[name_col]])
+    
+    return _df[[name_col, 'median', 'mode', 'constant']]
 
 
-def compare_imputers(df, name_col, k=-99):
-    '''Devuelve el valor de imputacion de las estrategias
-    para esa columna'''
-    median_imputer = get_imputer(df[[name_col]], 'median')
-    mean_imputer = get_imputer(df[[name_col]], 'mean')
-    mode_imputer = get_imputer(df[[name_col]], 'most_frequent')
-    constant_imputer = get_imputer(df[[name_col]], 'constant', k)
+# +
 
-    # transformo
-    values = df[[name_col]].values
-    median_values = median_imputer.transform(values).ravel()
-    mean_values = mean_imputer.transform(values).ravel()
-    mode_values = mode_imputer.transform(values).ravel()
-    constant_values = constant_imputer.transform(values).ravel()
-    return pd.concat(
-        [
-            df[name_col],
-            pd.Series(median_values, name='median'),
-            pd.Series(mean_values, name='mean'),
-            pd.Series(mode_values, name='mode'),
-            pd.Series(constant_values, name='constant'),
-        ],
-        axis=1,
-    )
+_df = compare_imputers(df, 'weight', -99)
+display(_df[_df['weight'].isna()].head(5))
 
 
-display(
-    df[['name']]
-    .join(compare_imputers(df, 'weight'))[df['weight'].isna()]
-    .head(5)
-)
-display(
-    df[['name']]
-    .join(compare_imputers(df, 'height'))[df['height'].isna()]
-    .head(5)
-)
+_df = compare_imputers(df, 'height', -99)
+display(_df[_df['height'].isna()].head(5))
 
+# -
 
 # ## Opcion 3: completar usando info de las demas columnas (Multivariada)
 
@@ -551,6 +525,7 @@ def hashing_encoding(df, cols, data_percent=0.85, verbose=False):
                 df[i].astype(str).values.reshape(-1, 1)
             ).todense()
             df = df.join(pd.DataFrame(hashed_features).add_prefix(i + '_'))
+    
     return df.drop(columns=cols)
 
 
@@ -560,6 +535,7 @@ def knn_imputer(df):
 
     # Aplicamos hashing para las categoricas
     df = hashing_encoding(df, cat_cols)
+    
     # Eliminamos name y alignment para imputar
     df = df.drop(columns=['name', 'alignment'])
 
@@ -579,43 +555,16 @@ display(
 )
 # -
 
-# Otro ejemplo, esta vez con RandomForest (también entraremos en detalle próximamente).
-
-# +
-# def forest_imputer(df):
-
-#     cat_cols = ['gender', 'eye_color', 'race', 'hair_color', 'publisher', 'skin_color']
-
-#     # Aplicamos hashing para las categoricas
-#     df = hashing_encoding(df, cat_cols)
-#     # Eliminamos name y alignment para imputar
-#     df = df.drop(columns=['name', 'alignment'])
-#     # df.iloc[:,2:] = df.iloc[:,2:].apply(lambda x: x.astype('category'),axis=1)
-
-#     # El ampute se puede usar para validar el imputador sobre data conocida
-#     # df_amp = mf.ampute_data(df, perc=0.25, random_state=0)
-
-#     kernel = mf.KernelDataSet(
-#         df,
-#         save_all_iterations=True,
-#         random_state=0,
-#         variable_schema=['weight', 'height'],
-#     )
-
-#     # Run the MICE algorithm for 20 iterations on each of the datasets
-#     kernel.mice(20, n_jobs=2)
-#     return kernel.complete_data()
 
 
-# forest_imputation = forest_imputer(df).add_suffix('_forest')
-# display(
-#     df[['name', 'weight', 'height']]
-#     .join(forest_imputation[['weight_forest', 'height_forest']])[
-#         (df.weight.isna() | dataset.height.isna())
-#     ]
-#     .head(5)
-# )
-# -
+# IterativeImputer  
+# https://scikit-learn.org/stable/modules/generated/sklearn.impute.IterativeImputer.html
+
+
+
+# Comentario Final:
+# - A veces va a ayudar a los modelos que le digamos explicitamente que ese valor fue "calculado", eso 
+# le puede permitir al modelo elegir si darle un poco
 
 # # Selección de variables
 
@@ -635,23 +584,37 @@ _df.var()
 
 
 # +
-def filter_by_variance(df, threshold):
-    '''Devuelve el dataset filtrado por varianza para las columnas que corresponda'''
+def filter_by_variance(df, threshold):    
     # Columnas con varianza calculable
-    cols = df.var().index.values
-
-    selector = VarianceThreshold(threshold=threshold)
+    cols_con_varianza = df.var().index.values
+    _df = df[cols_con_varianza].copy()
+    print(f'columnas antes: {_df.columns.tolist()}')
+    
     # calculo varianzas
-    vt = selector.fit(df[cols])
+    selector = VarianceThreshold(threshold=threshold)
+    vt = selector.fit(_df)
 
     ## vt.get_support() me da los indices de las columnas que quedaron
-    result = df[cols].loc[:, vt.get_support()]
-    return df.loc[:, ~df.columns.isin(cols)].join(result)
+    _df = _df.loc[:, vt.get_support()]
+    print(f'columnas que quedan: {_df.columns.tolist()}')
 
 
-display(filter_by_variance(_df, 0).head(2))
-display(filter_by_variance(_df, 0.5).head(2))
+filter_by_variance(_df, 0)
+print()
+filter_by_variance(_df, 10)
 # -
+# Recursive Feature Eliminator:  
+# https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.RFE.html
+
+
+
+# # Agregando Informacion adicional
+# Se pueden crear nuevas variables a partir de las anteriores
+#
+# - Se puede incluir la "relacion" entre dos variables (ej: multiplicar dos variables)  
+# Ejemplo1: precio por metro cuadrado a partir del precio y los metros cuadrados de la propiedad.  
+# Ejemplo2: Crear features polinomicos
+# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.PolynomialFeatures.html
 
 
 
