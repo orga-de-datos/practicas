@@ -7,19 +7,21 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.1
+#       jupytext_version: 1.6.0
 #   kernelspec:
-#     display_name: Python 3 (venv)
+#     display_name: Python 3
 #     language: python
 #     name: python3
 # ---
 
-import miceforest as mf
+# +
+# import miceforest as mf
 import numpy as np
 import pandas as pd
 import plotly.express as px
 from matplotlib import pyplot as plt
 from pandas_profiling import ProfileReport
+
 from sklearn.feature_extraction import FeatureHasher
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.impute import KNNImputer, SimpleImputer
@@ -34,121 +36,222 @@ from sklearn.preprocessing import (
     RobustScaler,
     StandardScaler,
 )
+# -
 
-# leemos el dataset a explorar
-dataset = pd.read_csv('../../datasets/superheroes.csv')
+# Leemos el dataset, que está en formato CSV desde google drive.  
+# Adicionalmente renombro a las columnas en un formato mas comodo de manejar
+
+df = pd.read_csv('https://drive.google.com/uc?export=download&id=1gq-wDn_dwz_5uHSEoMYmQtnNrmnfNiXS')
+df.rename(columns={c: c.lower().replace(" ","_") for c in df.columns}, inplace=True)
+
+df.head()
 
 # Usando pandas profiling
-report = ProfileReport(dataset, title='superhéroes', minimal=True)
-report.to_notebook_iframe()
+report = ProfileReport(df, title='superhéroes', minimal=True)
+report
 
-dataset.head()
+# # Verificando la "calidad" de los datos
 
-dataset.tail()
+# ### Chequeo de valores NULOS
 
-# > Se observan nulos codificados con guión, los convertimos
+# Los valores nulos pueden tener distintas formas de ser represantados:
+# - nan
+# - vacios ""
+# - algun caracter especial "_", "?", "NULL"
+# - valores que no tienen sentido dado la variable (ej: distancia recorrida: -1)
 
-dataset = dataset.replace('-', np.nan)
 
-# > Claramente en altura y peso una forma de imputar nulos es asignar el -99. Es un claro ejemplo de ingenieria de variables, debemos convertir dichos valores a nulos para luego considerarlos a la hora de trabajar con los valores faltantes.
 
-dataset = dataset.replace(-99, np.nan)
+# En el caso del dataset de los superheroes, que valores nulos vemos?
+# > En el head vimos que "Skin color" tiene un "-" .  
+# Que otras columnas tienen "-" ?
 
+tienen_guion = df.astype('str').eq('-').any(0)
+tienen_guion
+
+# > Vemos que las columnas:
+# - gender
+# - eye_color
+# - race
+# - hair_color
+# - skin_color
+# - alignment
+
+# +
+# Asi se haria para quedarnos con las filas que tienen "-" en alguna de sus columnas
+
+df[df.astype('str').eq('-').any(1)]
+# -
+
+# > Convertimos los valores "-" en nan
+
+df = df.replace('-', np.nan)
+
+# > Hay alguna variable que este en "blanco" ?
+
+df.astype('str').eq('').any()
+
+# > Vemos que ninguna variable esta en blanco  
+# > Nota: Siendo un poco más putitanos deberiamos chequear que :
+# - por medio de la regex "^-*[0-9]*\$" fijarnos que las columnas de numeros contengan solo numeros
+# - por medio de la regex "^ *\$" fijarnos que no haya varios valores de vacios (lo mismo para otros caracteres que sospechamos que pueden ser usados para representar un valor NULO
+
+
+
+# #### Chequeo de variables numericas:
+#
+# > Ahora vamos a chequear los limites de las columnas que tengan valores numericos.  
+# > las columnas edad y peso no deberian tener valores negativos
+
+columnas_con_numeros = ['height', 'weight']
+(df[columnas_con_numeros] < 0).any()
+
+for c in columnas_con_numeros:
+    print(c)
+    display(df[df[c]<0][c].value_counts())
+    print()
+
+# > Pasamos los valores -99 de las columnas height y weight a nan
+
+df = df.replace({'height':-99.0, 'weight':-99.0}, np.nan)
+
+# > Dependiendo del dataset, a veces tenemos informacion duplicada que no queremos  
 # > Alertamos una fila duplicada, la eliminamos
 
-dataset[dataset.duplicated()]
+# >  df.duplicated() devuelve una serie de booleanos indicando se una fila es duplicada o no  
+# df.drop_duplicates() devuelve un dataframe nuevo con las filas duplicadas eliminadas  
+# Nota: podemos pasarle el parametro subset=\<columnas a mirar> para solo considerar algunas columnas para ver si esta duplicado o no
 
-dataset = dataset.drop_duplicates().reset_index(drop=True)
-dataset.shape
+df[df.duplicated(keep=False)]
 
-# # Conversion
+size_antes = len(df)
+df = df.drop_duplicates()
+size_despues = len(df)
+print(f'se eliminaron: {size_despues-size_antes} filas duplicadas')
 
-# En esta sección mostraremos las principales estrategias para convertir variables según su tipo. <br>
-# Cabe aclarar que veremos un set de posibilidades sin evaluar el algoritmo a utilizar, que es parte fundamental de la decisión final que se tome sobre el manejo de cada variable.
+# > Nota: a veces es util "resetear" el indice despues de eliminar filas (ya sea por drop duplicates o por algun otro filtro)
 
-# ## Categóricas de baja cardinalidad
+df.reset_index(drop=True, inplace=True)
 
-# Aparece el concepto de *Encoder*, asociado a transformaciones sobre variables categóricas. Tenemos muchos tipos de encoders veamos los principales.
 
-# ### Ordinal Encoder
+
+# # Conversion de Variables
+
+# En esta sección mostraremos las principales estrategias para convertir variables según su tipo.
+
+# ## Conversion de variables categoricas:
+# Hay veces que tenemos que trabajar un poco en las variables que tenemos para que puedan ser usadas en los modelos.
+
+# ### Preguntas antes de empezar:
+# - Alta vs Baja Cardinalidad de una Variable Categorica, que significa ?
+# - Que significa que una Variable contenga informacion del Orden?
+
+# ### Categóricas de baja cardinalidad
+
+# Sklearn eligió unos nombres un poco desafortunados para los metodos de traformacion de variables categoricas:  
+# Los principales son:  
+# - Ordinal Encoder
+# - Label Encoder
+# - One Hot Encoding
+#
+# No hay mucha diferencia entre Label Encoder y Ordinal Encoder ya que los dos tienen la misma logica, la principal diferencia es que Label Encoder esta pensada para trabajar con solo una serie por vez, en cambio Ordinal Encoder puede trabajar con todas las columnas al mismo tiempo.  
+#
+# El motivo que digo que los nombres son un poco desafortunados es que Ordinal Encoder da a entender que hay una especie de orden en el encoding que haga, pero la verdad es que no hay ningun criterio en el mismo, si queremos que la transformacion mantenga un cierto orden que nosotros queremos, entonces tenemos que hacer nosotros mismos la misma.
+
+# #### Ordinal Encoder 
+# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.OrdinalEncoder.html
+#
 
 # Por cada valor de la variable categórica asigna un valor entero
 
 oe = OrdinalEncoder()
-columns_to_encode = ['Eye color', 'Gender']
-# Convertimos nulos a string 'nan', es decir un valor posible mas
-int_values = oe.fit_transform(dataset[columns_to_encode].astype(str))
+columns_to_encode = ['eye_color', 'gender']
+try:
+    df[['eye_color_encoded', 'gender_encoded']] = oe.fit_transform(df[columns_to_encode])
+except Exception as upa:
+    print(upa)
 
-# Mostramos primeros 15 valores
-pd.concat(
-    [
-        pd.DataFrame(int_values[:15], columns=columns_to_encode).add_suffix('_encoded'),
-        # inversión de la transformación
-        pd.DataFrame(
-            oe.inverse_transform(int_values)[:15], columns=columns_to_encode
-        ).add_suffix('_reverted'),
-    ],
-    axis=1,
-)
+# Convertimos nulos a string 'nan', es decir un valor posible mas para que no explote
+df[['eye_color_encoded', 'gender_encoded']] = oe.fit_transform(df[columns_to_encode].astype(str))
 
-# >Observamos que los nulos se codifican con un valor entero propio
+# > Una funcionalidad MUY interesante de muchas de las clases de sklearn que ayudan en la transformacion de 
+# es que tienen la transformacion INVERSA!
 
-# >Recordar que esta transformación es conveniente en categóricas ordinales (no es el caso del ejemplo) ya que asigna un orden a los elementos
+oe.inverse_transform(df[['eye_color_encoded', 'gender_encoded']])
 
-# ### Label Encoder
+
+
+# Pregunta del millon:
+# - Esta todo bien con esta trasnformacion??
+# - Puedo usar las columnas 'eye_color_encoded' y 'gender_encoded' ??
+
+# #### Label Encoder
+# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.LabelEncoder.html
 
 # Es exactamente la misma idea pero esperando una sola variable ya que se usa para encodear la variable target de un modelo predictivo
 
 le = LabelEncoder()
 # Convertimos nulos a string 'nan', es decir un valor posible mas
-int_values = le.fit_transform(dataset['Alignment'].astype(str))
+df['alignment_encoded'] = le.fit_transform(df['alignment'].astype(str))
 
-# Mostramos primeros 15 valores
-pd.concat(
-    [
-        pd.Series(int_values[:5], name='encoded'),
-        # inversión de la transformación
-        pd.Series(le.inverse_transform(int_values)[:5], name='reverted'),
-    ],
-    axis=1,
-)
+df[['alignment', 'alignment_encoded']]
 
-# ### One Hot Encoding
+# > Al igual que la clase anterior, se puede usar el inverso
+
+le.inverse_transform(df.alignment_encoded)[:10]
+
+
+
+#
+# Preguntas V/F:
+# - esta bien aplicar LabelEncoder() a la columna "Alignment".
+# - OrdinalEncoder() o LabelEncoder() de sklearn pueden trabajar con una supuesta columna "orden" cuyos valores son \['primero','segundo','tercero'] y van a realizar el encoding correctamente.
+
+
+
+# > Nota:
+# Hay veces que es muy util aplicar OrdinalEncoder() o LabelEncoder() a una variable NO ordinal si el modelo que va a usar los datos no va a utilizar el orden.
+#
+
+del df['alignment_encoded']
+del df['eye_color_encoded']
+del df['gender_encoded']
+
+# #### One Hot Encoding
 
 # Crea una columna binaria por cada valor de la variable
 
 pd.options.display.max_columns = None
 
-ohe = OneHotEncoder()
-cols = ohe.fit_transform(
-    dataset['Eye color'].astype(str).values.reshape(-1, 1)
-).todense()
-# creo dataframe con las columnas creadas
-cols = pd.DataFrame(cols, columns=ohe.categories_[0]).add_prefix('Eye color_')
-# agrego al dataframe y elimino variable origen
-cols = pd.concat([dataset, cols], axis=1).drop(['Eye color'], axis=1)
-print("Valores únicos: ", dataset['Eye color'].nunique() + 1)  # +1 por null value
-display(cols.head(2))
-print(cols.shape)
+ohe = OneHotEncoder() #drop='first'
+eye_color_encoded = ohe.fit_transform(df[['eye_color']].astype(str)).todense().astype(int)
+eye_color_encoded = pd.DataFrame(eye_color_encoded).add_prefix('ec_')
+df = pd.concat([df, eye_color_encoded], axis=1)
+
+ohe.categories_
+
+df[['eye_color'] + eye_color_encoded.columns.tolist()]
+
+df.drop(columns=eye_color_encoded.columns.tolist(), inplace=True)
 
 # Otra solución para OneHotEncoding implementada en pandas:
 
-with_dummies = pd.get_dummies(dataset, columns=['Eye color'], dummy_na=True)
+with_dummies = pd.get_dummies(df, columns=['eye_color'], dummy_na=True)
 display(with_dummies.head(2))
 print(with_dummies.shape)
 
 # Para evitar problemas de colinealidad se debe excluir una categoría del set (la ausencia de todas - vector de 0s - indica la presencia de la categoría faltante) <br>
 # La función de pandas ya viene con una parámetro para esto:
 
-with_dummies = pd.get_dummies(
-    dataset, columns=['Eye color'], dummy_na=True, drop_first=True
-)
+with_dummies = pd.get_dummies(df, columns=['eye_color'], dummy_na=True, drop_first=True)
 display(with_dummies.head(2))
 print(with_dummies.shape)
 
-# La necesidad de eliminar una columna se ve más claramente para una categórica de dos valores, veamos el caso de *Gender*
 
-gender_dummies = pd.get_dummies(dataset['Gender'])
+
+# > La necesidad de eliminar una columna se ve más claramente para una categórica de dos valores, veamos el caso de *Gender*
+
+gender_dummies = pd.get_dummies(df[['gender']])
 display(gender_dummies.tail(5))
 
 # >Con una sola columna tenemos toda la información necesaria
@@ -158,47 +261,33 @@ display(gender_dummies.tail(5))
 # Que pasa con la variable *Race* que tiene mas de 60 valores, vamos a crear 60 variables? <br>
 # Veamos la distribución de los mismos
 
-# +
-unique_races = dataset['Race'].value_counts(dropna=False)
-print("count : ", unique_races.shape[0])
+unique_races = df['race'].value_counts(dropna=False)
 display(unique_races.head(10))
-
-s = sum(unique_races.values)
-h = unique_races.values / s
-c_sum = np.cumsum(h)
-plt.plot(c_sum, label="Distribución de la suma acumulativa de razas")
-plt.grid()
-plt.legend()
-# -
+unique_races.cumsum().plot(kind='bar', title="Distribución de la suma acumulativa de razas",figsize=(25,8))
+plt.plot()
 
 # >Con el top 10 cubrimos mas del 85% de la data
 
-# +
 # https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.FeatureHasher.html
 fh = FeatureHasher(n_features=10, input_type='string')
-hashed_features = fh.fit_transform(
-    dataset['Race'].astype(str).values.reshape(-1, 1)
-).todense()
+hashed_features = fh.fit_transform(df['race'].astype(str)).todense()
+hashed_features = pd.DataFrame(hashed_features).add_prefix('race_')
+pd.concat([df[['race']], hashed_features], ignore_index=True, axis=1)
 
-pd.DataFrame(hashed_features).add_prefix('Race_').head(10).join(
-    dataset['Race'].head(10)
-)
-# -
 
 # ## Numéricas
 
 # En el set tenemos dos variables numéricas, *Weight* y *Height* veamos su distribución
 
+# !pip freeze | grep pl
+
 # +
-df = dataset[dataset.Alignment != 'neutral'].reset_index(drop=True)
-
-
 def plot_weight_vs_height(df, title=""):
     fig = px.scatter(
         df.dropna(),
-        x="Weight",
-        y="Height",
-        color="Alignment",
+        x="weight",
+        y="height",
+        color="alignment",
         marginal_x="box",
         marginal_y="box",
         hover_name='name',
@@ -206,13 +295,26 @@ def plot_weight_vs_height(df, title=""):
     )
     fig.update_layout(autosize=False, width=1000)
     fig.show()
-    display(round(df[['Weight', 'Height']].describe(), 2))
+#     plt.plot()
+    display(round(df[['weight', 'height']].describe(), 2))
 
 
-plot_weight_vs_height(
-    df[['name', 'Weight', 'Height', 'Alignment']], "- Valores originales"
-)
-
+# _df = df[df.alignment != 'neutral'].reset_index(drop=True)
+plot_weight_vs_height(df , "- Valores originales")
+# _df = _df[['name', 'weight', 'height', 'alignment']]
+# fig = px.scatter(
+#     _df.dropna(),
+#     x="weight",
+#     y="height",
+#     color="alignment",
+#     marginal_x="box",
+#     marginal_y="box",
+#     hover_name='name',
+#     title="Peso vs altura " + 'pepe',
+# )
+# fig.update_layout(autosize=False, width=1000)
+# fig.show()
+# display(round(df[['weight', 'height']].describe(), 2))
 
 # -
 
@@ -233,7 +335,7 @@ def get_fitted_scaler(cols, scaler_instance):
 
 def transform(cols, cols_to_transform, scaler):
     values = scaler.transform(cols)
-    return df[['name', 'Alignment']].join(
+    return df[['name', 'alignment']].join(
         pd.DataFrame(values, columns=cols_to_transform)
     )
 
@@ -246,7 +348,7 @@ scalers = [
     Normalizer(),  # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.Normalizer.html
 ]
 
-cols_to_transform = ['Weight', 'Height']
+cols_to_transform = ['weight', 'height']
 df_to_scale = df[cols_to_transform].dropna()
 
 for i in scalers:
@@ -261,112 +363,118 @@ for i in scalers:
 
 # Tranformación por la cual convertimos una variable continua en categórica
 
-df = dataset['Weight'].dropna().reset_index(drop=True)
-X = df.values.reshape(-1, 1)
+# #### Binarizer
+# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.Binarizer.html
+#
+# Nota: me salteo el ejemplo ya que es muy simple
+
+
+
+# ##### KBinsDiscretizer
+# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.KBinsDiscretizer.html
+
+# +
 enc = KBinsDiscretizer(n_bins=4, encode='ordinal')
-X_binned = enc.fit_transform(X)
-result = pd.concat([df, pd.DataFrame(X_binned, columns=['Weight_bins'])], axis=1)
-display(result.head(5))
+
+_df = df[['weight']].dropna().reset_index(drop=True)
+X_binned = enc.fit_transform(_df)
+result = pd.concat([_df, pd.DataFrame(X_binned.astype(int), columns=['weight_bins'])], axis=1)
+
+display(result.head(10))
 print("Límites bins:", enc.bin_edges_)
+# -
+
+# ##### pd.qcut
 
 # mismo ejemplo con pandas
-result, bins = pd.qcut(df, 4, labels=[0, 1, 2, 3], retbins=True)
-result = pd.concat([df, pd.Series(result, name='Weight_bins')], axis=1)
+result, bins = pd.qcut(df['weight'], 4, labels=[0, 1, 2, 3], retbins=True)
+result = pd.concat([df, pd.Series(result, name='weight_bins')], axis=1)
 display(result.head(5))
 print("Límites bins:", bins)
 
-# # Missings
+# # Missings (Trabajando con valores faltantes)
+
+# ## Opcion 1: remover los nulos del dataset
 
 # Veamos que variables contienen nulos
 
-dataset.isnull().sum()
+df.isnull().sum()
 
-# en porcentajes
-round(dataset.isnull().sum() / dataset.shape[0] * 100, 2)
+(df.isnull().mean()*100).to_frame('porcentaje nulls')
 
 # Veamos algunos registros de dichas variables accediendo con [.loc](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.loc.html)
 
+# +
 # condicion sobre las columnas, cantidad de nulos > 0
-dataset.loc[:, dataset.isnull().sum() > 0].head()
+
+df.loc[:, df.isnull().sum() > 0].head()
+# -
 
 # Tenemos dos tipos de variables a tratar, numéricas y categóricas. <br>
 # Veamos algunas soluciones generales
 
+# +
 # eliminar filas con nulos
-less_rows = dataset.dropna(axis=0)
+
+less_rows = df.dropna(axis=0)
 less_rows.shape
+# -
 
 # Nos quedarían 50 registros válidos en el set
 
+# +
 # eliminar filas con alto porcentaje de nulos
-null_max = 0.75
-display(dataset[dataset.isnull().sum(axis=1) / (dataset.shape[1] - 1) > null_max])
-dataset[~(dataset.isnull().sum(axis=1) / (dataset.shape[1] - 1) > null_max)].shape
 
+NULL_REMOVE_PERCENT = 0.30
+df[df.isnull().mean(axis=1) < NULL_REMOVE_PERCENT]
+
+# +
 # eliminar columnas con nulos
-less_cols = dataset.dropna(axis=1)
+
+less_cols = df.dropna(axis=1)
 less_cols.shape
+# -
 
 # Nos quedaría una sola columna sin nulos
 
+# +
 # eliminar columnas con alto porcentaje de nulos
-null_max = 0.75
-display(dataset.loc[:, dataset.isnull().sum(axis=0) / dataset.shape[0] > null_max])
-dataset.loc[:, ~(dataset.isnull().sum(axis=0) / dataset.shape[0] > null_max)].shape
+
+NULL_REMOVE_PERCENT = 0.30
+cols = df.isna().mean()
+cols = cols[cols < NULL_REMOVE_PERCENT]
+df[cols.index]
 
 
-# ## Univariadas
+# -
 
-# Usa sólo información de la columna en cuestión para completar nulos
+# ## Opcion 2: completar usando info de esa columna (Univariadas)
 
-# ### Categóricas
+# #### Categóricas
 
 # Como vimos, los encoders solucionan el problema de nulos ya que imputan con la misma lógica que para los demás valores de la variable
 
-# ### Numéricas
+# #### Numéricas
 
 # Completar con la mediana, promedio, moda o constante
 
 # +
-def complete_median(serie):
-    '''Retorna la serie imputada por mediana'''
-    return serie.fillna(serie.median())
-
-
-def complete_mean(serie):
-    '''Retorna la serie imputada por promedio'''
-    return serie.fillna(serie.mean())
-
-
-def complete_mode(serie):
-    '''Retorna la serie imputada por moda'''
-    return serie.fillna(serie.mode()[0])
-
-
-def complete_constant(serie, k):
-    '''Retorna la serie imputada por una constante'''
-    return serie.fillna(k)
-
-
-# +
-def compare_strategies(df, name_col, k=-99):
-    '''Devuelve el valor de imputacion de las tres estrategias
-    para esa columna'''
-
-    # se llaman a las estrategias renombrando la serie
-    median_fill = complete_median(df[name_col]).to_frame('median')
-    mean_fill = complete_mean(df[name_col]).to_frame('mean')
-    mode_fill = complete_mode(df[name_col]).to_frame('mode')
-    constant_fill = complete_constant(df[name_col], k).to_frame('constant')
+def show_strategies(df, name_col, k=-99):
+    '''Devuelve el valor de imputacion de las tres estrategias para esa columna'''
+    
+    _df = df[[name_col]].copy()
+    s = df[name_col]
+    
+    _df['median'] = s.fillna(s.median())
+    _df['mean'] = s.fillna(s.mean())
+    _df['mode'] = s.fillna(s.mode()[0])
+    _df['contant'] = k
 
     # vemos los valores con los que completa en cada caso
-    return pd.concat(
-        [df[name_col], median_fill, mean_fill, mode_fill, constant_fill], axis=1
-    )[dataset[name_col].isna()].head(1)
+    return _df[s.isna()]
 
 
-display(compare_strategies(dataset, 'Weight'))
-display(compare_strategies(dataset, 'Height'))
+show_strategies(df, 'weight')
 # -
 
 # Si implementamos el mismo ejemplo con sklearn, aparece el concepto de *imputer*, el mismo se entrena en un set de datos y puede ser aplicado en otro set de datos luego.
@@ -385,10 +493,10 @@ def get_imputer(col, strategy, k=-99):
 def compare_imputers(df, name_col, k=-99):
     '''Devuelve el valor de imputacion de las estrategias
     para esa columna'''
-    median_imputer = get_imputer(dataset[[name_col]], 'median')
-    mean_imputer = get_imputer(dataset[[name_col]], 'mean')
-    mode_imputer = get_imputer(dataset[[name_col]], 'most_frequent')
-    constant_imputer = get_imputer(dataset[[name_col]], 'constant', k)
+    median_imputer = get_imputer(df[[name_col]], 'median')
+    mean_imputer = get_imputer(df[[name_col]], 'mean')
+    mode_imputer = get_imputer(df[[name_col]], 'most_frequent')
+    constant_imputer = get_imputer(df[[name_col]], 'constant', k)
 
     # transformo
     values = df[[name_col]].values
@@ -409,18 +517,18 @@ def compare_imputers(df, name_col, k=-99):
 
 
 display(
-    dataset[['name']]
-    .join(compare_imputers(dataset, 'Weight'))[dataset['Weight'].isna()]
+    df[['name']]
+    .join(compare_imputers(df, 'weight'))[df['weight'].isna()]
     .head(5)
 )
 display(
-    dataset[['name']]
-    .join(compare_imputers(dataset, 'Height'))[dataset['Height'].isna()]
+    df[['name']]
+    .join(compare_imputers(df, 'height'))[df['height'].isna()]
     .head(5)
 )
 
 
-# ## Multivariada
+# ## Opcion 3: completar usando info de las demas columnas (Multivariada)
 
 # Usa información de todas las variables para la imputación.<br>
 
@@ -547,134 +655,6 @@ display(filter_by_variance(df, 0).head(2))
 display(filter_by_variance(df, 0.5).head(2))
 # -
 
-# # Poniendo todo en práctica
-
-# Supongamos que tenemos que predecir el bando de un superhéroe dadas las variables del set. <br> Apliquemos lo visto hasta ahora
-
-# empezamos de cero, leyendo el dataset
-df = pd.read_csv('../../datasets/superheroes.csv')
-df.shape
-
-# 1- Reemplazamos valores codificados como null
-
-df = df.replace('-', np.nan)
-df = df.replace(-99, np.nan)
-
-# 2- Eliminamos filas duplicadas
-
-df = df.drop_duplicates().reset_index(drop=True)
-
-# 3- Eliminamos filas con mas de 75% de nulos
-
-df = df[~(df.isnull().sum(axis=1) / (df.shape[1] - 1) > 0.75)].reset_index(drop=True)
-
-# 4-Eliminamos filas con bando nulo o neutral
-
-df = df[~df.Alignment.isin(['neutral', np.nan])].reset_index(drop=True)
-df.shape
-
-# Vemos como quedo la distribución por bando
-
-fig = px.pie(
-    values=df['Alignment'].value_counts().values,
-    names=df['Alignment'].value_counts().index,
-    title='Distribución por bando',
-)
-fig.update_layout(autosize=False, width=1000)
-fig.show()
-
-# 5- Análisis sobre *Skin color*
-
-df['Skin color'].value_counts(dropna=False)
-
-# n de casos por color de piel / bando
-skin_group = (
-    df.fillna('nulls').groupby(['Skin color', 'Alignment']).size().to_frame('count')
-)
-# porcentaje por color de piel / bando
-skin_group = skin_group.join(
-    skin_group.groupby(level=0)
-    .apply(lambda x: 100 * x / float(x.sum()))
-    .rename(columns={'count': 'percent'})
-).reset_index()
-# ordeno por cantidad de casos
-skin_group = skin_group.sort_values(by='count', ascending=False)
-# bar chart
-px.bar(
-    skin_group,
-    x='Skin color',
-    y='percent',
-    color='Alignment',
-    hover_data=['percent', 'count'],
-)
-
-# >Claramente la variable tiene muy pocos datos, tal vez un relevamiento mas preciso pueda hacer que tenga peso en el futuro. Por ahora no vamos a considerarla.
-
-# Eliminamos skin color
-df.drop(columns=['Skin color'], inplace=True)
-df.shape
-
-# 6- Paso todas las categóricas a minúsculas
-
-df.loc[:, df.dtypes == 'object'] = df.loc[:, df.dtypes == 'object'].apply(
-    lambda x: x.str.lower(), axis=1
-)
-
-# 7- Análisis sobre *name*
-
-# Nombres duplicados
-df['name'].value_counts()[df['name'].value_counts() > 1]
-
-df[df['name'] == 'spider-man']
 
 
-# +
-def most_common(x):
-    if x.value_counts().size == 0:
-        return np.nan
-    return x.value_counts().index[0]
 
-
-# defino la forma de agregación para cada variable
-df = (
-    df.groupby('name')
-    .agg(
-        {
-            'Gender': most_common,
-            'Eye color': most_common,
-            'Race': most_common,
-            'Hair color': most_common,
-            'Height': 'mean',
-            'Publisher': most_common,
-            'Alignment': most_common,
-            'Weight': 'mean',
-        },
-        axis=0,
-    )
-    .reset_index()
-)
-
-df.shape
-# -
-
-# 8- Creamos nuevas variables
-
-# Investigando sobre la composición de los nombres, vemos que los que contienen *captain* son buenos
-
-# aux = df.groupby('Alignment').apply(lambda x: x['name'].str.split().apply(pd.Series).stack()).to_frame('word').reset_index()[['Alignment','word']].groupby('Alignment')['word'].value_counts().to_frame('n').reset_index()
-# aux.groupby('Alignment').head(5)
-display(df.loc[df.name.str.contains('captain'), ['name', 'Alignment']])
-df['is_captain'] = np.where(df['name'].str.contains('captain'), 1, 0)
-df.shape
-
-# pocas mujeres superheroes, menos aún villanas
-df.groupby(['Alignment', 'Gender']).size().groupby(level=0).apply(
-    lambda x: 100 * x / float(x.sum())
-)
-
-# 9- Encodeamos categóricas
-
-cat_cols = ['Gender', 'Eye color', 'Race', 'Hair color', 'Publisher']
-# Aplicamos hashing para las categoricas
-df = hashing_encoding(df, cat_cols, verbose=True)
-df.head()
