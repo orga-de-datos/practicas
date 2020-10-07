@@ -36,7 +36,7 @@ pip3 install -r requirements.txt
 
 ## Jupytext
 Ver PRs de notebooks es dificil, porque son JSONs. Si fueron ejecutados, además puede haber imágenes en base64 o tablas
-o texto largo. Para ayudar con este problema podemos usar [jupytext](https://jupytext.readthedocs.io/en/latest/introduction.html).
+o texto largo. Para ayudar con este problema podemos usar [jupytext](https://jupytext.readthedocs.io/en/latest/index.html).
 Está en las dependencias incluido. En resumen, cada notebook queda ligado a un script con la metadata necesaria, y ese `.py` es el que se versiona.
 
 Para poder usarlo (asi como otras extensiones), es necesario tener instalado [node](https://nodejs.org/en/).
