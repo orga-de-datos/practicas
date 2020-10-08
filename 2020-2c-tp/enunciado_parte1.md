@@ -66,6 +66,8 @@ anteriores puntos.
 
 Nota: algunos campos en la encuesta **pueden estar vacíos**.
 
+El link de los datos se encuentra en: https://drive.google.com/drive/folders/1RTD8HGy3YnTctcaz2b_xjKe8rJqNt7EV?usp=sharing
+
 
 ### Fecha de Entrega
 - Entrega del notebook: Miércoles 28 de octubre.
