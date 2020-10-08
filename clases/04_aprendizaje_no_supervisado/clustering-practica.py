@@ -22,7 +22,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import matplotlib.cm
-
 sns.set()
 # -
 
@@ -176,7 +175,7 @@ interact(
 
 # ¿Qué pasa cuando la inicialización de los centroides no es muy feliz?
 
-centers, labels = find_clusters(X, 4, rseed=0)
+centers, labels, error = find_clusters(X, 4, rseed=0)
 plt.figure(figsize=(20, 10))
 plt.scatter(X[:, 0], X[:, 1], c=labels, s=90, cmap='viridis')
 plt.scatter(centers[:, 0], centers[:, 1], c='black', s=200, alpha=0.5)
@@ -204,6 +203,70 @@ fig.colorbar(cax)
 ax.grid(True)
 plt.title("Distancia euclideana", fontsize=24, weight="bold")
 plt.show()
+
+# ## Clustering aglomerativo
+
+# Usamos [AgglomerativeClustering](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.AgglomerativeClustering.html#sklearn.cluster.AgglomerativeClustering) de sklearn: "Recursively merges the pair of clusters that minimally increases a given linkage distance"
+
+from sklearn.cluster import AgglomerativeClustering
+
+clustering = AgglomerativeClustering(n_clusters=4).fit(X)
+
+clustering.labels_
+
+plt.figure(figsize=(20, 10))
+plt.scatter(X[:, 0], X[:, 1], c=clustering.labels_, s=90, cmap='viridis')
+plt.ylabel("X2", fontsize=20, weight="bold")
+plt.xlabel("X1", fontsize=20, weight="bold")
+
+
+# +
+def plot_agglometive(X, n_clusters):
+    plt.figure(figsize=(20, 10))
+    clustering = AgglomerativeClustering(n_clusters).fit(X)
+    plt.scatter(X[:, 0], X[:, 1], c=clustering.labels_, s=90, cmap='viridis')
+    plt.ylabel("X2", fontsize=20, weight="bold")
+    plt.xlabel("X1", fontsize=20, weight="bold")
+    plt.show()
+
+
+interact(
+    plot_agglometive, X=fixed(X), n_clusters=(1, 20, 1)
+)
+# -
+
+# Este método nos permite tener un ordenamiento jerárquico de las observaciones en lo que llamamos un dendrograma: nos indica qué grupo de observaciones es más parecida a otra. Observaciones que se unen más abajo en el dendrograma son más similares.
+
+from scipy.cluster.hierarchy import dendrogram
+
+
+def plot_dendrogram(model, **kwargs):
+    # Create linkage matrix and then plot the dendrogram
+
+    # create the counts of samples under each node
+    counts = np.zeros(model.children_.shape[0])
+    n_samples = len(model.labels_)
+    for i, merge in enumerate(model.children_):
+        current_count = 0
+        for child_idx in merge:
+            if child_idx < n_samples:
+                current_count += 1  # leaf node
+            else:
+                current_count += counts[child_idx - n_samples]
+        counts[i] = current_count
+
+    linkage_matrix = np.column_stack([model.children_, model.distances_,
+                                      counts]).astype(float)
+
+    # Plot the corresponding dendrogram
+    dendrogram(linkage_matrix, **kwargs)
+
+
+model = AgglomerativeClustering(distance_threshold=0, n_clusters=None).fit(X)
+plt.figure(figsize=(20, 10))
+plot_dendrogram(model, truncate_mode='level', p=3)
+plt.title('Hierarchical Clustering Dendrogram', fontsize=24, weight="bold")
+plt.xlabel("Number of points in node (or index of point if no parenthesis).", fontsize=16, weight="bold")
 
 from sklearn.datasets import make_moons
 
@@ -247,7 +310,26 @@ plt.title("Distancia euclideana", fontsize=24, weight="bold")
 plt.show()
 
 # Vemos que los clusters que encuentra el algoritmo no son los correctos. :(
-#
+# Que nos da Agglomerative clustering?
+
+from sklearn.neighbors import kneighbors_graph
+
+
+# +
+def plot_agglometive(X, n_clusters):
+    plt.figure(figsize=(20, 10))
+    clustering = AgglomerativeClustering(n_clusters).fit(X)
+    plt.scatter(X[:, 0], X[:, 1], c=clustering.labels_, s=90, cmap='viridis')
+    plt.ylabel("X2", fontsize=20, weight="bold")
+    plt.xlabel("X1", fontsize=20, weight="bold")
+    plt.show()
+
+
+interact(
+    plot_agglometive, X=fixed(X), n_clusters=(1, 20, 1)
+)
+# -
+
 # Que pasa con DBSCAN?
 #
 # Usamos la herramienta DBSCAN de sklearn
@@ -452,3 +534,116 @@ for axi, center in zip(ax.flat, centers):
     axi.imshow(center, interpolation='nearest', cmap=plt.cm.binary)
 
 # Vemos como en promedio es escrito cada número.
+
+# ## Robustez
+
+X, y_labels = make_blobs(n_samples=300, centers=3, cluster_std=0.60, random_state=0)
+plt.figure(figsize=(20, 10))
+plt.scatter(X[:, 0], X[:, 1], s=50)
+plt.ylabel("X2", fontsize=20, weight="bold")
+plt.xlabel("X1", fontsize=20, weight="bold")
+
+# ¿Qué pasa si tenemos outliers?
+
+X_out = np.vstack((X,([-3,6], [-4,5], [-3.5, 4.5])))
+
+plt.figure(figsize=(20, 10))
+plt.scatter(X_out[:, 0], X_out[:, 1], s=50)
+plt.ylabel("X2", fontsize=20, weight="bold")
+plt.xlabel("X1", fontsize=20, weight="bold")
+
+# +
+kmeans = KMeans(n_clusters=3)
+kmeans.fit(X)
+y_kmeans = kmeans.predict(X)
+plt.figure(figsize=(20, 10))
+plt.scatter(X[:, 0], X[:, 1], c=y_kmeans, s=90, cmap='viridis')
+
+centers = kmeans.cluster_centers_
+plt.scatter(centers[:, 0], centers[:, 1], c='black', s=200, alpha=0.5)
+plt.ylabel("X2", fontsize=20, weight="bold")
+plt.xlabel("X1", fontsize=20, weight="bold")
+
+
+# +
+kmeans = KMeans(n_clusters=3)
+kmeans.fit(X_out)
+y_kmeans = kmeans.predict(X_out)
+plt.figure(figsize=(20, 10))
+plt.scatter(X_out[:, 0], X_out[:, 1], c=y_kmeans, s=90, cmap='viridis')
+
+centers = kmeans.cluster_centers_
+plt.scatter(centers[:, 0], centers[:, 1], c='black', s=200, alpha=0.5)
+plt.ylabel("X2", fontsize=20, weight="bold")
+plt.xlabel("X1", fontsize=20, weight="bold")
+
+# -
+
+X_out = np.vstack((X_out,([-25,3.5])))
+
+# +
+kmeans = KMeans(n_clusters=3)
+kmeans.fit(X_out)
+y_kmeans = kmeans.predict(X_out)
+plt.figure(figsize=(20, 10))
+plt.scatter(X_out[:, 0], X_out[:, 1], c=y_kmeans, s=90, cmap='viridis')
+
+centers = kmeans.cluster_centers_
+plt.scatter(centers[:, 0], centers[:, 1], c='black', s=200, alpha=0.5)
+plt.ylabel("X2", fontsize=20, weight="bold")
+plt.xlabel("X1", fontsize=20, weight="bold")
+
+# -
+
+# Vemos que el outlier hizo que uno de los clusters, por lo que este método es bastante sensible a outliers. Pensar que con mayor cantidad de dimensiones es más complicado ver outliers. Usando algoritmos jerárquicos se tiene el mismo problema: 
+
+clustering = AgglomerativeClustering(3).fit(X_out)
+plt.figure(figsize=(20, 10))
+plt.scatter(X_out[:, 0], X_out[:, 1], c=clustering.labels_, s=90, cmap='viridis')
+plt.ylabel("X2", fontsize=20, weight="bold")
+plt.xlabel("X1", fontsize=20, weight="bold")
+plt.show()
+
+# En cambio, BDSCAN al poder clasificar algunos puntos como outliers, puede manejar este tipo de situaciones:
+
+db = DBSCAN(eps=0.7, min_samples=10).fit(X_out)
+core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
+core_samples_mask[db.core_sample_indices_] = True
+labels = db.labels_
+n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+n_noise_ = list(labels).count(-1)
+
+# +
+unique_labels = set(labels)
+plt.figure(figsize=(20, 10))
+colors = [plt.cm.Spectral(each) for each in np.linspace(0, 1, len(unique_labels))]
+for k, col in zip(unique_labels, colors):
+    if k == -1:
+        # Black used for noise.
+        col = [0, 0, 0, 1]
+
+    class_member_mask = labels == k
+
+    xy = X_out[class_member_mask & core_samples_mask]
+    plt.plot(
+        xy[:, 0],
+        xy[:, 1],
+        'o',
+        markerfacecolor=tuple(col),
+        markeredgecolor='k',
+        markersize=14,
+    )
+
+    xy = X_out[class_member_mask & ~core_samples_mask]
+    plt.plot(
+        xy[:, 0],
+        xy[:, 1],
+        'o',
+        markerfacecolor=tuple(col),
+        markeredgecolor='k',
+        markersize=6,
+    )
+
+plt.title("DBSCAN, eps=0.2, min_samples=5", fontsize=20, weight="bold")
+plt.ylabel("X2", fontsize=20, weight="bold")
+plt.xlabel("X1", fontsize=20, weight="bold")
