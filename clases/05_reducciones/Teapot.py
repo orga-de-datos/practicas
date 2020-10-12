@@ -7,29 +7,30 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.1
+#       jupytext_version: 1.5.2
 #   kernelspec:
-#     display_name: Python 3 (venv)
+#     display_name: Python 3
 #     language: python
 #     name: python3
 # ---
 
 # +
+# %matplotlib notebook
+
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 
 import pandas as pd
 import matplotlib.pyplot as plt
-
 # -
 
 # Vamos a usar un dataset que tiene forma de tetera 3D
 
-teapot = pd.read_csv("../../datasets/teapot.csv")
+teapot = pd.read_csv("https://drive.google.com/uc?export=download&id=1RQSRPZJvHXLYMsrXEdivE-tPTeEIJJQ_")
 
 # +
-fig = plt.figure(figsize=(10, 10))
+fig = plt.figure(figsize=(7, 7))
 ax = fig.add_subplot(1, 1, 1, projection='3d')
 
 ax.scatter(
@@ -37,6 +38,7 @@ ax.scatter(
     teapot.V2.values,
     teapot.V3.values,
     marker='o',
+    s=10,
     cmap=plt.cm.Spectral,
 )
 
@@ -57,13 +59,13 @@ for i in range(90, 360, 10):
 pca = PCA(n_components=3)
 projected = pca.fit_transform(teapot[["V1", "V2", "V3"]])
 
-plt.figure(figsize=(10, 10))
-plt.plot(projected[:, 0], -projected[:, 1], 'o')
+plt.figure(figsize=(7, 7))
+plt.plot(projected[:, 0], -projected[:, 1], 'o', markersize=2)
 
 # Es obvio que si vemos esta imágen sabemos que es una tetera, ¿no?. ¿Qué vemos en las dos dimensiones con menor cantidad de información? Para ello nos quedamos con las últimas dos dimensiones de la proyección.
 
-plt.figure(figsize=(10, 10))
-plt.plot(projected[:, 2], -projected[:, 1], 'o')
+plt.figure(figsize=(7, 7))
+plt.plot(projected[:, 2], -projected[:, 1], 'o', markersize=2)
 
 # No es claro que si vemos esto reconocemos que es una tetera. Ahora aplicamos el método de reducción de dimensionalidad TSNE.
 
@@ -71,7 +73,7 @@ X_tsne = TSNE(n_components=2, perplexity=150).fit_transform(teapot[["V1", "V2", 
 x1 = X_tsne[:, 0]
 x2 = X_tsne[:, 1]
 
-plt.figure(figsize=(10, 10))
+plt.figure(figsize=(7,7))
 plt.plot(x1, x2, 'o', markersize=2)
 
 # Vemos que es como si hubiésemos separado la tetera en sus partes. ¿Qué pasa si disminuimos el valor de *perplexity*?
@@ -80,7 +82,7 @@ X_tsne = TSNE(n_components=2, perplexity=5).fit_transform(teapot[["V1", "V2", "V
 x1 = X_tsne[:, 0]
 x2 = X_tsne[:, 1]
 
-plt.figure(figsize=(10, 10))
+plt.figure(figsize=(7, 7))
 plt.plot(x1, x2, 'o', markersize=2)
 
 # Vemos que los conglomerados de puntos estan más separados entre sí y los puntos dentro de cada conglomerado están más cercanos. Es como si hubiésemos roto la tetera en muchos pedazos chicos. ¿Qué pasa si ahora aumentamos *perplexity*?
@@ -89,7 +91,7 @@ X_tsne = TSNE(n_components=2, perplexity=200).fit_transform(teapot[["V1", "V2", 
 x1 = X_tsne[:, 0]
 x2 = X_tsne[:, 1]
 
-plt.figure(figsize=(10, 10))
+plt.figure(figsize=(7, 7))
 plt.plot(x1, x2, 'o', markersize=2)
 
 # Los conglomerados vemos que tienen más puntos, incluso en el caso extremo:
@@ -97,7 +99,7 @@ plt.plot(x1, x2, 'o', markersize=2)
 X_tsne = TSNE(n_components=2, perplexity=400).fit_transform(teapot[["V1", "V2", "V3"]])
 x1 = X_tsne[:, 0]
 x2 = X_tsne[:, 1]
-plt.figure(figsize=(10, 10))
+plt.figure(figsize=(7, 7))
 plt.plot(x1, x2, 'o', markersize=2)
 
 # Prácticamente hay solo 2 conglomerados distinguibles por el alto valor de *perplexity*. Por lo que queda claro que el valor de *perplexity* controla la noción de vecindad, para valores más altos de *perplexity* más puntos serán considerados vecinos cercanos.
