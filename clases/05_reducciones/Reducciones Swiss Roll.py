@@ -7,9 +7,9 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.1
+#       jupytext_version: 1.5.2
 #   kernelspec:
-#     display_name: Python 3 (venv)
+#     display_name: Python 3
 #     language: python
 #     name: python3
 # ---
@@ -20,7 +20,7 @@
 # Para eso, como siempre, comenzamos importando las librerias necesarias
 
 # +
-# %matplotlib notebook
+
 # librerias par graficar
 import matplotlib.pyplot as plt
 
@@ -208,10 +208,10 @@ plt.show()
 
 # +
 X_tsne = TSNE(n_components=2, perplexity=25).fit_transform(X)
-fig1 = plt.figure(figsize=(10, 10), facecolor='white')
+fig1 = plt.figure(figsize=(7, 7), facecolor='white')
 ax = fig1.add_subplot(1, 1, 1)
 ax.set_facecolor('white')
-plt.scatter(X_tsne[:, 0], X_tsne[:, 1], c=color, marker='o', cmap=plt.cm.Spectral)
+plt.scatter(X_tsne[:, 0], X_tsne[:, 1], c=color, marker='o', s=10, cmap=plt.cm.Spectral)
 
 plt.show()
 # -
@@ -220,10 +220,10 @@ plt.show()
 
 # +
 X_tsne = TSNE(n_components=2, perplexity=10).fit_transform(X)
-fig1 = plt.figure(figsize=(10, 10), facecolor='white')
+fig1 = plt.figure(figsize=(7, 7), facecolor='white')
 ax = fig1.add_subplot(1, 1, 1)
 ax.set_facecolor('white')
-plt.scatter(X_tsne[:, 0], X_tsne[:, 1], c=color, marker='o', cmap=plt.cm.Spectral)
+plt.scatter(X_tsne[:, 0], X_tsne[:, 1], c=color, marker='o', s=10, cmap=plt.cm.Spectral)
 
 plt.show()
 # -
@@ -232,22 +232,22 @@ plt.show()
 
 # +
 X_tsne = TSNE(n_components=2, perplexity=50).fit_transform(X)
-fig1 = plt.figure(figsize=(10, 10), facecolor='white')
+fig1 = plt.figure(figsize=(7, 7), facecolor='white')
 ax = fig1.add_subplot(1, 1, 1)
 ax.set_facecolor('white')
-plt.scatter(X_tsne[:, 0], X_tsne[:, 1], c=color, marker='o', cmap=plt.cm.Spectral)
+plt.scatter(X_tsne[:, 0], X_tsne[:, 1], c=color, marker='o', s=10, cmap=plt.cm.Spectral)
 
 plt.show()
 # -
 
-# Se observa que los conglomerados tienen mayor cantidad de puntos y los conglomerados estás más cercanos entre sí
+# Se observa que los conglomerados tienen mayor cantidad de puntos y los conglomerados estás más cercanos entre sí. Que pasa si aumentamos mucho más la *perplexity*?
 
 # +
 X_tsne = TSNE(n_components=2, perplexity=150).fit_transform(X)
-fig1 = plt.figure(figsize=(10, 10), facecolor='white')
+fig1 = plt.figure(figsize=(7, 7), facecolor='white')
 ax = fig1.add_subplot(1, 1, 1)
 ax.set_facecolor('white')
-plt.scatter(X_tsne[:, 0], X_tsne[:, 1], c=color, marker='o', cmap=plt.cm.Spectral)
+plt.scatter(X_tsne[:, 0], X_tsne[:, 1], c=color, marker='o', s=10, cmap=plt.cm.Spectral)
 
 plt.show()
 # -
