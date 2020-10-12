@@ -17,6 +17,7 @@
 # +
 from sklearn.datasets.samples_generator import make_blobs
 from sklearn.metrics.pairwise import euclidean_distances, cosine_similarity
+from PIL import Image
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -25,7 +26,12 @@ import matplotlib.cm
 sns.set()
 # -
 
-from PIL import Image
+# # Aprendizaje no supervisado
+
+# - Problemas de reconocimiento de patrones donde el grupo de puntos de entrenamineto no tienen una variable target
+# - Quiero descubrir grupos de datos con características similares
+# - No tengo una medida de éxito directa
+# - Muchos métodos son heurísticas: estrategias, reglas, silogismos.
 
 # Generamos puntos en un espacio 2D que correspondan a 4 clusters, para ello usamos make_blobs de sklearn:
 
@@ -34,6 +40,8 @@ plt.figure(figsize=(20, 10))
 plt.scatter(X[:, 0], X[:, 1], s=50)
 plt.ylabel("X2", fontsize=20, weight="bold")
 plt.xlabel("X1", fontsize=20, weight="bold")
+
+# ## K-means
 
 # Usamos la herramienta KMeans, que busca los clusteres de puntos, retornando los labels de cada punto (a qué clase pertenece) y los centroides de dichos clusteres.
 
@@ -57,23 +65,6 @@ plt.xlabel("X1", fontsize=20, weight="bold")
 clusters = np.unique(y_kmeans)
 clusters
 
-ordered_points = X[np.where(y_kmeans == clusters[0])]
-for i in clusters[1:]:
-    points_cluster_i_index = np.where(y_kmeans == i)
-    points_cluster_i = X[points_cluster_i_index]
-    ordered_points = np.vstack((ordered_points, points_cluster_i))
-
-distance_matrix = euclidean_distances(ordered_points, ordered_points)
-
-fig, ax = plt.subplots(figsize=(13, 13))
-cax = ax.matshow(
-    distance_matrix, interpolation='nearest', cmap=matplotlib.cm.Spectral_r
-)
-fig.colorbar(cax)
-ax.grid(True)
-plt.title("Distancia euclideana", fontsize=24, weight="bold")
-plt.show()
-
 # Pero, ¿cómo funciona el algoritmo?
 
 # +
@@ -96,16 +87,16 @@ def find_clusters(X, n_clusters, rseed=2):
     j = 0
     while True:
         """2a. Asignamos a qué cluster pertenece según su cercanía al centroide
-           pairwise_distances_argmin retorna array de indices, cada índice corresponde con el índice del controide
-           más cercano para ese punto"""
+           pairwise_distances_argmin retorna array de indices, cada índice corresponde
+           con el índice del controide más cercano para ese punto"""
 
         labels = pairwise_distances_argmin(X, centers)
 
-        """2b. Buscamos los nuevo centroides, calculados como el promedio (en cada dimension) de los puntos de
-           cada cluster"""
+        """2b. Buscamos los nuevo centroides, calculados como el promedio 
+           (en cada dimension) de los puntos de cada cluster"""
         new_centers = np.array([X[labels == i].mean(0) for i in range(n_clusters)])
 
-        # 2c. si los centroides no cambiaron respecto al paso anterior, stop
+        """ 2c. si los centroides no cambiaron respecto al paso anterior, paro"""
         if np.all(centers == new_centers):
             break
         centers = new_centers
@@ -132,7 +123,7 @@ from functools import partial
 
 
 def find_clusters_limited_iters(X, n_clusters, iters, rseed=2):
-    # 1. Seleccionamos de manera aleatoria los primeros valores de los centroides
+    """1. Seleccionamos de manera aleatoria los primeros valores de los centroides"""
     rng = np.random.RandomState(rseed)
     i = rng.permutation(X.shape[0])[:n_clusters]
     centers = X[i]
@@ -173,6 +164,25 @@ interact(
 )
 # -
 
+# ### Matriz de similaridad
+
+ordered_points = X[np.where(y_kmeans == clusters[0])]
+for i in clusters[1:]:
+    points_cluster_i_index = np.where(y_kmeans == i)
+    points_cluster_i = X[points_cluster_i_index]
+    ordered_points = np.vstack((ordered_points, points_cluster_i))
+
+distance_matrix = euclidean_distances(ordered_points, ordered_points)
+
+fig, ax = plt.subplots(figsize=(13, 13))
+cax = ax.matshow(
+    distance_matrix, interpolation='nearest', cmap=matplotlib.cm.Spectral_r
+)
+fig.colorbar(cax)
+ax.grid(True)
+plt.title("Matriz de similaridad: Distancia euclideana", fontsize=24, weight="bold")
+plt.show()
+
 # ¿Qué pasa cuando la inicialización de los centroides no es muy feliz?
 
 centers, labels, error = find_clusters(X, 4, rseed=0)
@@ -205,6 +215,11 @@ plt.title("Distancia euclideana", fontsize=24, weight="bold")
 plt.show()
 
 # ## Clustering aglomerativo
+
+# - No tengo que explícitamente dar número de clusters k* de antemano 
+# - Se produce una representación jerárquica (dendrograma).
+# - Clústeres de un nivel superior se forman por la unión de clústeres de niveles inferiores. 
+# - En el nivel más inferior tengo clusteres formados por 1 punto dato, en el nivel más superior tendo 1 cluster formado por todos los puntos dato.
 
 # Usamos [AgglomerativeClustering](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.AgglomerativeClustering.html#sklearn.cluster.AgglomerativeClustering) de sklearn: "Recursively merges the pair of clusters that minimally increases a given linkage distance"
 
@@ -306,7 +321,7 @@ cax = ax.matshow(
 )
 fig.colorbar(cax)
 ax.grid(True)
-plt.title("Distancia euclideana", fontsize=24, weight="bold")
+plt.title("Matriz de similaridad: Distancia euclideana", fontsize=24, weight="bold")
 plt.show()
 
 # Vemos que los clusters que encuentra el algoritmo no son los correctos. :(
@@ -329,6 +344,11 @@ interact(
     plot_agglometive, X=fixed(X), n_clusters=(1, 20, 1)
 )
 # -
+
+# ## DBSCAN
+# - No tengo que especificar la cantidad de clusters.
+# - Para este método los clusters son zonas de alta densidad de puntos, separados por zonas con baja densidad de puntos.
+# - Este método clasifica los puntos en: puntos borde, puntos core o puntos ruido(noise)
 
 # Que pasa con DBSCAN?
 #
@@ -514,27 +534,6 @@ plt.xlabel("X1", fontsize=20, weight="bold")
 
 # Muchos menos core points, más clusters, más noise points
 
-# Finalmente, notar que los centroides de kmeans son puntos representativos del cluster. Por ejemplo, si corremos kmeans en el dataset de MNIST:
-
-from sklearn.datasets import load_digits
-
-digits = load_digits()
-digits.data.shape
-
-digits.data
-
-kmeans = KMeans(n_clusters=10, random_state=0)
-clusters = kmeans.fit_predict(digits.data)
-kmeans.cluster_centers_.shape
-
-fig, ax = plt.subplots(2, 5, figsize=(8, 3))
-centers = kmeans.cluster_centers_.reshape(10, 8, 8)
-for axi, center in zip(ax.flat, centers):
-    axi.set(xticks=[], yticks=[])
-    axi.imshow(center, interpolation='nearest', cmap=plt.cm.binary)
-
-# Vemos como en promedio es escrito cada número.
-
 # ## Robustez
 
 X, y_labels = make_blobs(n_samples=300, centers=3, cluster_std=0.60, random_state=0)
@@ -647,3 +646,29 @@ for k, col in zip(unique_labels, colors):
 plt.title("DBSCAN, eps=0.2, min_samples=5", fontsize=20, weight="bold")
 plt.ylabel("X2", fontsize=20, weight="bold")
 plt.xlabel("X1", fontsize=20, weight="bold")
+# -
+
+# Finalmente, notar que los centroides de kmeans son puntos representativos del cluster. Por ejemplo, si corremos kmeans en el dataset de MNIST:
+
+from sklearn.datasets import load_digits
+
+digits = load_digits()
+digits.data.shape
+
+digits.data
+
+fig, ax = plt.subplots(2, 5, figsize=(8, 3))
+centers =digits.data[:10].reshape(10, 8, 8)
+for axi, center in zip(ax.flat, centers):
+    axi.set(xticks=[], yticks=[])
+    axi.imshow(center, interpolation='nearest', cmap=plt.cm.binary)
+
+kmeans = KMeans(n_clusters=10, random_state=0)
+clusters = kmeans.fit_predict(digits.data)
+kmeans.cluster_centers_.shape
+
+fig, ax = plt.subplots(2, 5, figsize=(8, 3))
+centers = kmeans.cluster_centers_.reshape(10, 8, 8)
+for axi, center in zip(ax.flat, centers):
+    axi.set(xticks=[], yticks=[])
+    axi.imshow(center, interpolation='nearest', cmap=plt.cm.binary)
