@@ -34,6 +34,7 @@ from sklearn import preprocessing, tree
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.dummy import DummyClassifier
+from lightgbm import LGBMClassifier
 
 sns.set()
 
@@ -352,22 +353,180 @@ dataset.region = dataset.region.astype("category")
 dataset.smoker = dataset.smoker.astype("category")
 dataset.info()
 
+# + tags=["raises-exception"]
 X = dataset.drop(columns="smoker")
 y = dataset.smoker
 
-# + tags=["raises-exception"]
 clf = tree.DecisionTreeClassifier(random_state=117, max_depth=5, min_samples_leaf=10)
 clf.fit(X, y)
+
+
 # -
 
 # > Que nos impide teoricamente pasar variables categoricas a un arbol de decision?
 #
 # La implementacion de sklearn :(
 
-# +
-from lightgbm import LGBMClassifier
+# ## Cuando la cardinalidad explota
+#
+# Generamos un dataset en base al link anterior. Tenemos una cierta cantidad de variables de ruido, una variable z y una variable categorica c.
+#
+# Haremos que y valga 1 cuando c sea impar o z sea mayor a un cierto valor pivot.
 
-lgbm_tree = LGBMClassifier(n_estimators=1)
+# +
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+
+def plot_tree(clf, X, y):
+    dot_data = tree.export_graphviz(
+        clf,
+        out_file=None,
+        feature_names=X.columns,
+        class_names=np.unique(y).astype(str),
+        filled=True,
+        rounded=True,
+        special_characters=True,
+    )
+    graph = graphviz.Source(dot_data)
+    display(SVG(graph.pipe(format='svg')))
+
+
+size = 100_000
+noise = 10
+categories = 256
+
+cov = np.random.randn(noise, noise)
+cov = cov.dot(cov.T)
+xs = np.random.multivariate_normal(np.zeros(noise), cov=cov, size=size)
+y = np.random.binomial(1, p=sigmoid(0.0125 * np.dot(xs, np.random.randn(noise))))
+
+z_pivot = 10
+z = np.random.normal(loc=z_pivot, scale=7, size=2 * size)
+z_pos, z_neg = z[z > z_pivot], z[z <= z_pivot]
+
+c = np.random.randint(1, categories, size=size)
+c_pos, c_neg = c[np.mod(c, 2) == 1], c[np.mod(c, 2) == 0]
+
+coins = np.random.binomial(1, 0.5, size=size)
+
+z = np.zeros(size)
+z[(coins & y) == 1] = np.random.choice(z_pos, size=np.sum((coins & y) == 1))
+z[(coins & y) == 0] = np.random.choice(z_neg, size=np.sum((coins & y) == 0))
+
+c = np.zeros(size)
+c[((coins == 1) & (y == 1))] = np.random.choice(
+    np.hstack([c_pos, c_neg]), size=np.sum((coins == 1) & (y == 1))
+)
+c[((coins == 0) & (y == 1))] = np.random.choice(
+    c_pos, size=np.sum((coins == 0) & (y == 1))
+)
+c[(y == 0)] = np.random.choice(c_neg, size=np.sum((y == 0)))
+
+
+df = pd.DataFrame(xs, columns=[f"x{i}" for i in range(noise)]).join(
+    pd.DataFrame(y, columns=["y"])
+)
+df["z"] = z
+df["c"] = c
+# -
+
+# Conociendo el problema, hagamos un par de Predicciones a Ojo Ⓡ.
+#
+# Primero que c sea impar:
+
+pred = np.mod(df.c.astype(int), 2) == 1
+y = df.y
+accuracy_score(y, pred)
+
+# Ahora que sea impar o z sea mayor al pivot.
+
+pred = (np.mod(df.c.astype(int), 2) == 1) | (df.z > z_pivot)
+y = df.y
+accuracy_score(y, pred)
+
+# Que score obtenemos solo con las variables de ruido?
+
+# +
+X = df.drop(columns=["y", "z", "c"])
+y = df.y
+
+clf = tree.DecisionTreeClassifier(random_state=117, max_depth=5, min_samples_leaf=10)
 clf.fit(X, y)
+
 pred = clf.predict(X)
 accuracy_score(y, pred)
+
+# +
+# plot_tree(clf, X, y)
+# -
+
+# Y si agregamos z? La del pivot?
+
+# +
+X = df.drop(columns=["y", "c"])
+y = df.y
+
+clf = tree.DecisionTreeClassifier(random_state=117, max_depth=5, min_samples_leaf=10)
+clf.fit(X, y)
+
+pred = clf.predict(X)
+accuracy_score(y, pred)
+
+# +
+# plot_tree(clf, X, y)
+# -
+
+# Mejoramos!
+#
+# C es categorica, pero y si la tratamos como int, hasta donde llegamos?
+
+# +
+X = df.drop(columns=["y"])
+y = df.y
+
+clf = tree.DecisionTreeClassifier(random_state=117, max_depth=5, min_samples_leaf=10)
+clf.fit(X, y)
+
+pred = clf.predict(X)
+accuracy_score(y, pred)
+
+# +
+# plot_tree(clf, X, y)
+# -
+
+# No mejora tanto :(
+#
+# Idea 💡 Hagamos OHE!
+
+# +
+X = df.drop(columns=["y"])
+_X = pd.get_dummies(X, "c")
+y = df.y
+
+clf = tree.DecisionTreeClassifier(random_state=117, max_depth=5, min_samples_leaf=10)
+clf.fit(_X, y)
+
+pred = clf.predict(_X)
+accuracy_score(y, pred)
+
+# +
+# plot_tree(clf, X, y)
+# -
+
+# Que paso aca?
+#
+# Acá lo que queremos mostrar es que algunas representaciones o encodings no son siempre las mejores, depende del modelo que estemos usando.
+#
+# Por ejemplo, usando otro modelo...
+
+# +
+X = df.drop(columns=["y"])
+X.c = X.c.astype("category")
+y = df.y
+
+lgbm_tree = LGBMClassifier(n_estimators=1)
+lgbm_tree.fit(X, y)
+pred = lgbm_tree.predict(X)
+accuracy_score(y, pred)
+# -
