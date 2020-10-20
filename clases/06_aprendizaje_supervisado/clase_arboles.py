@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.1
+#       jupytext_version: 1.6.0
 #   kernelspec:
 #     display_name: Python 3 (venv)
 #     language: python
@@ -32,6 +32,8 @@ from matplotlib import pyplot as plt
 from pandas_profiling import ProfileReport
 from sklearn import preprocessing, tree
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.metrics import accuracy_score, roc_auc_score
+from sklearn.dummy import DummyClassifier
 
 sns.set()
 
@@ -49,9 +51,10 @@ def get_data():
     --------
         pd.DataFrame: El dataset descargado desde github.
     """
-    return pd.read_csv(
+    df = pd.read_csv(
         'https://raw.githubusercontent.com/stedy/Machine-Learning-with-R-datasets/master/insurance.csv'
     )
+    return df
 
 
 dataset = get_data()
@@ -61,6 +64,30 @@ dataset.info()
 
 dataset.head()
 
+# # Nuestro primer modelo
+#
+# Ante la duda, tiramos la moneda. Que el Azar™ prediga nuestra variable.
+
+pred = pd.Series(np.random.binomial(1, 0.5, len(dataset))).replace({1: "yes", 0: "no"})
+pred
+
+# Ok, tenemos "predicciones". Que hago con esto? Son buenas siquiera?
+
+# # Introduccion a metricas
+# Vamos a profundizar durante la materia sobre este tema. Para saber que tan buena es una prediccion, necesitamos alguna forma de medirlo, tratar de bajarlo a un numero o algo que podamos entender mas facilmente que comparar los valores de verdad y las predicciones.
+#
+# Por ahora, vamos a quedarnos con la idea de que son funciones $f(valores, predicciones) \to R$, donde a mayor $R$, mejores son nuestras predicciones.
+#
+# Una metrica bastante intuitiva es la [accuracy](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html#sklearn.metrics.accuracy_score): la cantidad de etiquetas que coinciden _exactamente_ entre nuestras predicciones y las etiquetas reales.
+
+accuracy_score(dataset.smoker, pred)
+
+# Lo mejor que puede pasarnos es que valga 1 (acertamos todas!) mientras que lo peor que puede pasarnos es que valga 0 (soy un queso).
+#
+# Este modelo no parece muy bueno, no?
+#
+# Veamos que pasa si entendemos un poco mejor los datos.
+
 # # Breve análisis exploratorio
 
 
@@ -69,9 +96,29 @@ report = ProfileReport(
 )
 
 report.to_widgets()
-# -
 
-# Podemos ver que la variable objetivo está bastante desbalanceada
+# Podemos ver que la variable objetivo está bastante desbalanceada.
+
+# # Mejorando el modelo sin partir el espacio
+
+# Si tuvieran que hacer un estimador sin ningun `if`, que harian? Que tan bueno seria?
+#
+# <details>
+#   <summary>Respuesta</summary>
+#
+# El estimador más sencillo que podemos armar mirando esto es responder siempre `no`. Y aproximadamente el 80% de las veces tendremos razón!
+#
+# </details>
+
+pred = ["no"] * len(dataset)
+accuracy_score(dataset.smoker, pred)
+
+# Sin hacer ninguna particion del espacio ya tenemos un score de 80%! Podemos mejorarlo encontrando alguna particion del espacio a nuestro favor?
+
+# # If: particionando el espacio
+# Tratemos de entender un poco como es la distribucion de cada variable para los fumadores y no fumadores. A ver si encontramos una particion del espacio que nos ayude!
+#
+# Solo vale usar **un** if aca.
 
 # +
 fig, axes = plt.subplots(nrows=1, ncols=2, figsize=[6.4 * 2, 4.8], dpi=100)
@@ -88,12 +135,84 @@ axes[1].set_ylabel("Porcentaje")
 
 plt.show()
 
+# +
+fig, axes = plt.subplots(nrows=1, ncols=2, figsize=[6.4 * 2, 4.8], dpi=100)
 
+dataset_smokers = dataset[dataset.smoker == 'yes']
+dataset_nonsmokers = dataset[dataset.smoker == 'no']
+
+dataset_smokers.age.plot(kind='hist', ax=axes[0], xlim=dataset.age.min())
+axes[0].set_title("Age - Smokers")
+axes[0].set_ylabel("Age")
+
+dataset_nonsmokers.age.plot(kind='hist', ax=axes[1], xlim=dataset.age.min())
+axes[1].set_title("Age - Non Smokers")
+axes[1].set_ylabel("Age")
+
+plt.show()
+
+# +
+fig, axes = plt.subplots(nrows=1, ncols=2, figsize=[6.4 * 2, 4.8], dpi=100)
+
+dataset_smokers = dataset[dataset.smoker == 'yes']
+dataset_nonsmokers = dataset[dataset.smoker == 'no']
+
+dataset_smokers.bmi.plot(kind='hist', ax=axes[0], xlim=0)
+axes[0].set_title("BMI - Smokers")
+axes[0].set_ylabel("BMI")
+
+dataset_nonsmokers.bmi.plot(kind='hist', ax=axes[1], xlim=0)
+axes[1].set_title("BMI - Non Smokers")
+axes[1].set_ylabel("BMI")
+
+plt.show()
 # -
 
-# El estimador más sencillo que podemos armar mirando esto es responder siempre `no`. Y aproximadamente el 80% de las veces tendremos razón!
+plt.figure(dpi=100)
+sns.countplot(data=dataset, x='region', hue='smoker')
+plt.title("Cantidad por region")
+plt.show()
+
+plt.figure(dpi=100)
+sns.countplot(data=dataset, x='children', hue='smoker')
+plt.title("Number of children")
+plt.show()
+
+# +
+fig, axes = plt.subplots(nrows=1, ncols=2, figsize=[6.4 * 2, 4.8], dpi=100, sharey=True)
+
+dataset_smokers = dataset[dataset.smoker == 'yes']
+dataset_nonsmokers = dataset[dataset.smoker == 'no']
+
+dataset_smokers.charges.plot(
+    kind='hist', ax=axes[0], xlim=dataset.charges.min(), bins=50
+)
+axes[0].set_title("Charges - Smokers")
+axes[0].set_ylabel("Charges")
+
+dataset_nonsmokers.charges.plot(
+    kind='hist', ax=axes[1], xlim=dataset.charges.min(), bins=50
+)
+axes[1].set_title("Chargers - Non Smokers")
+axes[1].set_ylabel("Charges")
+
+plt.show()
+# -
+
+pred = pd.Series(np.zeros(len(dataset))).replace({1: "yes", 0: "no"})
+pred[dataset.charges >= 15000] = "yes"
+accuracy_score(dataset.smoker, pred)
+
+
+# Increible, partimos a ojo el espacio con un if y tenemos mas de 0.92 de score!
+#
+# Esto tiene un problema, que si lo hacemos a ojo pero somos medio chicatos [1], puede no ser optimo. Veamos como generaliza la idea.
+#
+# [1] - Este chiste es gracioso porque la clase la preparo Javi, que empezo a usar anteojos mientras cursaba sisop.
 
 # # Manejo de variables
+#
+# Antes de poder seguir, tenemos que pasar los datos a un formato que le guste a sklearn.
 #
 # Si revisamos el panel de pandas profiling, podemos ver que las columnas `sex` y `region` son categóricas. Vamos a aplicar [one hot encoding](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.get_dummies.html) con pandas para estas variables. Por otro lado, usaremos [LabelEncoder](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.LabelEncoder.html) de sklearn para crear un mapping de los valores `yes`/`no` de la columna `smoker` a valores numericos.
 
@@ -117,7 +236,8 @@ df.head()
 
 # -
 
-# # Entrenamiento
+# # Entrenamiento de nuestro primer arbol de decision
+#
 # Sklearn [propone](https://scikit-learn.org/stable/developers/develop.html) una interfaz común a todos sus estimadores, pero sin enforzarla. Se espera que tengan un método `.fit` y un método `.predict`. Toda la inicialización de hiperparametros debe estar en el `__init__` de la clase, y deben tener valores por defecto.
 #
 # Vamos a entrenar un modelo y jugar con la profundidad máxima del árbol. El árbol entrenado, lo visualizaremos utilizando código similar al de la documentación de sklearn encontrado [aquí](https://scikit-learn.org/stable/modules/tree.html#classification).
@@ -208,3 +328,46 @@ def explore_prediction():
 
 inter = interactive(explore_prediction, {'manual': True})
 display(inter)
+# -
+
+# # Overfitting?
+#
+# Que problemas tiene el codigo presentado hasta aca en el notebook?
+#
+# <details>
+#   <summary>Respuesta</summary>
+#
+# Basicamente le estamos pidiendo memorizar todo el dataset!
+#
+# </details>
+
+# # Sobre arboles, variables categoricas y otras yerbas
+#
+# Que nos impide teoricamente pasar variables categoricas a un arbol de decision?
+#
+# [Lectura recomendada](http://web.archive.org/web/20200903175430/https://roamanalytics.com/2016/10/28/are-categorical-variables-getting-lost-in-your-random-forests/)
+
+dataset.sex = dataset.sex.astype("category")
+dataset.region = dataset.region.astype("category")
+dataset.smoker = dataset.smoker.astype("category")
+dataset.info()
+
+X = dataset.drop(columns="smoker")
+y = dataset.smoker
+
+# + tags=["raises-exception"]
+clf = tree.DecisionTreeClassifier(random_state=117, max_depth=5, min_samples_leaf=10)
+clf.fit(X, y)
+# -
+
+# > Que nos impide teoricamente pasar variables categoricas a un arbol de decision?
+#
+# La implementacion de sklearn :(
+
+# +
+from lightgbm import LGBMClassifier
+
+lgbm_tree = LGBMClassifier(n_estimators=1)
+clf.fit(X, y)
+pred = clf.predict(X)
+accuracy_score(y, pred)
