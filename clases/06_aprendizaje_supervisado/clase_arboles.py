@@ -114,7 +114,7 @@ report.to_widgets()
 pred = ["no"] * len(dataset)
 accuracy_score(dataset.smoker, pred)
 
-# Sin hacer ninguna particion del espacio ya tenemos un score de 80%! Podemos mejorarlo encontrando alguna particion del espacio a nuestro favor?
+# Sin hacer ninguna particion del espacio ya tenemos un score de 0.80! Podemos mejorarlo encontrando alguna particion del espacio a nuestro favor?
 
 # # If: particionando el espacio
 # Tratemos de entender un poco como es la distribucion de cada variable para los fumadores y no fumadores. A ver si encontramos una particion del espacio que nos ayude!
@@ -174,9 +174,25 @@ sns.countplot(data=dataset, x='region', hue='smoker')
 plt.title("Cantidad por region")
 plt.show()
 
-plt.figure(dpi=100)
-sns.countplot(data=dataset, x='children', hue='smoker')
-plt.title("Number of children")
+# +
+fig, axes = plt.subplots(nrows=1, ncols=2, figsize=[6.4 * 2, 4.8], dpi=100)
+
+sns.countplot(data=dataset, x='children', hue='smoker', ax=axes[0])
+axes[0].set_title("Children - count")
+
+sns.barplot(
+    data=dataset.groupby("children")
+    .smoker.value_counts(normalize=True)
+    .rename("smoker_prop")
+    .reset_index(),
+    x='children',
+    y="smoker_prop",
+    hue='smoker',
+    ax=axes[1],
+)
+axes[1].set_ylabel("% intragrupo")
+axes[1].set_title("Children - % dentro de cada grupo")
+
 plt.show()
 
 # +
@@ -194,14 +210,14 @@ axes[0].set_ylabel("Charges")
 dataset_nonsmokers.charges.plot(
     kind='hist', ax=axes[1], xlim=dataset.charges.min(), bins=50
 )
-axes[1].set_title("Chargers - Non Smokers")
+axes[1].set_title("Charges - Non Smokers")
 axes[1].set_ylabel("Charges")
 
 plt.show()
 # -
 
 pred = pd.Series(np.zeros(len(dataset))).replace({1: "yes", 0: "no"})
-pred[dataset.charges >= 15000] = "yes"
+pred[dataset.charges >= 15_000] = "yes"
 accuracy_score(dataset.smoker, pred)
 
 
@@ -320,7 +336,7 @@ def explore_prediction():
         target_name='smoker',
         feature_names=list(X.columns),
         class_names=list(y_encoder.classes_),
-        scale=1.5,
+        scale=1.0,
         X=x_sample[X.columns].iloc[0].values,
     )
 
@@ -333,14 +349,48 @@ display(inter)
 
 # # Overfitting?
 #
-# Que problemas tiene el codigo presentado hasta aca en el notebook?
+# [Momento de reflexion] Si entreno un arbol con todo mi dataset, tiene sentido evaluarlo con ese mismo dataset?
 #
 # <details>
 #   <summary>Respuesta</summary>
 #
 # Basicamente le estamos pidiendo memorizar todo el dataset!
+# Mi motivacion de entrenar un modelo no es repetir cada dato que le pase (excepto casos como akinator). Esos datos los tengo!
+# Yo quiero poder predecir nuevos datos, pero si estoy muy sesgado a lo que vi, no puedo generalizar :(
 #
 # </details>
+
+# # Hiperparametros
+# Los parametros son los valores que el modelo aprende para ajustarse a los datos. Los hiperparametros son instrucciones que rigen el proceso de aprendizaje del modelo.
+
+# +
+X, y, _, _ = feature_engineering(dataset)
+
+clf = tree.DecisionTreeClassifier(random_state=117, max_depth=3, min_samples_leaf=10)
+clf.fit(X, y)
+# -
+
+# La representacion como string de cada modelo nos da los valores de cada hiperparametro!
+#
+# Pero que hiperparametros tiene un arbol de decision?
+
+# +
+# tree.DecisionTreeClassifier?
+# -
+
+# # Feature importance
+#
+# Hagamos foco en esta parte de la documentacion:
+#
+# > feature_importances_ : ndarray of shape (n_features,)
+# >    The feature importances. The higher, the more important the
+# >    feature. The importance of a feature is computed as the (normalized)
+# >    total reduction of the criterion brought by that feature.  It is also
+# >    known as the Gini importance [4]_.
+#
+# Lo que nos suele importar en general es el orden relativo de las feature importances o que sean no-cero.
+
+sorted(list(zip(X.columns, clf.feature_importances_)), key=lambda x: -x[1])
 
 # # Sobre arboles, variables categoricas y otras yerbas
 #
@@ -529,4 +579,3 @@ lgbm_tree = LGBMClassifier(n_estimators=1)
 lgbm_tree.fit(X, y)
 pred = lgbm_tree.predict(X)
 accuracy_score(y, pred)
-# -
