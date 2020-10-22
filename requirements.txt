@@ -19,3 +19,4 @@ requests
 scikit-learn
 seaborn
 sklearn
+ipympl
