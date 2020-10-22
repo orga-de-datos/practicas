@@ -70,8 +70,6 @@ plt.imshow(image_bw, cmap=plt.cm.gray)
 # - Graficos la varianza explicada en función de la cantidad de componentes
 # - Comenzamos seleccionando el número mínimo de componentes necesarios para explicar el 95% de la varianza
 
-len(pca.explained_variance_ratio_)
-
 # +
 from sklearn.decomposition import PCA
 pca = PCA()
@@ -129,7 +127,7 @@ plt.imshow(image_recon,cmap = plt.cm.gray)
 # Function to reconstruct and plot image for a given number of components
 
 def plot_at_k(k):
-    ipca = IncrementalPCA(n_components=k)
+    ipca = PCA(n_components=k)
     image_recon = ipca.inverse_transform(ipca.fit_transform(image_bw))
     plt.imshow(image_recon,cmap = plt.cm.gray)
     
