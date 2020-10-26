@@ -7,230 +7,171 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.1
+#       jupytext_version: 1.6.0
 #   kernelspec:
 #     display_name: Python 3 (venv)
 #     language: python
 #     name: python3
 # ---
 
+# +
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder
 import pandas as pd
+import os
+from sklearn.datasets import make_blobs
+
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import f1_score
 
 
-# !echo{USER}
+import seaborn as sns
+import matplotlib.pyplot as plt
+import pandas as pd
 
-# +
-# # !pip install kaggle
-# # !mkdir /Users/jcollinet/.kaggle
-# # !echo '{"username":"jorgecollinet", "key":"4ea5796b3910631404b1baf65c230677"}' > '/Users/jcollinet/.kaggle/kaggle.json'
-# # !kaggle competitions download -c ieee-fraud-detection
-# # !unzip 'ieee-fraud-detection.zip' -d ./dataset
-# # !ls -l dataset
+from sklearn.decomposition import PCA
+import seaborn as sns
+from matplotlib import pyplot as plt
+
+sns.set()
 # -
 
-# # 1) Cargar Datos
+pd.options.display.max_columns = None
+
+
+# # Hyperparameter tuning
 #
-# Se procede a la carda del dataset y al analisis del mismo
 
-# +
-# https://www.kaggle.com/c/ieee-fraud-detection/data?select=train_transaction.csv
-
-df_train_transactions = pd.read_csv(
-    '../../datasets/ieee-fraud-detection/train_transaction.csv'
-)
-df_train_identity = pd.read_csv('dataset/train_identity.csv')
-
-df_test_transaction = pd.read_csv('dataset/test_transaction.csv')
-df_test_identity = pd.read_csv('dataset/test_identity.csv')
-
-df_sample_submition = pd.read_csv('dataset/sample_submission.csv')
-
-# +
-# otra opcion es generar sinteticamente los datos
-
-# from sklearn.datasets import make_classification
-# X, y = make_classification(n_samples=10000, n_features=4, n_informative=2, n_redundant=0, random_state=0, shuffle=False)
-# -
-
-# # 2) Transformar
-#
-# Basandonos en la clase de feature engineering vamos a aplicar un par de transformaciones para que el modelo pueda entrenar
-
-df_train_transactions.head()
-
-# +
-# Categorical Features - Transaction
-# ProductCD
-# card1 - card6
-# addr1, addr2
-# P_emaildomain
-# R_emaildomain
-# M1 - M9
-
-df_train_transactions = df_train_transactions.fillna(
-    {
-        'addr1': 0,
-        'addr2': 0,
-        'P_emaildomain': 'gmail.com',
-        'R_emaildomain': 'gmail.com',
-        'card1': 0,
-        'card2': 0,
-        'card3': 0,
-        'card4': 'visa',
-        'card5': 0,
-        'card6': 'debit',
-        'M1': 'T',
-        'M2': 'T',
-        'M3': 'T',
-        'M4': 'M0',
-        'M5': 'F',
-        'M6': 'F',
-        'M7': 'F',
-        'M8': 'F',
-        'M9': 'T',
-        'ProductCD': 'W',
-    }
+# X, y = make_blobs(n_samples=1000, centers=2, n_features=128, cluster_std=16, random_state=117, center_box=(-2,2), )
+X, y = datasets.make_classification(
+    n_samples=1000,
+    n_features=64,
+    n_repeated=16,
+    n_informative=8,
+    n_redundant=16,
+    weights=[0.8, 0.2],
+    flip_y=0.08,
+    random_state=117,
 )
 
-categorical_cols = [
-    'addr1',
-    'addr2',
-    'P_emaildomain',
-    'R_emaildomain',
-    'card1',
-    'card2',
-    'card3',
-    'card4',
-    'card5',
-    'card6',
-    'M1',
-    'M2',
-    'M3',
-    'M4',
-    'M5',
-    'M6',
-    'M7',
-    'M8',
-    'M9',
-    'ProductCD',
-]
+dimred = PCA(2).fit_transform(X)
+sns.scatterplot(dimred[:, 0], dimred[:, 1], hue=y)
 
-enc = OneHotEncoder(handle_unknown='ignore', sparse=False)
-cc = enc.fit_transform(df_train_transactions[categorical_cols])
-
-final_df = pd.concat(
-    [
-        df_train_transactions[
-            df_train_transactions.columns.difference(categorical_cols)
-        ],
-        pd.DataFrame(cc),
-    ]
-)
-final_df = final_df.fillna(0)
-# -
-# # 3) Entrenar Modelo
-#
-# Entrenamos el modelo con los parametros default.
-# Vamos a usar un Random Forest como ejemplo.
+# + jupyter={"source_hidden": true}
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=117)
 
 # +
-from sklearn.ensemble import RandomForestClassifier
+max_depths = np.arange(1, 15)
+min_samples_leafs = np.arange(1, 51)
+data_points = []
+for max_depth in max_depths:
+    for min_samples_leaf in min_samples_leafs:
+        clf = DecisionTreeClassifier(
+            max_depth=max_depth, min_samples_leaf=min_samples_leaf, random_state=117
+        )
+        clf.fit(X_train, y_train)
+        data_points.append(
+            (
+                max_depth,
+                min_samples_leaf,
+                f1_score(y_test, clf.predict(X_test), average="weighted"),
+            )
+        )
 
-clf = RandomForestClassifier(max_depth=2, random_state=0)
-X = final_df[final_df.columns.difference(['isFraud'])]
-y = final_df['isFraud']
-clf.fit(X, y)
+data_points = pd.DataFrame(
+    data_points, columns=["max_depth", "min_samples_leaf", "score"]
+)
 # -
 
-# # 4) Metricas
-#
-# Como sabemos que el modelo esta performando bien?
-# Que metricas podemos usar para evaluar un modelo?
-#
-# metricas:
-# - Accuracy
-# - Precision
-# - Recall
-# - F1
-# - Macro acurracy vs micro acurracy
-# - ROC
-# - Confusion matrix
-# - Evaluacion de calibracion
+plt.figure(dpi=125, figsize=(12, 8))
+g = sns.heatmap(
+    data_points.pivot_table(
+        index="max_depth", columns="min_samples_leaf", values="score"
+    ),
+    square=True,
+    cbar_kws=dict(use_gridspec=False, location="bottom"),
+)
 
-# ## Acurracy
+# # Baseline model
 #
-# Accuracy = Correct / Total
+# Entrenamos un arbol de decision con los parametros default.
+
+clf = DecisionTreeClassifier(random_state=117)
+clf.fit(X_train, y_train)
+
+# # Cómo evaluar un modelo - Metricas
+#
+# Pero ahora que tenemos el modelo entrenado,
+# - Como sabemos que el modelo esta performando bien?
+# - Como sabemos si otro modelo esta performando mejor?
+# - Que metricas podemos usar para evaluar un modelo?
+
+# ## Metricas para clasificacion
+
+# ### Acuracy
+#
+# $$\text{accuracy}(y, \hat{y}) = \frac{1}{n_\text{samples}} \sum_{i=0}^{n_\text{samples}-1} 1(\hat{y}_i = y_i)$$
+#
+# > [sklearn: accuracy_score](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html)
 
 from sklearn.metrics import accuracy_score
 
-accuracy_score(clf.predict(X), y)
-
-# medio que no sirve (cambiar dataset ??)
-y.value_counts(True)
-
-# ## Recall
-#
-# https://scikit-learn.org/stable/modules/generated/sklearn.metrics.recall_score.html
-#
-# Recall = TP / (TP + FN)
-# TP: True Positives , Cuando el modelo dice que es positivo y efectivamente es positivo
-# FN: False Negatives, Cuando el modelo dice que es negativo y le pifea porque en realidad era positivo
-#
-# En criollo: cuantos consigue "agarrar"
-
-from sklearn.metrics import recall_score
-
-recall_score(clf.predict(X), y, pos_label=0)
+accuracy_score(clf.predict(X_test), y_test)
 
 # ## Precision
+# $$\text{precision} = \frac{tp}{tp + fp}$$
 #
-# https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_score.html
+# Donde $tp$ es la cantidad de verdaderos positivos: son positivos y la prediccion es positivo.
+# $fp$ son los falsos positivos: son negativos y la prediccion es positivo.
 #
-# Precision = TP / (TP + FP)
-# FP: False Positives, Cuando el modelo dice que es positivo, pero en realidad es negativo
-#
-# En criollo: de los que aggarró, cuan puros son?
+# > [sklearn: accuracy_score](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_score.html)
 
 from sklearn.metrics import precision_score
 
 precision_score(clf.predict(X), y)
 
+# ## Recall
+# $$\text{recall} = \frac{tp}{tp + fn}$$
+#
+# Donde $fn$ es la cantidad de falsos negativos: son positivos y predecimos negativos.
+#
+# > [sklearn: recall_score](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.recall_score.html)
+
+from sklearn.metrics import recall_score
+
+recall_score(clf.predict(X), y, pos_label=0)
+
 # ## Score F1
+# $$F_\beta = 2 \frac{\text{precision} \times \text{recall}}{\text{precision} + \text{recall}}$$
 #
-# https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html
+# Donde $fn$ es la cantidad de falsos negativos: son positivos y predecimos negativos.
 #
-# F1 = (2 x Recall X Precision) / (Recall + Precision)
-# En criollo: un numero que me junta otras dos metricas, me es mas facil leer este (LOL)
+# > [sklearn: f1_score](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html)
 
 from sklearn.metrics import f1_score
 
 f1_score(clf.predict(X), y)
 
-# ## Macro acurracy vs micro acurracy
-
-# +
-# TODO
-# -
-
-# ## Herramienta todo-en-uno de sklearn
+# ## Herramienta todo-en-uno de sklearn: reporte de clasificacion
 #
-# https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html
+# Muestra un reporte en texto con las principales metricas de clasificacion.
 #
-# Note that in binary classification, recall of the positive class is also known as “sensitivity”; recall of the negative class is “specificity”.
-#
+# > [sklearn: classificaction_report](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html)
 
 from sklearn.metrics import classification_report
 
 print(classification_report(clf.predict(X), y))
 
 
+# + [markdown] jupyter={"source_hidden": true}
 # ## ROC y AUC
 # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html
 # https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc.html#sphx-glr-auto-examples-model-selection-plot-roc-py
 
-# +
+# + jupyter={"source_hidden": true, "outputs_hidden": true}
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, auc
 from sklearn.metrics import roc_auc_score
@@ -260,52 +201,90 @@ plot_roc(fpr, tpr, thresholds)
 # -
 
 # ## Confusion Matrix
+#
+# La matriz de confusion nos muestra nuestros $tp$, $fp$, $tn$ y $fn$ en una matriz. La diagonal principal son los valores correctamente clasificados. Los otros valores indican la cantidad de puntos mal clasificados.
+#
+# Veamos como construirlo manualmente con [sklearn.metrics.confusion_matrix](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html) y `sns.heatmap`.
 
 # +
 from sklearn.metrics import confusion_matrix
-import seaborn as sns
-import matplotlib.pyplot as plt
-import pandas as pd
 
 
-def plot_confusion_matrix(y_pred, y_true, label_mapping=None):
-    ids = list(set(y_true))
-
-    if label_mapping is None:
-        names = ids
-    else:
-        names = [label_mapping[_id] for _id in ids]
-
-    cm = confusion_matrix(y_true, y_pred, ids)
+def plot_confusion_matrix(y_true, y_pred):
+    names = sorted(set(y_true))
+    cm = confusion_matrix(y_true, y_pred, names)
     df_cm = pd.DataFrame(cm, names, names)
 
-    plt.figure(figsize=(15, 7))
-    sns.set(font_scale=2)
-    sns.heatmap(df_cm, annot=True, annot_kws={"size": 16}, fmt='g')
-    plt.yticks(rotation=20)
-    plt.xticks(rotation=20)
+    plt.figure(dpi=100)
+    plt.title("Matriz de confusion")
+    sns.heatmap(df_cm, annot=True, annot_kws={"size": 16}, fmt='g', square=True)
     plt.ylabel("True label")
     plt.xlabel("Predicted label")
     plt.show()
 
 
-plot_confusion_matrix(clf.predict(X), y, {0: 'no fraude', 1: 'te estafaron amigo'})
+plot_confusion_matrix(y, clf.predict(X))
 # -
 
+# Tambien tenemos el shortcut de [sklearn.metrics.plot_confusion_matrix](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.plot_confusion_matrix.html), pero ojo al usarlo con seaborn seteando el estilo.
+
+# +
 from sklearn.metrics import plot_confusion_matrix
 
 fig, ax = plt.subplots(figsize=(15, 7))
 plt.grid(False)
-plot_confusion_matrix(
-    clf, X, y, cmap=plt.cm.Blues, display_labels=['TODO PIOLA', 'ESTAFA'], ax=ax
-)
+plot_confusion_matrix(clf, X, y, cmap=plt.cm.Blues, display_labels=['1', '0'], ax=ax)
+plt.show()
+# -
 
-# ## Evaluacion de calibracion
+# # Búsqueda de hiperparámetros
+# Ahora que sabemos como medir que tan buenos son diferentes modelos, queremos probar y evaluar combinaciones de hiperparametros y de una grilla de posibles combinaciones. Hacer un `for` por cada hiperparametro como haciamos al principio del notebook es bastante engorroso. Por otro lado, el entrenamiento y evaluacion de distintos valores de la grilla son independientes entre si, lo cual nos hace pensar que podriamos parelelizarlo facilmente, pero tenemos que escribir ese codigo.
+
+# ## Grid Search
+# Grid search recorre exhaustivamente una grilla de combinaciones de hiperparametros.
+#
+# > [sklearn.model_selection.GridSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html)
+
+# ## Randomized Search
+# Grid search toma aleatoriamente una cierta cantidad de combinaciones de hiperparametros de una grilla de combinaciones de hiperparametros.
+#
+# > [sklearn.model_selection.RandomizedSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html)
+
+# # Cross validation
+# En la teorica se dijo algo como que usar los mismos datos para sacar las metricas que los que usamos para entrenar
+# es como subir una foto y darte like a vos mismo.
+#
+# No sirve?
+#
+# Bueno, no todo es blanco y negro, podemos aplicar metricas al set de entrenamiento sirve para saber si el modelo puede aprender algo o si ni siquiera puede adaptarse a los datos de entrenamiento.
+#
+# Para evaluar correctamente al modelo necesitamos dividir el set en varios `folds` (como vimos en la teorica) y evaluar en los datos que NO fueron usados para entrenar.
+# De esa manera podemos entender como funciona el modelo ante datos no vistos cuando entrenaba. Otros modos de partir los datos son `leave one out`, por ejemplo.
+#
+#
+
+# # K Fold
+#
+# En base a lo que vimos en la teorica:
+# - Vamos a dividir al dataset en k partes.
+# - Entrenamos con k-1 y aplicamos las metricas anteriormente usadas en la parte restante.
+#
+# NOTA: hablamos de stratify para mantener la distribucion entre los cortes?
+
+# +
+from sklearn.model_selection import KFold
+
+kf = KFold(n_splits=5)
+
+for train_index, test_index in kf.split(X):
+    pass
+# + [markdown] jupyter={"source_hidden": true}
+# # Evaluacion de calibracion
 #
 # muy interesante como explica las pecularidades de porque random forest nunca va a dar scores cercanos a 0 o a 1
 # https://scikit-learn.org/stable/modules/calibration.html
 
-# +
+# + jupyter={"source_hidden": true}
 
 import matplotlib.pyplot as plt
 
@@ -323,9 +302,13 @@ from sklearn.model_selection import train_test_split
 
 
 def plot_calibration_curve(est, X, y, name, fig_index=0):
-    #     X, y = datasets.make_classification(n_samples=100000, n_features=20,
-    #                                     n_informative=2, n_redundant=10,
-    #                                     random_state=42)
+    X, y = datasets.make_classification(
+        n_samples=100000,
+        n_features=20,
+        n_informative=2,
+        n_redundant=10,
+        random_state=42,
+    )
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.25, random_state=42
@@ -400,32 +383,3 @@ plt.show()
 print(
     'The x axis represents the average predicted probability in each bin. The y axis is the fraction of positives, i.e. the proportion of samples whose class is the positive class (in each bin).'
 )
-# -
-
-# # Momento!!
-# En la teorica se dijo algo como que usar los mismos datos para sacar las metricas que los que usamos para entrenar
-# es como subir una foto y darte like a vos mismo.
-#
-#
-# no sirve?
-#
-#
-# Bueno, no todo es blanco y negro, aplicar metricas al set de entrenamiento sirve para saber si el modelo puede aprender algo
-# o si ni siquiera puede adaptarse a los datos de entrenamiento.
-#
-# Para evaluar correctamente al modelo necesitamos dividir el set en 2 o 3 (como vimos en la teorica) y evaluar en los datos que NO fueron usados para entrenar.
-# De esa manera podemos entender como funciona el modelo ante datos no vistos cuando entrenaba.
-#
-#
-
-# # 5) K Fold
-#
-# En base a lo que vimos en la teorica:
-# - Vamos a dividir al dataset en k partes.
-# - Entrenamos con k-1 y aplicamos las metricas anteriormente usadas en la parte restante.
-#
-# NOTA: hablamos de stratify para mantener la distribucion entre los cortes?
-
-# # 6) Grid Search y Random Search
-#
-# Vamos a buscar encontrar que combinacion de los parametros que recibe el Random Forest (Hyperparametros) son los que mejor metricas consiguen.
