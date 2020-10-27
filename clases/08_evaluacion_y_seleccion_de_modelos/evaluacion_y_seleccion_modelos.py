@@ -43,8 +43,11 @@ sns.set()
 pd.options.display.max_columns = None
 
 
-# # Hyperparameter tuning
+# # Evaluacion y seleccion de modelos
+# Vamos a ver como evaluar la performance de un modelo, desde distintas metricas y luego como buscar los mejores hiperparametros para nuestro modelo/problema.
 #
+# ## Dataset
+# Armamos un dataset sintentico de clasificacion binaria, donde el target esta desbalanceado.
 
 X, y = datasets.make_classification(
     n_samples=1000,
@@ -53,15 +56,21 @@ X, y = datasets.make_classification(
     n_informative=8,
     n_redundant=16,
     weights=[0.8, 0.2],
-    flip_y=0.1,
+    flip_y=0.04,
     random_state=117,
 )
 
+# Como se ve?
+
 dimred = PCA(2).fit_transform(X)
 sns.scatterplot(dimred[:, 0], dimred[:, 1], hue=y)
+plt.show()
 
-# + jupyter={"source_hidden": true}
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=117)
+
+# Veamos un poco la motivacion: consideremos que queremos entrenar un arbol de decision. Juguemos con dos hiperparametros: `max_depth` y `min_samples_leaf`. Vamos a tomar un cierto rango de valores que consideremos razonables para cada hiperparametro. Cada modelo entrenado vamos a evaluarlo (bajo _alguna_ metrica).
+#
+# Lo que queremos ver es como se comporta $f(\hat{X}, \hat{y}, \hat{h}) \to \rm I\!R$ una funcion que dado un vector de muestras, un vector de la variable objetivo y un vector de hiperparametros devuelve un score asociado al modelo entrenado con esos hiperparametros.
 
 # +
 max_depths = np.arange(1, 15)
@@ -95,9 +104,11 @@ g = sns.heatmap(
     cbar_kws=dict(use_gridspec=False, location="bottom"),
 )
 
+# Claramente hay minimos y maximos locales, pero lo que realmente nos interesa es encontrar el maximo/minimo local (depende de la metrica).
+
 # # Baseline model
 #
-# Entrenamos un arbol de decision con los parametros default.
+# Entrenamos un arbol de decision con parametros que consideramos razonables, o valores por defecto.
 
 clf = DecisionTreeClassifier(random_state=117)
 clf.fit(X_train, y_train)
@@ -147,8 +158,6 @@ recall_score(clf.predict(X), y, pos_label=0)
 # ## Score F1
 # $$F_\beta = 2 \frac{\text{precision} \times \text{recall}}{\text{precision} + \text{recall}}$$
 #
-# Donde $fn$ es la cantidad de falsos negativos: son positivos y predecimos negativos.
-#
 # > [sklearn: f1_score](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html)
 
 from sklearn.metrics import f1_score
@@ -165,39 +174,6 @@ from sklearn.metrics import classification_report
 
 print(classification_report(clf.predict(X), y))
 
-
-# ## ROC y AUC
-# https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html
-# https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc.html#sphx-glr-auto-examples-model-selection-plot-roc-py
-
-# + jupyter={"source_hidden": true}
-import matplotlib.pyplot as plt
-from sklearn.metrics import roc_curve, auc
-from sklearn.metrics import roc_auc_score
-
-
-def plot_roc(_fpr, _tpr, x):
-
-    roc_auc = auc(_fpr, _tpr)
-
-    plt.figure(figsize=(15, 10))
-    plt.plot(
-        _fpr, _tpr, color='darkorange', lw=2, label='ROC curve (area = %0.2f)' % roc_auc
-    )
-    plt.scatter(_fpr, x)
-    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('Receiver operating characteristic example')
-    plt.legend(loc="lower right")
-    plt.show()
-
-
-fpr, tpr, thresholds = roc_curve(clf.predict(X), y)
-plot_roc(fpr, tpr, thresholds)
-# -
 
 # ## Confusion Matrix
 #
@@ -235,6 +211,58 @@ plt.grid(False)
 plot_confusion_matrix(clf, X, y, cmap=plt.cm.Blues, display_labels=['1', '0'], ax=ax)
 plt.show()
 # -
+
+# ## ROC y AUROC
+#
+# La curva ROC es un grafico que muestra que tan bueno es nuestro modelo en distinguir entre clases.
+#
+# El area bajo la curva se denomina AUROC. Un valor de 1 es un clasificador perfecto. Si es cercano a 0, nos indica que esta
+#
+#
+# > [sklearn.metrics.roc_curve](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html#sklearn.metrics.roc_curve)
+#
+# > [sklearn.metrics.roc_auc_score](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html#sklearn.metrics.roc_auc_score)
+#
+# > [ROC User Guide](https://scikit-learn.org/stable/modules/model_evaluation.html#receiver-operating-characteristic-roc)
+
+# +
+import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import roc_auc_score
+
+
+def plot_roc(_fpr, _tpr, x):
+
+    roc_auc = auc(_fpr, _tpr)
+
+    plt.figure(figsize=(15, 10))
+    plt.plot(
+        _fpr, _tpr, color='darkorange', lw=2, label=f'ROC curve (area = {roc_auc:.2f})'
+    )
+    plt.scatter(_fpr, x)
+    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver operating characteristic')
+    plt.legend(loc="lower right")
+    plt.show()
+
+
+fpr, tpr, thresholds = roc_curve(y, clf.predict(X))
+plot_roc(fpr, tpr, thresholds)
+# -
+
+# ### Links para entender un poco mas
+#
+# #### Si cursaste proba
+# - [stats.stackexchage](https://stats.stackexchange.com/a/132832)
+# - [The Meaning and Use of the Area Under a Receiver Operating Characteristic ROC Curve](https://www.researchgate.net/publication/16134792_The_Meaning_and_Use_of_the_Area_Under_a_Receiver_Operating_Characteristic_ROC_Curve)
+#
+# #### Si no cursaste proba
+# - [towardsdatascience](https://towardsdatascience.com/understanding-auc-roc-curve-68b2303cc9c5)
+#
 
 # # Cross validation
 # En la teorica se dijo algo como que usar los mismos datos para sacar las metricas que los que usamos para entrenar
@@ -483,4 +511,3 @@ plt.show()
 print(
     'The x axis represents the average predicted probability in each bin. The y axis is the fraction of positives, i.e. the proportion of samples whose class is the positive class (in each bin).'
 )
-# -
