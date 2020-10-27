@@ -70,7 +70,7 @@ El link de los datos se encuentra en: https://drive.google.com/drive/folders/1RT
 
 
 ### Fecha de Entrega
-- Entrega del notebook: Miércoles 28 de octubre.
+- Entrega del notebook: Miércoles 28 de octubre. Al mail orga.datos.fiuba@gmail.com
 - Defensa oral del tp: Martes 3 de noviembre.
 
 ### Condiciones de una entrega válida:
