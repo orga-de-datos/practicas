@@ -20,6 +20,7 @@ from sklearn.preprocessing import OneHotEncoder
 import pandas as pd
 import os
 from sklearn.datasets import make_blobs
+from sklearn import datasets
 
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
@@ -45,7 +46,6 @@ pd.options.display.max_columns = None
 # # Hyperparameter tuning
 #
 
-# X, y = make_blobs(n_samples=1000, centers=2, n_features=128, cluster_std=16, random_state=117, center_box=(-2,2), )
 X, y = datasets.make_classification(
     n_samples=1000,
     n_features=64,
@@ -53,7 +53,7 @@ X, y = datasets.make_classification(
     n_informative=8,
     n_redundant=16,
     weights=[0.8, 0.2],
-    flip_y=0.08,
+    flip_y=0.1,
     random_state=117,
 )
 
@@ -166,12 +166,11 @@ from sklearn.metrics import classification_report
 print(classification_report(clf.predict(X), y))
 
 
-# + [markdown] jupyter={"source_hidden": true}
 # ## ROC y AUC
 # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html
 # https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc.html#sphx-glr-auto-examples-model-selection-plot-roc-py
 
-# + jupyter={"source_hidden": true, "outputs_hidden": true}
+# + jupyter={"source_hidden": true}
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, auc
 from sklearn.metrics import roc_auc_score
@@ -237,19 +236,6 @@ plot_confusion_matrix(clf, X, y, cmap=plt.cm.Blues, display_labels=['1', '0'], a
 plt.show()
 # -
 
-# # Búsqueda de hiperparámetros
-# Ahora que sabemos como medir que tan buenos son diferentes modelos, queremos probar y evaluar combinaciones de hiperparametros y de una grilla de posibles combinaciones. Hacer un `for` por cada hiperparametro como haciamos al principio del notebook es bastante engorroso. Por otro lado, el entrenamiento y evaluacion de distintos valores de la grilla son independientes entre si, lo cual nos hace pensar que podriamos parelelizarlo facilmente, pero tenemos que escribir ese codigo.
-
-# ## Grid Search
-# Grid search recorre exhaustivamente una grilla de combinaciones de hiperparametros.
-#
-# > [sklearn.model_selection.GridSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html)
-
-# ## Randomized Search
-# Grid search toma aleatoriamente una cierta cantidad de combinaciones de hiperparametros de una grilla de combinaciones de hiperparametros.
-#
-# > [sklearn.model_selection.RandomizedSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html)
-
 # # Cross validation
 # En la teorica se dijo algo como que usar los mismos datos para sacar las metricas que los que usamos para entrenar
 # es como subir una foto y darte like a vos mismo.
@@ -268,23 +254,137 @@ plt.show()
 # En base a lo que vimos en la teorica:
 # - Vamos a dividir al dataset en k partes.
 # - Entrenamos con k-1 y aplicamos las metricas anteriormente usadas en la parte restante.
-#
-# NOTA: hablamos de stratify para mantener la distribucion entre los cortes?
 
 # +
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, StratifiedKFold
 
 kf = KFold(n_splits=5)
 
-for train_index, test_index in kf.split(X):
-    pass
-# + [markdown] jupyter={"source_hidden": true}
+max_depth = 11
+min_samples_leaf = 4
+
+test_accuracies = []
+for fold_idx, (train_index, test_index) in enumerate(kf.split(X)):
+    clf = DecisionTreeClassifier(
+        max_depth=max_depth, min_samples_leaf=min_samples_leaf, random_state=117
+    )
+    clf.fit(X[train_index], y[train_index])
+    test_accuracy = accuracy_score(y[test_index], clf.predict(X[test_index]))
+    print(f"fold {fold_idx}: accuracy score is {test_accuracy:.4f}")
+    test_accuracies.append(test_accuracy)
+print(f"mean test accuracy is: {np.mean(test_accuracies):.4f}")
+# -
+# ## Stratified
+#
+# Veamos un segundo la variable objetivo
+
+pd.Series(y).value_counts(normalize=True).plot(kind='pie', autopct="%.2f%%")
+
+# +
+fig, axes = plt.subplots(ncols=5, nrows=2, figsize=(24, 8), sharey=True)
+
+kf = KFold(n_splits=5)
+for fold_idx, (train_index, test_index) in enumerate(kf.split(X)):
+    pd.Series(y[train_index]).value_counts(normalize=True).plot(
+        kind='pie', autopct="%.2f%%", ax=axes[0][fold_idx]
+    )
+    pd.Series(y[test_index]).value_counts(normalize=True).plot(
+        kind='pie', autopct="%.2f%%", ax=axes[1][fold_idx]
+    )
+
+axes[0][0].set_ylabel("Train splits")
+axes[1][0].set_ylabel("Test splits")
+
+plt.show()
+
+# +
+fig, axes = plt.subplots(ncols=5, nrows=2, figsize=(24, 8), sharey=True)
+
+kf = StratifiedKFold(n_splits=5)
+for fold_idx, (train_index, test_index) in enumerate(kf.split(X, y)):
+    pd.Series(y[train_index]).value_counts(normalize=True).plot(
+        kind='pie', autopct="%.2f%%", ax=axes[0][fold_idx]
+    )
+    pd.Series(y[test_index]).value_counts(normalize=True).plot(
+        kind='pie', autopct="%.2f%%", ax=axes[1][fold_idx]
+    )
+
+axes[0][0].set_ylabel("Train splits")
+axes[1][0].set_ylabel("Test splits")
+
+plt.show()
+# -
+
+# # Búsqueda de hiperparámetros
+# Ahora que sabemos como medir que tan buenos son diferentes modelos, queremos probar y evaluar combinaciones de hiperparametros y de una grilla de posibles combinaciones. Hacer un `for` por cada hiperparametro como haciamos al principio del notebook es bastante engorroso. Por otro lado, el entrenamiento y evaluacion de distintos valores de la grilla son independientes entre si, lo cual nos hace pensar que podriamos parelelizarlo facilmente, pero tenemos que escribir ese codigo.
+#
+#
+# ```python
+# best_score = None
+# best_hiperparams = None
+# for h1 in valores_hiperparametro_1:
+#     for h2 in valores_hiperparametro_2:
+#         ...
+#         for hn in valores_hiperparametro_n:
+#             kf = StratifiedKFold(n_splits=5)
+#             metrics = []
+#             for fold_idx, (train_index, test_index) in enumerate(kf.split(X, y)):
+#                 clf = Clasificador(h1, h2, ..., hn)
+#                 clf.fit(X[train_index], y[train_index])
+#                 metrics.append(metric(y[test_index], clf.predict(X[test_index])))
+#             if not best_score or np.mean(metrics) < best_score:
+#                 best_score = np.mean(metrics)
+#                 best_hiperparams = [h1, h2, ..., hn]
+# ```
+
+# ## Grid Search
+# Grid search recorre exhaustivamente una grilla de combinaciones de hiperparametros.
+#
+# > [sklearn.model_selection.GridSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html)
+
+# +
+from sklearn.model_selection import GridSearchCV
+
+params = {'max_depth': np.arange(1, 31), 'min_samples_leaf': np.arange(1, 16)}
+
+
+clf = DecisionTreeClassifier(random_state=117)
+
+gscv = GridSearchCV(
+    clf, params, scoring='accuracy', n_jobs=-1, cv=5, return_train_score=True
+).fit(X, y)
+# -
+
+print(f"Best score: {gscv.best_score_}")
+print(f"Best params {gscv.best_params_}")
+
+# ## Randomized Search
+# Grid search toma aleatoriamente una cierta cantidad de combinaciones de hiperparametros de una grilla de combinaciones de hiperparametros.
+#
+# > [sklearn.model_selection.RandomizedSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html)
+
+# +
+from sklearn.model_selection import RandomizedSearchCV
+
+params = {'max_depth': np.arange(1, 31), 'min_samples_leaf': np.arange(1, 16)}
+
+
+clf = DecisionTreeClassifier(random_state=117)
+
+rgscv = RandomizedSearchCV(
+    clf, params, n_iter=25, scoring='accuracy', n_jobs=-1, cv=5, return_train_score=True
+).fit(X, y)
+# -
+
+print(f"Best score: {rgscv.best_score_}")
+print(f"Best params {rgscv.best_params_}")
+
 # # Evaluacion de calibracion
 #
 # muy interesante como explica las pecularidades de porque random forest nunca va a dar scores cercanos a 0 o a 1
 # https://scikit-learn.org/stable/modules/calibration.html
 
-# + jupyter={"source_hidden": true}
+# +
 
 import matplotlib.pyplot as plt
 
@@ -383,3 +483,4 @@ plt.show()
 print(
     'The x axis represents the average predicted probability in each bin. The y axis is the fraction of positives, i.e. the proportion of samples whose class is the positive class (in each bin).'
 )
+# -
