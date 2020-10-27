@@ -224,12 +224,24 @@ plot_confusion_matrix(clf, X, y, cmap=plt.cm.Blues, display_labels=['1', '0'], a
 plt.show()
 # -
 
-# ## ROC y AUROC
+# ## ROC
+# La curva ROC es un grafico que muestra que tan bueno es nuestro modelo distinguiendo entre clases.
 #
-# La curva ROC es un grafico que muestra que tan bueno es nuestro modelo en distinguir entre clases.
+# En el eje x tenemos el $fpr$ y en el eje y el $tpr$. Se ordenan las predicciones por la probabilidad de ser positivos (en nuestro problema de clasificacion binaria vale!) y se calculan los valores de cada eje.
 #
-# El area bajo la curva se denomina AUROC. Un valor de 1 es un clasificador perfecto. Si es cercano a 0, nos indica que esta
+# En la diagonal se muestra lo que daria un clasificador aleatorio.
 #
+# ### AUROC
+#
+# El area bajo la curva se denomina AUROC. Un valor de 1 es un clasificador perfecto. Si es cercano a 0, nos indica que esta "invirtiendo" las clases.
+#
+#
+# <details>
+#   <summary>Interpretacion de proba</summary>
+#    $$P(score(x^+) > score(x^-))$$
+# </details>
+#
+# ### Links
 #
 # > [sklearn.metrics.roc_curve](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html#sklearn.metrics.roc_curve)
 #
@@ -262,9 +274,26 @@ def plot_roc(_fpr, _tpr, x):
     plt.show()
 
 
+# -
+
+# ### Ejemplo facil
+
+# +
+y_roc = [1, 1, 1, 0, 0]
+pred_roc = [1, 1, 0, 0, 1]
+
+fpr, tpr, thresholds = roc_curve(y_roc, pred_roc)
+display(fpr)
+display(tpr)
+display(thresholds)
+# -
+
+plot_roc(fpr, tpr, thresholds)
+
+# Y en nuestro problema...
+
 fpr, tpr, thresholds = roc_curve(y, clf.predict(X))
 plot_roc(fpr, tpr, thresholds)
-# -
 
 # ### Links para entender un poco mas
 #
@@ -341,7 +370,7 @@ for fold_idx, (train_index, test_index) in enumerate(kf.split(X)):
 
 axes[0][0].set_ylabel("Train splits")
 axes[1][0].set_ylabel("Test splits")
-plt.suptitle("Distribucion del label por split")
+plt.suptitle("Distribucion del label por split - KFold")
 
 plt.show()
 # -
@@ -366,7 +395,7 @@ for fold_idx, (train_index, test_index) in enumerate(kf.split(X, y)):
 
 axes[0][0].set_ylabel("Train splits")
 axes[1][0].set_ylabel("Test splits")
-plt.suptitle("Distribucion del label por split")
+plt.suptitle("Distribucion del label por split - StratifiedKFold")
 
 plt.show()
 # -
@@ -432,6 +461,11 @@ gscv.best_estimator_
 pd.DataFrame(gscv.cv_results_)
 
 # **Momento de reflexion**: Pensemos en el tamaño de esta grilla. Si sabemos la cardinalidad de los valores a recorrer de cada hiperparametro, cuantas combinaciones vamos a recorrer?
+#
+# <details>
+#   <summary>Respuesta</summary>
+#    $$\prod_{i=1}^{n} |h_n|$$, donde $h_n$ son los posibles valores del hiperparametro $n$-esimo.
+# </details>
 
 # ## Randomized Search
 # Quizas la grilla a recorrer de posibles combinaciones de hiperparametros es demasiado grande. Grid search toma aleatoriamente una cierta cantidad de combinaciones de hiperparametros y las prueba.
@@ -463,13 +497,40 @@ print(f"Best params {rgscv.best_params_}")
 #
 # TL;DR: si.
 
-# # Evaluacion de calibracion
+# # Test holdout
 #
-# muy interesante como explica las pecularidades de porque random forest nunca va a dar scores cercanos a 0 o a 1
-# https://scikit-learn.org/stable/modules/calibration.html
+# Finalmente, para validar contra datos nunca vistos, usamos un conjunto de holdout. Presentamos aqui un pipeline completo.
+
+X_train, X_holdout, y_train, y_holdout = train_test_split(
+    X, y, random_state=117, train_size=0.1
+)
 
 # +
+params = {
+    'max_depth': np.arange(1, 32),
+    'min_samples_leaf': np.arange(1, 32),
+    "criterion": ["gini", "entropy"],
+}
 
+clf = DecisionTreeClassifier(random_state=117,)
+
+rgscv = RandomizedSearchCV(
+    clf, params, n_iter=60, scoring='accuracy', n_jobs=-1, cv=5, return_train_score=True
+).fit(X_train, y_train)
+# -
+
+print(f"Best score: {rgscv.best_score_}")
+print(f"Best params {rgscv.best_params_}")
+
+print(f"holdout score: {rgscv.score(X_holdout, y_holdout)}")
+
+# # Evaluacion de calibracion
+#
+# Muchas veces ademas de tener la clase de la prediccion queeremos una probabilidad de cada uno de los labels. Ahora, muchos estimadores te dan un `score` que _no necesariamente se pueda interpretar como la probabilidad._
+#
+# > [sklearn.calibration](https://scikit-learn.org/stable/modules/calibration.html)
+
+# +
 import matplotlib.pyplot as plt
 
 from sklearn import datasets
@@ -486,18 +547,6 @@ from sklearn.model_selection import train_test_split
 
 
 def plot_calibration_curve(est, X, y, name, fig_index=0):
-    X, y = datasets.make_classification(
-        n_samples=100000,
-        n_features=20,
-        n_informative=2,
-        n_redundant=10,
-        random_state=42,
-    )
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.25, random_state=42
-    )
-
     """Plot calibration curve for est w/o and with calibration. """
     # Calibrated with isotonic calibration
     isotonic = CalibratedClassifierCV(est, method='isotonic')
@@ -560,10 +609,10 @@ def plot_calibration_curve(est, X, y, name, fig_index=0):
 
 
 plot_calibration_curve(
-    RandomForestClassifier(max_depth=2, random_state=0), X, y, "Random Forest", 1
+    DecisionTreeClassifier(max_depth=2, random_state=0), X, y, "Decision tree", 1
 )
 
 plt.show()
-print(
-    'The x axis represents the average predicted probability in each bin. The y axis is the fraction of positives, i.e. the proportion of samples whose class is the positive class (in each bin).'
-)
+# -
+
+# El eje x representa el promedio de la prediccion en cada bin. El eje y es la fraccion de positivos: la proporcion de samples cuya clase es la clase positiva.
