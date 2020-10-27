@@ -45,8 +45,8 @@ pd.options.display.max_columns = None
 
 # # Evaluacion y seleccion de modelos
 # Vamos a ver como evaluar la performance de un modelo, desde distintas metricas y luego como buscar los mejores hiperparametros para nuestro modelo/problema.
-#
-# ## Dataset
+
+# # Dataset
 # Armamos un dataset sintentico de clasificacion binaria, donde el target esta desbalanceado.
 
 X, y = datasets.make_classification(
@@ -67,6 +67,8 @@ sns.scatterplot(dimred[:, 0], dimred[:, 1], hue=y)
 plt.show()
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=117)
+
+# # Motivacion
 
 # Veamos un poco la motivacion: consideremos que queremos entrenar un arbol de decision. Juguemos con dos hiperparametros: `max_depth` y `min_samples_leaf`. Vamos a tomar un cierto rango de valores que consideremos razonables para cada hiperparametro. Cada modelo entrenado vamos a evaluarlo (bajo _alguna_ metrica).
 #
@@ -104,13 +106,13 @@ g = sns.heatmap(
     cbar_kws=dict(use_gridspec=False, location="bottom"),
 )
 
-# Claramente hay minimos y maximos locales, pero lo que realmente nos interesa es encontrar el maximo/minimo local (depende de la metrica).
+# Claramente hay minimos y maximos locales, pero lo que realmente nos interesa es encontrar el maximo/minimo global (depende de la metrica). Esto no siempre sera posible, pero queremos acercanos lo mas posible.
 
 # # Baseline model
 #
 # Entrenamos un arbol de decision con parametros que consideramos razonables, o valores por defecto.
 
-clf = DecisionTreeClassifier(random_state=117)
+clf = DecisionTreeClassifier(max_depth=5, random_state=117)
 clf.fit(X_train, y_train)
 
 # # Cómo evaluar un modelo - Metricas
@@ -159,6 +161,8 @@ recall_score(clf.predict(X), y, pos_label=0)
 # $$F_\beta = 2 \frac{\text{precision} \times \text{recall}}{\text{precision} + \text{recall}}$$
 #
 # > [sklearn: f1_score](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html)
+#
+# Es un caso particular de la definicion mas general de [F-valores](https://scikit-learn.org/stable/modules/model_evaluation.html#precision-recall-and-f-measures). Se puese interpretar como una media armonica ponderada de recall y precision.
 
 from sklearn.metrics import f1_score
 
@@ -174,6 +178,14 @@ from sklearn.metrics import classification_report
 
 print(classification_report(clf.predict(X), y))
 
+
+# ### Macro avg
+#
+# Media no pesada por label.
+
+# ### Weighted avg
+#
+# Se calcula la media pesada por el soporte del label.
 
 # ## Confusion Matrix
 #
@@ -268,7 +280,7 @@ plot_roc(fpr, tpr, thresholds)
 # En la teorica se dijo algo como que usar los mismos datos para sacar las metricas que los que usamos para entrenar
 # es como subir una foto y darte like a vos mismo.
 #
-# No sirve?
+# Entonces, no sirve?
 #
 # Bueno, no todo es blanco y negro, podemos aplicar metricas al set de entrenamiento sirve para saber si el modelo puede aprender algo o si ni siquiera puede adaptarse a los datos de entrenamiento.
 #
@@ -282,6 +294,8 @@ plot_roc(fpr, tpr, thresholds)
 # En base a lo que vimos en la teorica:
 # - Vamos a dividir al dataset en k partes.
 # - Entrenamos con k-1 y aplicamos las metricas anteriormente usadas en la parte restante.
+#
+# > [sklearn.model_selection.KFold](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.KFold.html)
 
 # +
 from sklearn.model_selection import KFold, StratifiedKFold
@@ -306,12 +320,17 @@ print(f"mean test accuracy is: {np.mean(test_accuracies):.4f}")
 #
 # Veamos un segundo la variable objetivo
 
-pd.Series(y).value_counts(normalize=True).plot(kind='pie', autopct="%.2f%%")
+pd.Series(y, name="label").value_counts(normalize=True).plot(
+    kind='pie', autopct="%.2f%%"
+)
+plt.show()
+
+# Veamos como se ve esta proporcion en los folds que nos da `KFold`.
 
 # +
 fig, axes = plt.subplots(ncols=5, nrows=2, figsize=(24, 8), sharey=True)
 
-kf = KFold(n_splits=5)
+kf = KFold(n_splits=5, random_state=117)
 for fold_idx, (train_index, test_index) in enumerate(kf.split(X)):
     pd.Series(y[train_index]).value_counts(normalize=True).plot(
         kind='pie', autopct="%.2f%%", ax=axes[0][fold_idx]
@@ -322,8 +341,16 @@ for fold_idx, (train_index, test_index) in enumerate(kf.split(X)):
 
 axes[0][0].set_ylabel("Train splits")
 axes[1][0].set_ylabel("Test splits")
+plt.suptitle("Distribucion del label por split")
 
 plt.show()
+# -
+
+# Vemos que las proporciones son... raras, no?
+#
+# Esto es porque estamos separando asi nomas el dataset en cinco, sin mantener las proporciones. Cuando nuestro dataset esta desbalanceado, es mejor hacer un [sampleo estratificado](https://en.wikipedia.org/wiki/Stratified_sampling), que mantiene las proporciones
+#
+# > [sklearn.model_selection.StratifiedKFold](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.StratifiedKFold.html#sklearn.model_selection.StratifiedKFold)
 
 # +
 fig, axes = plt.subplots(ncols=5, nrows=2, figsize=(24, 8), sharey=True)
@@ -339,13 +366,15 @@ for fold_idx, (train_index, test_index) in enumerate(kf.split(X, y)):
 
 axes[0][0].set_ylabel("Train splits")
 axes[1][0].set_ylabel("Test splits")
+plt.suptitle("Distribucion del label por split")
 
 plt.show()
 # -
 
+# Notar que tenemos que pasarle `y` para que sepa como mantener las proporciones.
+
 # # Búsqueda de hiperparámetros
-# Ahora que sabemos como medir que tan buenos son diferentes modelos, queremos probar y evaluar combinaciones de hiperparametros y de una grilla de posibles combinaciones. Hacer un `for` por cada hiperparametro como haciamos al principio del notebook es bastante engorroso. Por otro lado, el entrenamiento y evaluacion de distintos valores de la grilla son independientes entre si, lo cual nos hace pensar que podriamos parelelizarlo facilmente, pero tenemos que escribir ese codigo.
-#
+# Ahora que sabemos como medir que tan buenos son diferentes modelos y como medir correctamente esos valores, queremos probar y evaluar combinaciones de hiperparametros de una grilla de posibles combinaciones. Hacer un `for` por cada hiperparametro como haciamos al principio del notebook es bastante engorroso. Por otro lado, el entrenamiento y evaluacion de distintos valores de la grilla son independientes entre si, lo cual nos hace pensar que podriamos parelelizarlo facilmente, pero tenemos que escribir ese codigo.
 #
 # ```python
 # best_score = None
@@ -369,6 +398,16 @@ plt.show()
 # Grid search recorre exhaustivamente una grilla de combinaciones de hiperparametros.
 #
 # > [sklearn.model_selection.GridSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html)
+#
+# Tiene una interfaz similar a cualquier estimador, con `fit` y `predict`. Pero recibe parametros:
+#
+# > ```
+#   estimator: estimator object.
+#   param_grid: dict or list of dictionaries
+#   scoring: str, callable, list/tuple or dict, default=None
+#   n_jobs: int, default=None
+#   cv: int, cross-validation generator or an iterable, default=None
+#   ```
 
 # +
 from sklearn.model_selection import GridSearchCV
@@ -383,13 +422,23 @@ gscv = GridSearchCV(
 ).fit(X, y)
 # -
 
+# Y tiene una serie de atributos utiles:
+
 print(f"Best score: {gscv.best_score_}")
 print(f"Best params {gscv.best_params_}")
 
+gscv.best_estimator_
+
+pd.DataFrame(gscv.cv_results_)
+
+# **Momento de reflexion**: Pensemos en el tamaño de esta grilla. Si sabemos la cardinalidad de los valores a recorrer de cada hiperparametro, cuantas combinaciones vamos a recorrer?
+
 # ## Randomized Search
-# Grid search toma aleatoriamente una cierta cantidad de combinaciones de hiperparametros de una grilla de combinaciones de hiperparametros.
+# Quizas la grilla a recorrer de posibles combinaciones de hiperparametros es demasiado grande. Grid search toma aleatoriamente una cierta cantidad de combinaciones de hiperparametros y las prueba.
 #
 # > [sklearn.model_selection.RandomizedSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html)
+#
+# La interfaz es muy similar a la de `GridSearchCV`, pero tenemos que indicarle la cantidad de iteraciones.
 
 # +
 from sklearn.model_selection import RandomizedSearchCV
@@ -406,6 +455,13 @@ rgscv = RandomizedSearchCV(
 
 print(f"Best score: {rgscv.best_score_}")
 print(f"Best params {rgscv.best_params_}")
+
+# Y esto anda?
+#
+# - [Random Search for Hyper-Parameter Optimization - Bergstra, Bengio](https://web.archive.org/web/20160404074908/http://www.jmlr.org/papers/volume13/bergstra12a/bergstra12a.pdf)
+# - [How to Evaluate Machine Learning Models: Hyperparameter Tuning](https://web.archive.org/web/20160701182750/http://blog.dato.com/how-to-evaluate-machine-learning-models-part-4-hyperparameter-tuning)
+#
+# TL;DR: si.
 
 # # Evaluacion de calibracion
 #
