@@ -26,7 +26,7 @@ from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, accuracy_score
 
 
 import seaborn as sns
@@ -63,6 +63,7 @@ X, y = datasets.make_classification(
 # Como se ve?
 
 dimred = PCA(2).fit_transform(X)
+plt.figure(dpi=150)
 sns.scatterplot(dimred[:, 0], dimred[:, 1], hue=y)
 plt.show()
 
@@ -75,7 +76,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=117)
 # Lo que queremos ver es como se comporta $f(\hat{X}, \hat{y}, \hat{h}) \to \rm I\!R$ una funcion que dado un vector de muestras, un vector de la variable objetivo y un vector de hiperparametros devuelve un score asociado al modelo entrenado con esos hiperparametros.
 
 # +
-max_depths = np.arange(1, 15)
+max_depths = np.arange(1, 25)
 min_samples_leafs = np.arange(1, 51)
 data_points = []
 for max_depth in max_depths:
@@ -85,11 +86,7 @@ for max_depth in max_depths:
         )
         clf.fit(X_train, y_train)
         data_points.append(
-            (
-                max_depth,
-                min_samples_leaf,
-                f1_score(y_test, clf.predict(X_test), average="weighted"),
-            )
+            (max_depth, min_samples_leaf, accuracy_score(y_test, clf.predict(X_test)),)
         )
 
 data_points = pd.DataFrame(
@@ -132,7 +129,7 @@ clf.fit(X_train, y_train)
 
 from sklearn.metrics import accuracy_score
 
-accuracy_score(clf.predict(X_test), y_test)
+accuracy_score(y_test, clf.predict(X_test))
 
 # ## Precision
 # $$\text{precision} = \frac{tp}{tp + fp}$$
@@ -140,11 +137,11 @@ accuracy_score(clf.predict(X_test), y_test)
 # Donde $tp$ es la cantidad de verdaderos positivos: son positivos y la prediccion es positivo.
 # $fp$ son los falsos positivos: son negativos y la prediccion es positivo.
 #
-# > [sklearn: accuracy_score](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_score.html)
+# > [sklearn: precision_score](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_score.html)
 
 from sklearn.metrics import precision_score
 
-precision_score(clf.predict(X), y)
+precision_score(y_test, clf.predict(X_test))
 
 # ## Recall
 # $$\text{recall} = \frac{tp}{tp + fn}$$
@@ -155,18 +152,18 @@ precision_score(clf.predict(X), y)
 
 from sklearn.metrics import recall_score
 
-recall_score(clf.predict(X), y, pos_label=0)
+recall_score(y_test, clf.predict(X_test), pos_label=0)
 
 # ## Score F1
 # $$F_\beta = 2 \frac{\text{precision} \times \text{recall}}{\text{precision} + \text{recall}}$$
 #
 # > [sklearn: f1_score](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html)
 #
-# Es un caso particular de la definicion mas general de [F-valores](https://scikit-learn.org/stable/modules/model_evaluation.html#precision-recall-and-f-measures). Se puese interpretar como una media armonica ponderada de recall y precision.
+# Es un caso particular de la definicion mas general de [F-valores](https://scikit-learn.org/stable/modules/model_evaluation.html#precision-recall-and-f-measures). Se puede interpretar como una media armonica ponderada de recall y precision.
 
 from sklearn.metrics import f1_score
 
-f1_score(clf.predict(X), y)
+f1_score(y_test, clf.predict(X_test))
 
 # ## Herramienta todo-en-uno de sklearn: reporte de clasificacion
 #
@@ -176,7 +173,7 @@ f1_score(clf.predict(X), y)
 
 from sklearn.metrics import classification_report
 
-print(classification_report(clf.predict(X), y))
+print(classification_report(y_test, clf.predict(X_test)))
 
 
 # ### Macro avg
@@ -210,7 +207,7 @@ def plot_confusion_matrix(y_true, y_pred):
     plt.show()
 
 
-plot_confusion_matrix(y, clf.predict(X))
+plot_confusion_matrix(y_test, clf.predict(X_test))
 # -
 
 # Tambien tenemos el shortcut de [sklearn.metrics.plot_confusion_matrix](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.plot_confusion_matrix.html), pero ojo al usarlo con seaborn seteando el estilo.
@@ -220,12 +217,25 @@ from sklearn.metrics import plot_confusion_matrix
 
 fig, ax = plt.subplots(figsize=(15, 7))
 plt.grid(False)
-plot_confusion_matrix(clf, X, y, cmap=plt.cm.Blues, display_labels=['1', '0'], ax=ax)
+plot_confusion_matrix(
+    clf, X_test, y_test, cmap=plt.cm.Blues, display_labels=['1', '0'], ax=ax
+)
 plt.show()
 # -
 
 # ## ROC
+#
 # La curva ROC es un grafico que muestra que tan bueno es nuestro modelo distinguiendo entre clases.
+#
+# ### Definiciones previas
+#
+# $$tpr = \frac{tp}{tp+fn}$$
+# Es el ratio de samples que son correctamente clasificados como positivos de entre todos los positivos.
+#
+# $$fpr = \frac{fp}{fp + tn}$$
+# Es el ratio de samples que son correctamente clasificados como negativos de entre todos los negativos.
+#
+# ### Lectura
 #
 # En el eje x tenemos el $fpr$ y en el eje y el $tpr$. Se ordenan las predicciones por la probabilidad de ser positivos (en nuestro problema de clasificacion binaria vale!) y se calculan los valores de cada eje.
 #
@@ -289,11 +299,13 @@ display(thresholds)
 # -
 
 plot_roc(fpr, tpr, thresholds)
+display(roc_auc_score(y_test, clf.predict(X_test)))
 
 # Y en nuestro problema...
 
-fpr, tpr, thresholds = roc_curve(y, clf.predict(X))
+fpr, tpr, thresholds = roc_curve(y_test, clf.predict(X_test))
 plot_roc(fpr, tpr, thresholds)
+display(roc_auc_score(y_test, clf.predict(X_test)))
 
 # ### Links para entender un poco mas
 #
@@ -301,8 +313,9 @@ plot_roc(fpr, tpr, thresholds)
 # - [stats.stackexchage](https://stats.stackexchange.com/a/132832)
 # - [The Meaning and Use of the Area Under a Receiver Operating Characteristic ROC Curve](https://www.researchgate.net/publication/16134792_The_Meaning_and_Use_of_the_Area_Under_a_Receiver_Operating_Characteristic_ROC_Curve)
 #
-# #### Si no cursaste proba
+# #### Aunque no la hayas cursado :D
 # - [towardsdatascience](https://towardsdatascience.com/understanding-auc-roc-curve-68b2303cc9c5)
+# - [ethen8181.github.io](https://ethen8181.github.io/machine-learning/model_selection/auc/auc.html#ROC-curves)
 #
 
 # # Cross validation
@@ -438,11 +451,10 @@ plt.show()
 #   cv: int, cross-validation generator or an iterable, default=None
 #   ```
 
-# +
 from sklearn.model_selection import GridSearchCV
 
+# +
 params = {'max_depth': np.arange(1, 31), 'min_samples_leaf': np.arange(1, 16)}
-
 
 clf = DecisionTreeClassifier(random_state=117)
 
@@ -479,11 +491,10 @@ from sklearn.model_selection import RandomizedSearchCV
 
 params = {'max_depth': np.arange(1, 31), 'min_samples_leaf': np.arange(1, 16)}
 
-
 clf = DecisionTreeClassifier(random_state=117)
 
 rgscv = RandomizedSearchCV(
-    clf, params, n_iter=25, scoring='accuracy', n_jobs=-1, cv=5, return_train_score=True
+    clf, params, n_iter=60, scoring='accuracy', n_jobs=-1, cv=5, return_train_score=True
 ).fit(X, y)
 # -
 
@@ -502,7 +513,7 @@ print(f"Best params {rgscv.best_params_}")
 # Finalmente, para validar contra datos nunca vistos, usamos un conjunto de holdout. Presentamos aqui un pipeline completo.
 
 X_train, X_holdout, y_train, y_holdout = train_test_split(
-    X, y, random_state=117, train_size=0.1
+    X, y, random_state=117, test_size=0.1, stratify=y
 )
 
 # +
@@ -529,6 +540,15 @@ print(f"holdout score: {rgscv.score(X_holdout, y_holdout)}")
 # Muchas veces ademas de tener la clase de la prediccion queeremos una probabilidad de cada uno de los labels. Ahora, muchos estimadores te dan un `score` que _no necesariamente se pueda interpretar como la probabilidad._
 #
 # > [sklearn.calibration](https://scikit-learn.org/stable/modules/calibration.html)
+#
+# Un clasificador calibrado es un clasificador probabilistico para el cual la salida de `predict_proba` puede ser directamente interpretado como un intervalo de confianza. Por ejemplo, un clasficador binario correctamente calibrado deberia clasificar las muestras de modo que entre las muestras a los cuales les dio un valor de `predict_proba` de 0.8, aproximadamente el 80% pertenece a la clase positiva.
+
+rgscv.best_estimator_.predict_proba(X_holdout)[:10]
+
+rgscv.best_estimator_.predict(X_holdout)[:10]
+
+# +
+# DecisionTreeClassifier.predict_proba?
 
 # +
 import matplotlib.pyplot as plt
@@ -608,9 +628,7 @@ def plot_calibration_curve(est, X, y, name, fig_index=0):
     plt.tight_layout()
 
 
-plot_calibration_curve(
-    DecisionTreeClassifier(max_depth=2, random_state=0), X, y, "Decision tree", 1
-)
+plot_calibration_curve(DecisionTreeClassifier(random_state=0), X, y, "Decision tree", 1)
 
 plt.show()
 # -
