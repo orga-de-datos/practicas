@@ -628,7 +628,9 @@ def plot_calibration_curve(est, X, y, name, fig_index=0):
     plt.tight_layout()
 
 
-plot_calibration_curve(DecisionTreeClassifier(random_state=0), X, y, "Decision tree", 1)
+plot_calibration_curve(
+    DecisionTreeClassifier(random_state=0, max_depth=2), X, y, "Decision tree", 1
+)
 
 plt.show()
 # -
