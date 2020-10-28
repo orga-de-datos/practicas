@@ -970,12 +970,6 @@ pd.DataFrame(y_train_boosting)[0].value_counts()
 SVC_model.fit(X_train,y_train)
 
 
-# In[123]:
-
-
-X_train_boosting
-
-
 # ### Evaluación del modelo de cascading 
 
 # In[125]:
@@ -1017,13 +1011,13 @@ for i in range(len(X_validation)):
 remaining_points = X_validation.values[points_for_the_second_model_index]
 
 
-# In[ ]:
+# In[130]:
 
 
 y_final_output = SVC_model.predict(remaining_points)
 
 
-# In[ ]:
+# In[131]:
 
 
 y_validation_remaining_points = y_validation[points_for_the_second_model_index]
@@ -1033,7 +1027,7 @@ accuracy_score(y_final_output, y_validation_remaining_points )
 # In[ ]:
 
 
-svc_pred = SVC_model.predict_proba(remaining_points_pred)
+svc_pred = SVC_model.predict_proba(remaining_points)
 y_pred_cascading = np.concatenate((sure_points_tree_validation_probs, svc_pred))
 
 
