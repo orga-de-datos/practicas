@@ -29,7 +29,7 @@ Si bien la empresa quiere empezar a usar técnicas avanzadas de predicción e in
 todavía tiene desconfianza en las mismas (personalmente comentaron que tienen miedo que las máquinas
 se revelen contra ellos) por lo que inicialmente no quieren nada complicado sino una serie muy simple
 de decisiones lógicas que les permitan en poco tiempo hacer una primera ronda de campaña digital. Se
-espera que este código simple (baseline) tenga una accuracy aceptable y que esté basada y justificada
+espera que este código simple (baseline) tenga una accuracy aceptable (mayor a 65%) y que esté basada y justificada
 en la investigación previa.
 
 
@@ -70,7 +70,7 @@ El link de los datos se encuentra en: https://drive.google.com/drive/folders/1RT
 
 
 ### Fecha de Entrega
-- Entrega del notebook: Miércoles 28 de octubre.
+- Entrega del notebook: Miércoles 28 de octubre. Al mail orga.datos.fiuba@gmail.com
 - Defensa oral del tp: Martes 3 de noviembre.
 
 ### Condiciones de una entrega válida:

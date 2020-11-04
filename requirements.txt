@@ -6,6 +6,7 @@ ipywidgets
 isort==v4.3.21
 jupyterlab
 jupytext
+lightgbm
 matplotlib
 matplotlib
 matplotlib
@@ -20,3 +21,4 @@ requests
 scikit-learn
 seaborn
 sklearn
+ipympl
