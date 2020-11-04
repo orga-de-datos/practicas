@@ -36,11 +36,11 @@ dataset = pd.read_csv(
 )
 
 dataset.shape
+# -
 
 dataset.describe()
 
 dataset
-# -
 
 # Analizamos la correlación de las variables de a pares
 seabornInstance.pairplot(dataset)
@@ -59,7 +59,7 @@ plt.tight_layout()
 seabornInstance.distplot(dataset['density'])
 
 # Determinamos los _atributos_ y los _labels_. Los atributos son las variables independientes, mientras que los labels son las variables que queremos determinar.
-# Como queremos determinar la Acidez en base a la Densidad, la Densidad es nuestra variable X y la Acidez es nuestro label Y.
+# Como queremos determinar la Acidez en base a la Densidad, los valores de Densidad son nuestros atributos que se reflejan en la variable X y los valores de Acidez son nuestros labels, representados por la variable Y.
 #
 # #### Y = B1 X + B0
 
