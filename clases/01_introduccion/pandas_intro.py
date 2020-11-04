@@ -30,11 +30,20 @@
 # Para comenzar, vamos a crear nuestro primer DataFrame a partir de un archivo CSV que contiene un [dataset sobre superhéroes](https://www.kaggle.com/claudiodavi/superhero-set/home).
 
 from collections import Counter
+import requests
+
+# Empezamos por descargarlo del drive de la materia.
+
+with requests.get(
+    "https://docs.google.com/spreadsheets/d/1nuJAaaH_IP8Q80CsyS940EVaePkbmqhN3vlorDxYMnA/export?format=csv"
+) as r, open("superheroes.csv", "wb") as f:
+    for chunk in r.iter_content():
+        f.write(chunk)
 
 # +
 import pandas as pd
 
-df = pd.read_csv('../datasets/superheroes.csv')
+df = pd.read_csv("superheroes.csv")
 # -
 
 # También podemos crear dataframes desde listas, diccionarios y otras estructuras.
@@ -156,7 +165,10 @@ df['Skin color']
 
 # ## Eliminar filas con nulos
 
+df
+
 df = df.dropna(subset=['Skin color'])
+df
 
 # # Unir información de distintas tablas
 #
@@ -166,9 +178,7 @@ df.merge(df, left_on='Skin color', right_on='Skin color')[['Race_x', 'Race_y']]
 
 # Tenemos duplicados!
 
-df.merge(df, left_on='Skin color', right_on='Skin color')[
-    ['Race_x', 'Race_y']
-].drop_duplicates()
+df.merge(df, left_on='Skin color', right_on='Skin color')[['Race_x', 'Race_y']]
 
 # Tenemos que sacar los que son iguales en ambas columnas!
 
@@ -176,6 +186,32 @@ same_skin_color = df.merge(df, left_on='Skin color', right_on='Skin color')[
     ['Race_x', 'Race_y']
 ].drop_duplicates()
 same_skin_color[same_skin_color.Race_x != same_skin_color.Race_y]
+
+# +
+# pd.merge?
+# -
+
+df1 = pd.DataFrame({'col': [1, 2, 3], 'val': [10, 11, 12]})
+df2 = pd.DataFrame({'col': [2, 3, 4], 'val': [13, 14, 15]})
+
+df1
+
+df2
+
+pd.merge(df1, df2, how='left', left_on='col', right_on='col')
+
+pd.merge(df1, df2, how='inner', left_on='col', right_on='col')
+
+pd.merge(df1, df2, how='right', left_on='col', right_on='col')
+
+pd.merge(df1, df2, how='outer', left_on='col', right_on='col')
+
+# +
+# df1.merge?
+
+# +
+# df1.join?
+# -
 
 # Por último, para ver los pares únicos
 
@@ -212,9 +248,17 @@ df_concat.pipe(len)
 # queremos ver los nombres
 df = df.reset_index()
 
+df
+
 df.groupby("Race")
 
-df.columns
+df.groupby("Race").agg(list)
+
+(df['Alignment'] == 'good').mean() * 100
+
+(df['Alignment'] == 'good').sum() / (df['Alignment'] == 'good').size
+
+df.groupby("Race")['Alignment'].apply(len)
 
 
 # +
@@ -236,6 +280,25 @@ df.groupby("Race").agg(
 # Algunas agregaciones tienen métodos para realizarlos directamente
 
 df.Race.value_counts()
+
+# Y si lo queremos como porcentajes?
+
+df.Race.value_counts() / df.Race.value_counts().sum() * 100
+
+df.Race.value_counts(normalize=True)
+
+# Veamos como podemos obtener las filas del dataframe original donde la columna `Race` este entre aquellos valores con mas del 5% de repeticiones.
+
+over5 = df.Race.value_counts(normalize=True) > 0.05
+mutants_over5 = df.Race.value_counts()[over5]
+
+# Teniendo la indexacion, veamos como resolverlo con `isin`
+
+df[df.Race.isin(mutants_over5.index)].head(5)
+
+# Alternativamente, con `merge`
+
+df.merge(mutants_over5, left_on='Race', right_index=True, how='inner')
 
 # ## Pivoting
 
@@ -265,21 +328,103 @@ def alignment_to_numeric(alignment):
 df_marvel['numeric_alineation'] = df_marvel.Alignment.apply(alignment_to_numeric)
 # -
 
+df_marvel = df[df.Publisher == 'Marvel Comics'].copy()
+
 df_marvel.loc[:, 'numeric_alineation'] = df_marvel.Alignment.apply(alignment_to_numeric)
 
 df_marvel.head()
 
 df_marvel.numeric_alineation.mean()
 
+# Una excelente guía al respecto: [link](https://www.dataquest.io/blog/settingwithcopywarning/)
+
 # # Ordenando
 
-df.sort_index()
+df.set_index('name').sort_index()
 
 df.sort_values(by=['Height', 'Weight'], ascending=False)
 
 # # Operaciones de strings
 
-df.name.str.lower()
+df.name.apply(lambda x: x.lower())
+
+# Entre [otras](https://pandas.pydata.org/pandas-docs/stable/user_guide/text.html)
+
+# # Manejo de fechas
+
+# ### Timestamp
+
+pd.Timestamp("2020-09-30 04:32:18 PM")
+
+# ### DatetimeIndex
+
+fechas = ['2020-03-20', '2020-03-18', '2020/09/30']
+indice_fechas = pd.DatetimeIndex(fechas)
+indice_fechas
+
+descripciones = ['cuarentena', 'cumpleañito', 'hoy']
+desc_serie = pd.Series(data=descripciones, index=indice_fechas)
+desc_serie
+
+# ### to_datetime
+
+pd.to_datetime('2020/03/30 17:43:09')
+
+pd.to_datetime(fechas)
+
+serie_fechas = pd.Series(
+    ['September 22nd, 2019', '22, 09, 2020', 'Una fecha', 'Oct 15th, 2020']
+)
+pd.to_datetime(serie_fechas, errors='coerce')
+
+# ### Rangos
+
+rango_de_tiempo = pd.date_range(start='25/06/2019', end='25/06/2020', freq='D')
+rango_de_tiempo
+
+rango_de_tiempo = pd.date_range(start='25/06/2019', end='25/06/2022', freq='A')
+rango_de_tiempo
+
+desc_serie
+
+# ### Filtro por fecha
+#
+# Usamos un dataset que registra el clima y demás datos para distintas fechas de [alquiler de bicicletas](https://www.kaggle.com/c/bike-sharing-demand/data?select=train.csv).
+#
+# `pd.read_csv` nos deja leer archivos csv desde una URL. Este dataset esta tambien disponible en el drive de la materia. Leemos el dataset sin bajarlo a un archivo intermedio.
+
+# +
+GSPREADHSEET_DOWNLOAD_URL = (
+    "https://docs.google.com/spreadsheets/d/{gid}/export?format=csv&id={gid}".format
+)
+
+bicis_df = pd.read_csv(
+    GSPREADHSEET_DOWNLOAD_URL(gid="1YocUXbrd6uYpOLpU53uMS-AD9To8y_r30KbZdsSSiVQ")
+).set_index('datetime')
+bicis_df
+# -
+
+bicis_df.loc['2012-12-19 20:00:00']
+
+# Para poder quedarnos con un rango de fechas, debemos tener el índice ordenado
+bicis_df = bicis_df.sort_index()
+bicis_df.loc['2012-11-19 20:00:00':'2012-12-30 20:00:00']
+
+bicis_df.truncate(before='2012-11-19 22:00:00', after='2012-12-01 00:00:00')
+# -
+
+# ### `dt` accessor
+
+# Permite obtener propiedades de tipo fecha de una Series
+fechas_series = pd.Series(pd.date_range('2020-09-30 00:00:41', periods=3, freq='s'))
+fechas_series
+
+fechas_series.dt.second
+
+fechas_series = pd.date_range(
+    start='22/06/2019', end='28/06/2019', freq='D'
+).to_series()
+fechas_series.dt.dayofweek
 
 # # Cómo seguir
 #
