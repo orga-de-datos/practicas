@@ -16,16 +16,22 @@ def get_iris_dataset(normalized=None):
     normalized: puede tener None, 'zero mean and unit variance', 'zero mean' como valores validos
     """
     X, y = load_iris(return_X_y=True)
-  
+
     if normalized == 'zero mean and unit variance':
         min_max_scaler = preprocessing.MinMaxScaler()
-        X = min_max_scaler.fit_transform(X) # preunta alumnos: que estoy haciendo mal aca? (pss leaking)
+        X = min_max_scaler.fit_transform(
+            X
+        )  # preunta alumnos: que estoy haciendo mal aca? (pss leaking)
 
     if normalized == 'zero mean':
         normalizer = preprocessing.Normalizer()
-        X = normalizer.fit_transform(X) # preunta alumnos: que estoy haciendo mal aca? (pss leaking)
+        X = normalizer.fit_transform(
+            X
+        )  # preunta alumnos: que estoy haciendo mal aca? (pss leaking)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=0)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.5, random_state=0
+    )
     return X_train, X_test, y_train, y_test
 
 
@@ -68,9 +74,9 @@ for n in range(1, len(X_val_dev)):
 # ploteamos
 df_metrics = pd.DataFrame(metrics, columns=['cant_vecinos', 'correctos'])
 print('mejor puntaje: ', max(df_metrics.correctos), 'correctos')
-ax = df_metrics.plot(x='cant_vecinos', 
-                     y='correctos', 
-                     title='Variando k (cantidad de vecinos)')
+ax = df_metrics.plot(
+    x='cant_vecinos', y='correctos', title='Variando k (cantidad de vecinos)'
+)
 ax.set_ylabel("Cantidad de aciertos")
 plt.show()
 # -
@@ -88,7 +94,9 @@ pd.Series(y_val_dev).value_counts()
 # ### Todos los atributos de cada ejemplo pesan lo mismo ??
 
 # +
-X_train, X_test, y_train, y_test = get_iris_dataset(normalized='zero mean and unit variance')
+X_train, X_test, y_train, y_test = get_iris_dataset(
+    normalized='zero mean and unit variance'
+)
 
 metrics = []
 for n in range(1, len(X_test)):
@@ -97,7 +105,9 @@ for n in range(1, len(X_test)):
     y_pred = knn.predict(X_test)
     metrics.append((n, (y_test == y_pred).sum()))
 
-df_metrics_normalized_unit_variance = pd.DataFrame(metrics, columns=['cant_vecinos', 'correctos'])
+df_metrics_normalized_unit_variance = pd.DataFrame(
+    metrics, columns=['cant_vecinos', 'correctos']
+)
 
 # +
 X_train, X_test, y_train, y_test = get_iris_dataset(normalized='zero mean')
@@ -112,10 +122,18 @@ for n in range(1, len(X_test)):
 df_metrics_normalized = pd.DataFrame(metrics, columns=['cant_vecinos', 'correctos'])
 # -
 
-df = df_metrics.merge(df_metrics_normalized, on='cant_vecinos', validate="1:1", suffixes=('', '_normalizado'))
-df = df.merge(df_metrics_normalized_unit_variance, on='cant_vecinos',
-              suffixes=('', '_normalizado_y_varianza_1'),
-              validate="1:1")
+df = df_metrics.merge(
+    df_metrics_normalized,
+    on='cant_vecinos',
+    validate="1:1",
+    suffixes=('', '_normalizado'),
+)
+df = df.merge(
+    df_metrics_normalized_unit_variance,
+    on='cant_vecinos',
+    suffixes=('', '_normalizado_y_varianza_1'),
+    validate="1:1",
+)
 ax = df.plot(x='cant_vecinos', title='Variando k con distinto preprocesamiento')
 ax.set_ylabel("Cantidad de aciertos")
 
@@ -124,8 +142,8 @@ ax.set_ylabel("Cantidad de aciertos")
 # +
 # probar que pasa si cambio el parametro weights
 # weights:
-#- 'uniform' : uniform weights.  All points in each neighborhood are weighted equally.
-#- 'distance' : weight points by the inverse of their distance.
+# - 'uniform' : uniform weights.  All points in each neighborhood are weighted equally.
+# - 'distance' : weight points by the inverse of their distance.
 
 metrics = []
 for n in range(5, len(X_test)):
@@ -136,8 +154,12 @@ for n in range(5, len(X_test)):
         metrics.append((n, distance_type, (y_test == y_pred).sum()))
 
 # ploteo grafico
-df_metrics_normalized = pd.DataFrame(metrics, columns=['cant_vecinos', 'tipo de peso', 'correctos'])
-ax = sns.lineplot(data=df_metrics_normalized, x='cant_vecinos', y='correctos', hue='tipo de peso')
+df_metrics_normalized = pd.DataFrame(
+    metrics, columns=['cant_vecinos', 'tipo de peso', 'correctos']
+)
+ax = sns.lineplot(
+    data=df_metrics_normalized, x='cant_vecinos', y='correctos', hue='tipo de peso'
+)
 ax.set_title('Variando k, con distinta importancia de los vecinos')
 
 # ploteo lines rojas y muestro mejores lugares
@@ -163,15 +185,34 @@ from sklearn.neighbors import KDTree
 
 # codigo sacado de from sklearn.neighbors.classification import NeighborsBase
 # https://atavory.github.io/ibex/_modules/sklearn/neighbors/base.html
-VALID_METRICS =  dict(ball_tree=BallTree.valid_metrics,
-            kd_tree=KDTree.valid_metrics,
-            # The following list comes from the sklearn.metrics.pairwise doc string
-            brute=list(PAIRWISE_DISTANCE_FUNCTIONS.keys()) +
-                ['braycurtis', 'canberra', 'chebyshev', 'correlation', 'cosine', 'dice', 'hamming',
-                'jaccard', 'kulsinski', 'mahalanobis', 'matching', 'minkowski', 'rogerstanimoto',
-                'russellrao', 'seuclidean', 'sokalmichener', 'sokalsneath', 'sqeuclidean',
-                'yule', 'wminkowski']
-           )
+VALID_METRICS = dict(
+    ball_tree=BallTree.valid_metrics,
+    kd_tree=KDTree.valid_metrics,
+    # The following list comes from the sklearn.metrics.pairwise doc string
+    brute=list(PAIRWISE_DISTANCE_FUNCTIONS.keys())
+    + [
+        'braycurtis',
+        'canberra',
+        'chebyshev',
+        'correlation',
+        'cosine',
+        'dice',
+        'hamming',
+        'jaccard',
+        'kulsinski',
+        'mahalanobis',
+        'matching',
+        'minkowski',
+        'rogerstanimoto',
+        'russellrao',
+        'seuclidean',
+        'sokalmichener',
+        'sokalsneath',
+        'sqeuclidean',
+        'yule',
+        'wminkowski',
+    ],
+)
 
 for alg in VALID_METRICS:
     print(f'algoritmo: {alg}')
@@ -185,14 +226,20 @@ for alg in VALID_METRICS:
 metrics = []
 for n in range(1, len(X_test)):
     for distance_type in ['uniform', 'distance']:
-        knn = KNeighborsClassifier(n_neighbors=n, weights=distance_type, metric='cosine')
+        knn = KNeighborsClassifier(
+            n_neighbors=n, weights=distance_type, metric='cosine'
+        )
         knn.fit(X_train, y_train)
         y_pred = knn.predict(X_test)
         metrics.append((n, distance_type, (y_test == y_pred).sum()))
 
 # ploteo grafico
-df_metrics_normalized = pd.DataFrame(metrics, columns=['cant_vecinos', 'tipo de peso', 'correctos'])
-ax = sns.lineplot(data=df_metrics_normalized, x='cant_vecinos', y='correctos', hue='tipo de peso')
+df_metrics_normalized = pd.DataFrame(
+    metrics, columns=['cant_vecinos', 'tipo de peso', 'correctos']
+)
+ax = sns.lineplot(
+    data=df_metrics_normalized, x='cant_vecinos', y='correctos', hue='tipo de peso'
+)
 ax.set_title('Distancia COSENO, Variando k, con distinta importancia de los vecinos')
 
 # ploteo lines rojas y muestro mejores lugares
@@ -205,7 +252,7 @@ df_max.apply(lambda x: ax.axvline(x.cant_vecinos, color='red', linestyle='--'), 
 # ### Como es el orden computacional de esto?
 #
 #
-# explicar MUY por arriba que es el parametro algorithm  
+# explicar MUY por arriba que es el parametro algorithm
 # algorithm : {'auto', 'ball_tree', 'kd_tree', 'brute'}
 
 # +
@@ -220,7 +267,7 @@ df_max.apply(lambda x: ax.axvline(x.cant_vecinos, color='red', linestyle='--'), 
 
 # -
 
-# > otra variacion  
+# > otra variacion
 # https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.RadiusNeighborsClassifier.html
 #
 # > Tambien se puede mezclar las dos haciendo que RadiusNeighborsClassifier devuelva todos los vecinos
@@ -241,8 +288,6 @@ df_max.apply(lambda x: ax.axvline(x.cant_vecinos, color='red', linestyle='--'), 
 # ### Che jorge, que pasa si tengo millones de puntos y KNN de sklearn se queda corto?
 # - https://github.com/spotify/annoy
 # - https://github.com/facebookresearch/faiss
-
-
 
 
 # # Naive Bayes
@@ -275,7 +320,7 @@ print(f"Number of correct {(y_test == y_pred).sum()} of total {len(X_test)}")
 # +
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import MultinomialNB 
+from sklearn.naive_bayes import MultinomialNB
 
 X, y = load_iris(return_X_y=True)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=0)
@@ -295,7 +340,7 @@ print(f"Number of correct {(y_test == y_pred).sum()} of total {len(X_test)}")
 #
 #  - https://scikit-learn.org/stable/modules/svm.html
 
-# Links de Interes:  
+# Links de Interes:
 # - https://scikit-learn.org/stable/auto_examples/svm/plot_separating_hyperplane.html#sphx-glr-auto-examples-svm-plot-separating-hyperplane-py
 #
 # - https://scikit-learn.org/stable/auto_examples/svm/plot_svm_kernels.html#sphx-glr-auto-examples-svm-plot-svm-kernels-py
@@ -311,19 +356,24 @@ for normalization_mode in [None, 'zero mean and unit variance', 'zero mean']:
     X_train, X_val_dev, y_train, y_val_dev = get_iris_dataset(normalization_mode)
     clf = SVC()
     clf.fit(X_train, y_train)
-    print('preprocesamiento: ', normalization_mode, 'Correctos: ', (clf.predict(X_val_dev)==y_val_dev).sum())
+    print(
+        'preprocesamiento: ',
+        normalization_mode,
+        'Correctos: ',
+        (clf.predict(X_val_dev) == y_val_dev).sum(),
+    )
 # -
 
-# # Vamos a probar distintos kernels: 
+# # Vamos a probar distintos kernels:
 #
 # Lista: https://scikit-learn.org/dev/modules/svm.html#svm-kernels
 
 # ## SVM con kernel LINEAL
-# Hyperparametros que le importan: 
-# - C 
+# Hyperparametros que le importan:
+# - C
 #
 #
-# Nota: tambien esta https://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html 
+# Nota: tambien esta https://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html
 # que es una implementacion de lineal implementada de forma "mas eficiente"
 
 # +
@@ -333,14 +383,14 @@ X_train, X_val_dev, y_train, y_val_dev = get_iris_dataset('zero mean and unit va
 for c in range(1, 100000, 2):
     clf = SVC(kernel='linear', C=c)
     clf.fit(X_train, y_train)
-    metrics.append((c,(clf.predict(X_val_dev)==y_val_dev).sum()))
+    metrics.append((c, (clf.predict(X_val_dev) == y_val_dev).sum()))
 
 pd.DataFrame(metrics, columns=['c', 'correct_in_val-dev']).plot(x='c')
 # -
 
 # ## SVM con kernel POLINOMICO
 #
-# Hyperparametros que le interesan: 
+# Hyperparametros que le interesan:
 # - C
 # - degree
 # - gamma
@@ -357,9 +407,11 @@ for c in range(1, 100, 10):
             for r in range(1, 100, 10):
                 clf = SVC(kernel='poly', C=c, degree=d, gamma=g, coef0=r)
                 clf.fit(X_train, y_train)
-                metrics.append((c, d, g, r, (clf.predict(X_val_dev)==y_val_dev).sum()))
+                metrics.append(
+                    (c, d, g, r, (clf.predict(X_val_dev) == y_val_dev).sum())
+                )
 
-dd = pd.DataFrame(metrics, columns=['c', 'degree','gamma','r', 'correct_in_val-dev'])
+dd = pd.DataFrame(metrics, columns=['c', 'degree', 'gamma', 'r', 'correct_in_val-dev'])
 # -
 dd[dd['correct_in_val-dev'] == dd['correct_in_val-dev'].max()]
 
@@ -374,7 +426,7 @@ for d in (1, 10):
     for c in range(1, 10000, 10):
         clf = SVC(kernel='poly', C=c, degree=d)
         clf.fit(X_train, y_train)
-        metrics.append((c, d,(clf.predict(X_val_dev)==y_val_dev).sum()))
+        metrics.append((c, d, (clf.predict(X_val_dev) == y_val_dev).sum()))
 
 dd = pd.DataFrame(metrics, columns=['c', 'd', 'correct_in_val-dev'])
 
@@ -392,7 +444,7 @@ plt.show()
 
 # ## SVM RADIAL
 #
-# Hyperparametros que le interesan: 
+# Hyperparametros que le interesan:
 #  - C
 #  - gamma
 #
@@ -405,12 +457,9 @@ for c in range(1, 100, 10):
     for g in range(1, 100, 10):
         clf = SVC(kernel='rbf', C=c, gamma=g)
         clf.fit(X_train, y_train)
-        metrics.append((c, g, (clf.predict(X_val_dev)==y_val_dev).sum()))
+        metrics.append((c, g, (clf.predict(X_val_dev) == y_val_dev).sum()))
 
 dd = pd.DataFrame(metrics, columns=['c', 'gamma', 'correct_in_val-dev'])
 
 # -
 dd[dd['correct_in_val-dev'] == dd['correct_in_val-dev'].max()]
-
-
-

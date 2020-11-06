@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import matplotlib.cm
+
 sns.set()
 # -
 
@@ -92,7 +93,7 @@ def find_clusters(X, n_clusters, rseed=2):
 
         labels = pairwise_distances_argmin(X, centers)
 
-        """2b. Buscamos los nuevo centroides, calculados como el promedio 
+        """2b. Buscamos los nuevo centroides, calculados como el promedio
            (en cada dimension) de los puntos de cada cluster"""
         new_centers = np.array([X[labels == i].mean(0) for i in range(n_clusters)])
 
@@ -216,9 +217,9 @@ plt.show()
 
 # ## Clustering aglomerativo
 
-# - No tengo que explícitamente dar número de clusters k* de antemano 
+# - No tengo que explícitamente dar número de clusters k* de antemano
 # - Se produce una representación jerárquica (dendrograma).
-# - Clústeres de un nivel superior se forman por la unión de clústeres de niveles inferiores. 
+# - Clústeres de un nivel superior se forman por la unión de clústeres de niveles inferiores.
 # - En el nivel más inferior tengo clusteres formados por 1 punto dato, en el nivel más superior tendo 1 cluster formado por todos los puntos dato.
 
 # Usamos [AgglomerativeClustering](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.AgglomerativeClustering.html#sklearn.cluster.AgglomerativeClustering) de sklearn: "Recursively merges the pair of clusters that minimally increases a given linkage distance"
@@ -245,9 +246,7 @@ def plot_agglometive(X, n_clusters):
     plt.show()
 
 
-interact(
-    plot_agglometive, X=fixed(X), n_clusters=(1, 20, 1)
-)
+interact(plot_agglometive, X=fixed(X), n_clusters=(1, 20, 1))
 # -
 
 # Este método nos permite tener un ordenamiento jerárquico de las observaciones en lo que llamamos un dendrograma: nos indica qué grupo de observaciones es más parecida a otra. Observaciones que se unen más abajo en el dendrograma son más similares.
@@ -270,8 +269,9 @@ def plot_dendrogram(model, **kwargs):
                 current_count += counts[child_idx - n_samples]
         counts[i] = current_count
 
-    linkage_matrix = np.column_stack([model.children_, model.distances_,
-                                      counts]).astype(float)
+    linkage_matrix = np.column_stack(
+        [model.children_, model.distances_, counts]
+    ).astype(float)
 
     # Plot the corresponding dendrogram
     dendrogram(linkage_matrix, **kwargs)
@@ -281,7 +281,11 @@ model = AgglomerativeClustering(distance_threshold=0, n_clusters=None).fit(X)
 plt.figure(figsize=(20, 10))
 plot_dendrogram(model, truncate_mode='level', p=3)
 plt.title('Hierarchical Clustering Dendrogram', fontsize=24, weight="bold")
-plt.xlabel("Number of points in node (or index of point if no parenthesis).", fontsize=16, weight="bold")
+plt.xlabel(
+    "Number of points in node (or index of point if no parenthesis).",
+    fontsize=16,
+    weight="bold",
+)
 
 from sklearn.datasets import make_moons
 
@@ -340,9 +344,7 @@ def plot_agglometive(X, n_clusters):
     plt.show()
 
 
-interact(
-    plot_agglometive, X=fixed(X), n_clusters=(1, 20, 1)
-)
+interact(plot_agglometive, X=fixed(X), n_clusters=(1, 20, 1))
 # -
 
 # ## DBSCAN
@@ -544,7 +546,7 @@ plt.xlabel("X1", fontsize=20, weight="bold")
 
 # ¿Qué pasa si tenemos outliers?
 
-X_out = np.vstack((X,([-3,6], [-4,5], [-3.5, 4.5])))
+X_out = np.vstack((X, ([-3, 6], [-4, 5], [-3.5, 4.5])))
 
 plt.figure(figsize=(20, 10))
 plt.scatter(X_out[:, 0], X_out[:, 1], s=50)
@@ -578,7 +580,7 @@ plt.xlabel("X1", fontsize=20, weight="bold")
 
 # -
 
-X_out = np.vstack((X_out,([-25,3.5])))
+X_out = np.vstack((X_out, ([-25, 3.5])))
 
 # +
 kmeans = KMeans(n_clusters=3)
@@ -594,7 +596,7 @@ plt.xlabel("X1", fontsize=20, weight="bold")
 
 # -
 
-# Vemos que el outlier hizo que uno de los clusters, por lo que este método es bastante sensible a outliers. Pensar que con mayor cantidad de dimensiones es más complicado ver outliers. Usando algoritmos jerárquicos se tiene el mismo problema: 
+# Vemos que el outlier hizo que uno de los clusters, por lo que este método es bastante sensible a outliers. Pensar que con mayor cantidad de dimensiones es más complicado ver outliers. Usando algoritmos jerárquicos se tiene el mismo problema:
 
 clustering = AgglomerativeClustering(3).fit(X_out)
 plt.figure(figsize=(20, 10))
@@ -658,7 +660,7 @@ digits.data.shape
 digits.data
 
 fig, ax = plt.subplots(2, 5, figsize=(8, 3))
-centers =digits.data[:10].reshape(10, 8, 8)
+centers = digits.data[:10].reshape(10, 8, 8)
 for axi, center in zip(ax.flat, centers):
     axi.set(xticks=[], yticks=[])
     axi.imshow(center, interpolation='nearest', cmap=plt.cm.binary)

@@ -9,23 +9,27 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import math
 import numpy as np
+
 sns.set()
 
 
 # # Ensembles: bagging, boosting, stacking y voting
 
-# Usamos el dataset [**Banknote Authentication Data Set**](http://archive.ics.uci.edu/ml/datasets/banknote+authentication), en cual tiene 4 variables de distintos billetes: billetes falsos y billetes auténticos. La idea es clasificar los billetes según esas cuatro variables para detectar los billetes falsos. 
+# Usamos el dataset [**Banknote Authentication Data Set**](http://archive.ics.uci.edu/ml/datasets/banknote+authentication), en cual tiene 4 variables de distintos billetes: billetes falsos y billetes auténticos. La idea es clasificar los billetes según esas cuatro variables para detectar los billetes falsos.
 
 # <img src="data/img1.png" alt="Drawing" style="width: 800px;"/> Imagen obtenida de:https://www.researchgate.net/publication/266673146_Banknote_Authentication
 
-# La idea es realizando una transformada a las imágenes (particularmente wavelet transform) se mide que tan "difusa" es la imagen, ya que si se grafica el histograma normalizado de los coeficientes de dicha transformada se tiene: 
+# La idea es realizando una transformada a las imágenes (particularmente wavelet transform) se mide que tan "difusa" es la imagen, ya que si se grafica el histograma normalizado de los coeficientes de dicha transformada se tiene:
 
 # <img src="data/img2.png" alt="Drawing" style="width: 800px;"/> Imagen obtenida de:https://www.researchgate.net/publication/266673146_Banknote_Authentication
 
 # In[2]:
 
 
-dataset = pd.read_csv("https://drive.google.com/uc?export=download&id=1QwdtiOXuINHjb-XvGjXIGe6D35TRvEpA", header=None)
+dataset = pd.read_csv(
+    "https://drive.google.com/uc?export=download&id=1QwdtiOXuINHjb-XvGjXIGe6D35TRvEpA",
+    header=None,
+)
 
 
 # In[3]:
@@ -53,7 +57,7 @@ ax2.set_title("Skew", weight="bold", fontsize=16)
 ax3.hist(dataset["curtosis"])
 ax3.set_title("Curtosis", weight="bold", fontsize=16)
 ax4.hist(dataset["entropy"])
-ax4.set_title("Entropy", weight="bold", fontsize=16);
+ax4.set_title("Entropy", weight="bold", fontsize=16)
 
 
 # Ahora graficamos dos de las variables y la variable target:
@@ -61,10 +65,10 @@ ax4.set_title("Entropy", weight="bold", fontsize=16);
 # In[6]:
 
 
-plt.figure(figsize=(10,10))
+plt.figure(figsize=(10, 10))
 g = sns.scatterplot(dataset['variance'], dataset['entropy'], hue=dataset["target"])
 ax = g.axes
-ax.tick_params(axis = 'both', which = 'major', labelsize = 20)
+ax.tick_params(axis='both', which='major', labelsize=20)
 plt.xlabel('Variance of Wavelet Transformed image', fontsize=18, fontweight='bold')
 plt.ylabel('Entropy of Wavelet Transformed image', fontsize=18, fontweight='bold')
 plt.legend(prop={'size': 15})
@@ -81,18 +85,18 @@ plt.show()
 # In[7]:
 
 
-plt.figure(figsize=(10,10))
-g = sns.scatterplot(dataset['variance'], dataset['entropy'], hue = dataset['target'])
+plt.figure(figsize=(10, 10))
+g = sns.scatterplot(dataset['variance'], dataset['entropy'], hue=dataset['target'])
 ax = g.axes
 ax.hlines(-5, xmin=-3, xmax=8, color='r')
 ax.axvline(-3, color='g')
-ax.tick_params(axis = 'both', which = 'major', labelsize = 20)
+ax.tick_params(axis='both', which='major', labelsize=20)
 plt.xlabel('Variance of Wavelet Transformed Image', fontsize=18, fontweight='bold')
 plt.ylabel('Entropy of Wavelet Transformed image ', fontsize=18, fontweight='bold')
 plt.legend(prop={'size': 15})
 plt.xlim(-8, +8)
-plt.text(-4, -5, "1) variance>-3?",fontsize=18, fontweight='bold', rotation=90)
-plt.text(-1, -4.8, "2) entropy>-5?",fontsize=18, fontweight='bold')
+plt.text(-4, -5, "1) variance>-3?", fontsize=18, fontweight='bold', rotation=90)
+plt.text(-1, -4.8, "2) entropy>-5?", fontsize=18, fontweight='bold')
 plt.show()
 
 
@@ -133,7 +137,10 @@ y_data = dataset['target']
 
 
 from sklearn.model_selection import train_test_split
-X_train, X_validation, y_train, y_validation = train_test_split(x_data, y_data, test_size=0.4, random_state=66)
+
+X_train, X_validation, y_train, y_validation = train_test_split(
+    x_data, y_data, test_size=0.4, random_state=66
+)
 
 
 # ### DecisionTreeClassifier
@@ -158,7 +165,7 @@ model_tree = DecisionTreeClassifier(max_depth=3, criterion="entropy")
 # In[15]:
 
 
-model_tree.fit(X_train,y_train)
+model_tree.fit(X_train, y_train)
 
 
 # Importamos la función accuracy_score quecalcula la precisión del modelo
@@ -196,14 +203,15 @@ decision_tree_acc
 
 
 from sklearn.tree import plot_tree
+
 with plt.style.context("classic"):
-    fig, axes = plt.subplots(nrows = 1,ncols = 1,figsize = (20,10), dpi=300)
-    plot_tree(model_tree, filled = True, fontsize=16);
+    fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(20, 10), dpi=300)
+    plot_tree(model_tree, filled=True, fontsize=16)
 
 
 # Para cada nodo nos da el test que hace, la cantidad de datos para cada clase y la entropía del conjunto.
 
-# ## BaggingClassifier 
+# ## BaggingClassifier
 
 # Ahora vamos con un modelo que usa la técnica de bagging. Para ello usamos [BaggingClassifier](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.BaggingClassifier.html) de sklean.
 # Recordemos en la técnica de bagging se toman subsets random de los datos para entrenar el modelo. Particularmente el estimador base de BaggingClassifier por default es un árbol de decisión, particularmente entrena 10 estimadores.
@@ -217,13 +225,15 @@ from sklearn.ensemble import BaggingClassifier
 # In[22]:
 
 
-model_bagging = BaggingClassifier(base_estimator=DecisionTreeClassifier(max_depth=3, criterion="entropy"))
+model_bagging = BaggingClassifier(
+    base_estimator=DecisionTreeClassifier(max_depth=3, criterion="entropy")
+)
 
 
 # In[23]:
 
 
-model_bagging.fit(X_train,y_train)
+model_bagging.fit(X_train, y_train)
 
 
 # In[24]:
@@ -243,16 +253,16 @@ bagging_tree_acc
 
 
 with plt.style.context("classic"):
-    plt.figure(figsize=(20,10))
-    plot_tree(model_bagging.estimators_[0], filled = True, fontsize=16);
+    plt.figure(figsize=(20, 10))
+    plot_tree(model_bagging.estimators_[0], filled=True, fontsize=16)
 
 
 # In[27]:
 
 
 with plt.style.context("classic"):
-    plt.figure(figsize=(20,10))
-    plot_tree(model_bagging.estimators_[1], filled = True, fontsize=16);
+    plt.figure(figsize=(20, 10))
+    plot_tree(model_bagging.estimators_[1], filled=True, fontsize=16)
 
 
 # Imprimimos el estimador del primer nodo de los 10 árboles:
@@ -287,7 +297,7 @@ model_rfr = RandomForestClassifier(max_depth=3)
 # In[31]:
 
 
-model_rfr.fit(X_train,y_train)# predictions
+model_rfr.fit(X_train, y_train)  # predictions
 
 
 # In[32]:
@@ -317,8 +327,8 @@ len(model_rfr.estimators_)
 
 
 with plt.style.context("classic"):
-    plt.figure(figsize=(20,10))
-    plot_tree(model_rfr.estimators_[0], filled=True);
+    plt.figure(figsize=(20, 10))
+    plot_tree(model_rfr.estimators_[0], filled=True)
 
 
 # In[36]:
@@ -347,18 +357,22 @@ accuracy_score(pred_first_estimator, y_validation)
 # In[39]:
 
 
-pred_estimators = [estimator.predict(X_validation)  for estimator in model_rfr.estimators_]
+pred_estimators = [
+    estimator.predict(X_validation) for estimator in model_rfr.estimators_
+]
 acc_estimators = [accuracy_score(pred, y_validation) for pred in pred_estimators]
 
 
 # In[40]:
 
 
-plt.figure(figsize=(10,10))
+plt.figure(figsize=(10, 10))
 plt.hist(acc_estimators)
 plt.xlabel("Accuracy", weight="bold", fontsize=15)
 plt.ylabel("Frecuencia", weight="bold", fontsize=15)
-plt.title("Histograma de accuracy de los arboles del RF model", weight="bold", fontsize=16);
+plt.title(
+    "Histograma de accuracy de los arboles del RF model", weight="bold", fontsize=16
+)
 
 
 # In[41]:
@@ -391,19 +405,19 @@ pred = []
 for i in estimators:
     model_rfr_ = RandomForestClassifier(n_estimators=i, max_depth=3)
     model_rfr_.fit(X_train, y_train)
-    pred_estimator=model_rfr_.predict(X_validation)
+    pred_estimator = model_rfr_.predict(X_validation)
     pred.append(accuracy_score(pred_estimator, y_validation))
 
 
 # In[45]:
 
 
-plt.figure(figsize=(10,10))
+plt.figure(figsize=(10, 10))
 plt.plot(estimators, pred, "o")
-plt.ylim(0,1)
+plt.ylim(0, 1)
 plt.title("Accuracy vs #estimadores para Random Forest", fontsize=18, weight="bold")
 plt.ylabel("Accuracy", fontsize=16, weight="bold")
-plt.xlabel("# de estimadores", fontsize=16, weight="bold");
+plt.xlabel("# de estimadores", fontsize=16, weight="bold")
 
 
 # ### Boosting
@@ -424,7 +438,7 @@ model_boosting = GradientBoostingClassifier(max_depth=3)
 # In[48]:
 
 
-model_boosting.fit(X_train,y_train)
+model_boosting.fit(X_train, y_train)
 
 
 # In[49]:
@@ -443,8 +457,11 @@ boosting_acc
 # In[51]:
 
 
-print("Accurary \nÁrbol de decisión: {:.2f} \nBagging: {:.2f} \nRandom forest: {:.2f} \nBoosting: {:.3f}".format(
-decision_tree_acc,bagging_tree_acc, random_forest_acc, boosting_acc))
+print(
+    "Accurary \nÁrbol de decisión: {:.2f} \nBagging: {:.2f} \nRandom forest: {:.2f} \nBoosting: {:.3f}".format(
+        decision_tree_acc, bagging_tree_acc, random_forest_acc, boosting_acc
+    )
+)
 
 
 # # Stacking y Voting
@@ -454,23 +471,25 @@ decision_tree_acc,bagging_tree_acc, random_forest_acc, boosting_acc))
 
 from sklearn.preprocessing import label_binarize
 from sklearn.metrics import confusion_matrix
+
+
 def plot_confusion_mat(y_pred, y_test):
-    
-    #Calculating tyhe confusion matrix, normalized and not normalized
-    
+
+    # Calculating tyhe confusion matrix, normalized and not normalized
+
     cm = confusion_matrix(y_pred, y_test, labels=np.unique(y_test), normalize="true")
     cm_num = confusion_matrix(pred_knn_only, y_test, labels=np.unique(y_test))
-    
+
     group_counts = ["{0:0.0f}".format(value) for value in cm_num.flatten()]
     group_percentages = ["{0:.2%}".format(value) for value in cm.flatten()]
-    labels = [f"{v1}\n{v2}" for v1, v2 in zip(group_counts,group_percentages)]
+    labels = [f"{v1}\n{v2}" for v1, v2 in zip(group_counts, group_percentages)]
     labels = np.asarray(labels).reshape(len(np.unique(y_test)), len(np.unique(y_test)))
-    
+
     # plotting the matrix
-    plt.figure(figsize=(10,10),  dpi=220)
-    ax = sns.heatmap(cm*100, annot=labels, annot_kws={"size": 8}, fmt='', cmap='BuPu')
-    ax.set_ylim(10,0)
-    ax.set_ylabel("True label", weight="bold" )
+    plt.figure(figsize=(10, 10), dpi=220)
+    ax = sns.heatmap(cm * 100, annot=labels, annot_kws={"size": 8}, fmt='', cmap='BuPu')
+    ax.set_ylim(10, 0)
+    ax.set_ylabel("True label", weight="bold")
     ax.set_xlabel("Predicted label", weight="bold")
     return ax
 
@@ -482,6 +501,8 @@ sns.set()
 from sklearn.preprocessing import label_binarize
 
 from sklearn.metrics import roc_curve, auc
+
+
 def roc_multiclass(test_pred, y_test, clss=0):
     y_test_bin = label_binarize(y_test, classes=np.unique(y_test))
     fpr = dict()
@@ -493,42 +514,53 @@ def roc_multiclass(test_pred, y_test, clss=0):
     plt.figure()
     lw = 2
     cl = 0
-    fig, axs = plt.subplots(2, 5, figsize=(15,10), sharex=True, sharey=True)
+    fig, axs = plt.subplots(2, 5, figsize=(15, 10), sharex=True, sharey=True)
     for ax in axs:
-        for col  in ax:
-            col.plot(fpr[cl], tpr[cl], color='darkorange',
-             lw=lw, label='ROC class %s (AUC= %0.2f)' % (clss, roc_auc[clss]))
-            cl+=1
+        for col in ax:
+            col.plot(
+                fpr[cl],
+                tpr[cl],
+                color='darkorange',
+                lw=lw,
+                label='ROC class %s (AUC= %0.2f)' % (clss, roc_auc[clss]),
+            )
+            cl += 1
             col.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
             col.set_xlim([0.0, 1.0])
             col.set_ylim([0.0, 1.05])
             col.set_title('ROC class %s' % (cl))
-    axs[1,0].set_xlabel('False Positive Rate', weight="bold")
-    axs[1,1].set_xlabel('False Positive Rate', weight="bold")
-    axs[1,2].set_xlabel('False Positive Rate', weight="bold")
-    axs[1,3].set_xlabel('False Positive Rate', weight="bold")
-    axs[1,4].set_xlabel('False Positive Rate', weight="bold")
-    axs[0,0].set_ylabel('True Positive Rate', weight="bold")
-    axs[1,0].set_ylabel('True Positive Rate', weight="bold")
+    axs[1, 0].set_xlabel('False Positive Rate', weight="bold")
+    axs[1, 1].set_xlabel('False Positive Rate', weight="bold")
+    axs[1, 2].set_xlabel('False Positive Rate', weight="bold")
+    axs[1, 3].set_xlabel('False Positive Rate', weight="bold")
+    axs[1, 4].set_xlabel('False Positive Rate', weight="bold")
+    axs[0, 0].set_ylabel('True Positive Rate', weight="bold")
+    axs[1, 0].set_ylabel('True Positive Rate', weight="bold")
     plt.subplots_adjust()
     return axs, np.mean(list(roc_auc.values()))
 
 
 # ## [Poker Hand Data Set ](https://archive.ics.uci.edu/ml/datasets/Poker+Hand)
 
-# La idea es que se tiene información de distintas manos (información de 5 cartas) y la variable target es la mano de poker, es decir, si esa mano pertenece a alguna de las siguientes categorías: 
+# La idea es que se tiene información de distintas manos (información de 5 cartas) y la variable target es la mano de poker, es decir, si esa mano pertenece a alguna de las siguientes categorías:
 
 # In[54]:
 
 
-training_set = pd.read_csv('https://drive.google.com/uc?export=download&id=1aKnKyFw5L5Wl1HAZqy3axrTM7UksHz_g', header=None)
-validation_set = pd.read_csv('https://drive.google.com/uc?export=download&id=1Wvfs82n6IxvNkQv5WFhHu4kWWF9bTNnC', header=None)
+training_set = pd.read_csv(
+    'https://drive.google.com/uc?export=download&id=1aKnKyFw5L5Wl1HAZqy3axrTM7UksHz_g',
+    header=None,
+)
+validation_set = pd.read_csv(
+    'https://drive.google.com/uc?export=download&id=1Wvfs82n6IxvNkQv5WFhHu4kWWF9bTNnC',
+    header=None,
+)
 
 
 # In[55]:
 
 
-head = ["P1", "N1", "P2", "N2","P3", "N3","P4", "N4","P5", "N5", "target"]
+head = ["P1", "N1", "P2", "N2", "P3", "N3", "P4", "N4", "P5", "N5", "target"]
 
 
 # In[56]:
@@ -538,7 +570,7 @@ training_set.columns = head
 training_set.head()
 
 
-# <img src="data/poker.jpg" alt="Drawing" style="width: 800px;"/> 
+# <img src="data/poker.jpg" alt="Drawing" style="width: 800px;"/>
 
 # Tengo por lo tanto, informacion para cada mano de las 5 cartas: su pinta(diamantes, picas, tréboles o corazones) y el valor de la misma( A, 2, 3, etc.)
 
@@ -552,9 +584,9 @@ training_set.head()
 #  - 6: Full house; pair + different rank three of a kind
 #  - 7: Four of a kind; four equal ranks within five cards
 #  - 8: Straight flush; straight + flush
-#  - 9: Royal flush; {Ace, King, Queen, Jack, Ten} + flush 
+#  - 9: Royal flush; {Ace, King, Queen, Jack, Ten} + flush
 
-# <img src="data/tabla.png" alt="Drawing" style="width: 600px;"/> 
+# <img src="data/tabla.png" alt="Drawing" style="width: 600px;"/>
 
 # In[57]:
 
@@ -583,7 +615,7 @@ validation_set.columns = head
 # In[61]:
 
 
-training_set[training_set["target"]==9]
+training_set[training_set["target"] == 9]
 
 
 # ### Stacking
@@ -592,7 +624,7 @@ training_set[training_set["target"]==9]
 # In[62]:
 
 
-x_columns = ["P1", "N1", "P2", "N2","P3", "N3","P4", "N4","P5", "N5"]
+x_columns = ["P1", "N1", "P2", "N2", "P3", "N3", "P4", "N4", "P5", "N5"]
 
 
 # In[63]:
@@ -636,7 +668,7 @@ stacking_model = StackingClassifier(estimators=[('clf_1', clf_1), ('clf_2', clf_
 
 
 knn_only = KNeighborsClassifier()
-knn_only.fit(X_train,y_train)
+knn_only.fit(X_train, y_train)
 
 
 # In[69]:
@@ -656,7 +688,7 @@ accuracy_score(pred_knn_only, y_validation)
 # In[71]:
 
 
-#correr primero la celda del final del notebook que define la funcion
+# correr primero la celda del final del notebook que define la funcion
 plot_confusion_mat(pred_knn_only, y_validation)
 
 
@@ -686,7 +718,7 @@ knn_roc
 
 
 rf_only = RandomForestClassifier()
-rf_only.fit(X_train,y_train)
+rf_only.fit(X_train, y_train)
 pred_prob_rf = rf_only.predict_proba(X_validation)
 
 
@@ -707,7 +739,7 @@ random_forest_roc
 # In[78]:
 
 
-stacking_model.fit(X_train,y_train)
+stacking_model.fit(X_train, y_train)
 
 
 # In[79]:
@@ -731,14 +763,17 @@ stacking_roc
 # In[82]:
 
 
-print("Accurary \nKnn solo: {:.2f} \nRandom forest solo: {:.2f} \nStacking: {:.3f}".format(
-knn_roc, random_forest_roc, stacking_roc))
+print(
+    "Accurary \nKnn solo: {:.2f} \nRandom forest solo: {:.2f} \nStacking: {:.3f}".format(
+        knn_roc, random_forest_roc, stacking_roc
+    )
+)
 
 
 # Vemos que el modelo de tipo stack tiene mayor ROC.
 
 # ### Voting
-# Vamos a ver como sería un modelo de votación clasificando los datos anteriores. Usamos un [VotingClassifier](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.VotingClassifier.html) 
+# Vamos a ver como sería un modelo de votación clasificando los datos anteriores. Usamos un [VotingClassifier](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.VotingClassifier.html)
 
 # In[83]:
 
@@ -770,8 +805,9 @@ clf_3 = SVC(probability=True)
 # In[87]:
 
 
-clf = VotingClassifier(estimators=[
-          ('clf_1', clf_1), ('clf_2', clf_2), ('clf_3', clf_3)], voting='soft')
+clf = VotingClassifier(
+    estimators=[('clf_1', clf_1), ('clf_2', clf_2), ('clf_3', clf_3)], voting='soft'
+)
 
 
 # In[88]:
@@ -825,7 +861,7 @@ decision_tree_roc
 # In[107]:
 
 
-#las siguientes celdas tardan 3 eternidades
+# las siguientes celdas tardan 3 eternidades
 
 
 # In[99]:
@@ -876,17 +912,20 @@ voting_roc
 # In[106]:
 
 
-print("Accurary \nKnn solo: {:.2f} \nRandom forest solo: {:.2f} \nStacking: {:.3f}".format(
-knn_roc, random_forest_roc, voting_roc))
+print(
+    "Accurary \nKnn solo: {:.2f} \nRandom forest solo: {:.2f} \nStacking: {:.3f}".format(
+        knn_roc, random_forest_roc, voting_roc
+    )
+)
 
 
-# ## Cascading 
+# ## Cascading
 
 # In[108]:
 
 
 tree_model = RandomForestClassifier()
-tree_model.fit(X_train,y_train)
+tree_model.fit(X_train, y_train)
 
 
 # In[109]:
@@ -923,16 +962,16 @@ tree_output[0]
 
 
 sure_points_index = []
-threshold = 0.8 # cuan seguro quiero que este mi modelo 
+threshold = 0.8  # cuan seguro quiero que este mi modelo
 for i in range(len(tree_output)):
-    if sum(tree_output[i]>threshold):
+    if sum(tree_output[i] > threshold):
         sure_points_index.append(i)
 
 
 # In[115]:
 
 
-len(sure_points_index)/len(tree_output)
+len(sure_points_index) / len(tree_output)
 
 
 # In[116]:
@@ -966,11 +1005,11 @@ pd.DataFrame(y_train_boosting)[0].value_counts()
 # In[122]:
 
 
-#boosting_model.fit(X_train,y_train)
-SVC_model.fit(X_train,y_train)
+# boosting_model.fit(X_train,y_train)
+SVC_model.fit(X_train, y_train)
 
 
-# ### Evaluación del modelo de cascading 
+# ### Evaluación del modelo de cascading
 
 # In[125]:
 
@@ -983,7 +1022,7 @@ tree_output_validation = tree_model.predict_proba(X_validation)
 
 sure_points_index_validation = []
 for i in range(len(X_validation)):
-    if sum(tree_output_validation[i]>threshold):
+    if sum(tree_output_validation[i] > threshold):
         sure_points_index_validation.append(i)
 
 
@@ -992,7 +1031,9 @@ for i in range(len(X_validation)):
 
 X_validation_tree_model = X_validation.values[sure_points_index_validation]
 y_validation_tree_model = tree_model.predict(X_validation_tree_model)
-accuracy_score(y_validation.values[sure_points_index_validation], y_validation_tree_model)
+accuracy_score(
+    y_validation.values[sure_points_index_validation], y_validation_tree_model
+)
 
 
 # In[128]:
@@ -1002,7 +1043,6 @@ points_for_the_second_model_index = []
 for i in range(len(X_validation)):
     if i not in sure_points_index_validation:
         points_for_the_second_model_index.append(i)
-    
 
 
 # In[129]:
@@ -1021,7 +1061,7 @@ y_final_output = SVC_model.predict(remaining_points)
 
 
 y_validation_remaining_points = y_validation[points_for_the_second_model_index]
-accuracy_score(y_final_output, y_validation_remaining_points )
+accuracy_score(y_final_output, y_validation_remaining_points)
 
 
 # In[ ]:
@@ -1034,7 +1074,9 @@ y_pred_cascading = np.concatenate((sure_points_tree_validation_probs, svc_pred))
 # In[ ]:
 
 
-y_labels_cascading =np.concatenate((y_validation[sure_points_index_validation], y_validation_remaining_points))
+y_labels_cascading = np.concatenate(
+    (y_validation[sure_points_index_validation], y_validation_remaining_points)
+)
 
 
 # In[ ]:
@@ -1044,7 +1086,3 @@ plot, voting_roc = roc_multiclass(y_pred_cascading, y_labels_cascading, 0)
 
 
 # In[ ]:
-
-
-
-

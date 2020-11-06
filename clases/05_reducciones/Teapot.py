@@ -23,11 +23,14 @@ from sklearn.manifold import TSNE
 
 import pandas as pd
 import matplotlib.pyplot as plt
+
 # -
 
 # Vamos a usar un dataset que tiene forma de tetera 3D
 
-teapot = pd.read_csv("https://drive.google.com/uc?export=download&id=1RQSRPZJvHXLYMsrXEdivE-tPTeEIJJQ_")
+teapot = pd.read_csv(
+    "https://drive.google.com/uc?export=download&id=1RQSRPZJvHXLYMsrXEdivE-tPTeEIJJQ_"
+)
 
 # +
 fig = plt.figure(figsize=(7, 7))
@@ -73,7 +76,7 @@ X_tsne = TSNE(n_components=2, perplexity=150).fit_transform(teapot[["V1", "V2", 
 x1 = X_tsne[:, 0]
 x2 = X_tsne[:, 1]
 
-plt.figure(figsize=(7,7))
+plt.figure(figsize=(7, 7))
 plt.plot(x1, x2, 'o', markersize=2)
 
 # Vemos que es como si hubiésemos separado la tetera en sus partes. ¿Qué pasa si disminuimos el valor de *perplexity*?
