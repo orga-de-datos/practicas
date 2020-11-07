@@ -36,13 +36,16 @@ from sklearn.preprocessing import (
     RobustScaler,
     StandardScaler,
 )
+
 # -
 
-# Leemos el dataset, que está en formato CSV desde google drive.  
+# Leemos el dataset, que está en formato CSV desde google drive.
 # Adicionalmente renombro a las columnas en un formato mas comodo de manejar
 
-df = pd.read_csv('https://drive.google.com/uc?export=download&id=1gq-wDn_dwz_5uHSEoMYmQtnNrmnfNiXS')
-df.rename(columns={c: c.lower().replace(" ","_") for c in df.columns}, inplace=True)
+df = pd.read_csv(
+    'https://drive.google.com/uc?export=download&id=1gq-wDn_dwz_5uHSEoMYmQtnNrmnfNiXS'
+)
+df.rename(columns={c: c.lower().replace(" ", "_") for c in df.columns}, inplace=True)
 
 df.head()
 
@@ -61,9 +64,8 @@ report
 # - valores que no tienen sentido dado la variable (ej: distancia recorrida: -1)
 
 
-
 # En el caso del dataset de los superheroes, que valores nulos vemos?
-# > En el head vimos que "Skin color" tiene un "-" .  
+# > En el head vimos que "Skin color" tiene un "-" .
 # Que otras columnas tienen "-" ?
 
 tienen_guion = df.astype('str').eq('-').any(0)
@@ -91,16 +93,15 @@ df = df.replace('-', np.nan)
 
 df.astype('str').eq('').any()
 
-# > Vemos que ninguna variable esta en blanco  
+# > Vemos que ninguna variable esta en blanco
 # > Nota: Siendo un poco más putitanos deberiamos chequear que :
 # - por medio de la regex "^-*[0-9]*\$" fijarnos que las columnas de numeros contengan solo numeros
 # - por medio de la regex "^ *\$" fijarnos que no haya varios valores de vacios (lo mismo para otros caracteres que sospechamos que pueden ser usados para representar un valor NULO
 
 
-
 # #### Chequeo de variables numericas:
 #
-# > Ahora vamos a chequear los limites de las columnas que tengan valores numericos.  
+# > Ahora vamos a chequear los limites de las columnas que tengan valores numericos.
 # Las columnas edad y peso no deberian tener valores negativos.
 
 columnas_con_numeros = ['height', 'weight']
@@ -108,18 +109,18 @@ columnas_con_numeros = ['height', 'weight']
 
 for c in columnas_con_numeros:
     print(c)
-    display(df[df[c]<0][c].value_counts())
+    display(df[df[c] < 0][c].value_counts())
     print()
 
 # > Pasamos los valores -99 de las columnas height y weight a nan
 
-df = df.replace({'height':-99.0, 'weight':-99.0}, np.nan)
+df = df.replace({'height': -99.0, 'weight': -99.0}, np.nan)
 
-# > Dependiendo del dataset, a veces tenemos informacion duplicada que no queremos  
+# > Dependiendo del dataset, a veces tenemos informacion duplicada que no queremos
 # > Alertamos una fila duplicada, la eliminamos
 
-# >  df.duplicated() devuelve una serie de booleanos indicando se una fila es duplicada o no  
-# df.drop_duplicates() devuelve un dataframe nuevo con las filas duplicadas eliminadas  
+# >  df.duplicated() devuelve una serie de booleanos indicando se una fila es duplicada o no
+# df.drop_duplicates() devuelve un dataframe nuevo con las filas duplicadas eliminadas
 # Nota: podemos pasarle el parametro subset=\<columnas a mirar> para solo considerar algunas columnas para ver si esta duplicado o no
 
 df[df.duplicated(keep=False)]
@@ -132,7 +133,6 @@ print(f'se eliminaron: {size_despues-size_antes} filas duplicadas')
 # > Nota: a veces es util "resetear" el indice despues de eliminar filas (ya sea por drop duplicates o por algun otro filtro)
 
 df.reset_index(drop=True, inplace=True)
-
 
 
 # # Conversion de Variables
@@ -148,17 +148,17 @@ df.reset_index(drop=True, inplace=True)
 
 # ### Categóricas de baja cardinalidad
 
-# Sklearn eligió unos nombres un poco desafortunados para los metodos de traformacion de variables categoricas:  
-# Los principales son:  
+# Sklearn eligió unos nombres un poco desafortunados para los metodos de traformacion de variables categoricas:
+# Los principales son:
 # - Ordinal Encoder
 # - Label Encoder
 # - One Hot Encoding
 #
-# No hay mucha diferencia entre Label Encoder y Ordinal Encoder ya que los dos tienen la misma logica, la principal diferencia es que Label Encoder esta pensada para trabajar con solo una serie por vez, en cambio Ordinal Encoder puede trabajar con todas las columnas al mismo tiempo.  
+# No hay mucha diferencia entre Label Encoder y Ordinal Encoder ya que los dos tienen la misma logica, la principal diferencia es que Label Encoder esta pensada para trabajar con solo una serie por vez, en cambio Ordinal Encoder puede trabajar con todas las columnas al mismo tiempo.
 #
 # El motivo que digo que los nombres son un poco desafortunados es que Ordinal Encoder da a entender que hay una especie de orden en el encoding que haga, pero la verdad es que no hay ningun criterio en el mismo, si queremos que la transformacion mantenga un cierto orden que nosotros queremos, entonces tenemos que hacer nosotros mismos la misma.
 
-# #### Ordinal Encoder 
+# #### Ordinal Encoder
 # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.OrdinalEncoder.html
 #
 
@@ -167,18 +167,21 @@ df.reset_index(drop=True, inplace=True)
 oe = OrdinalEncoder()
 columns_to_encode = ['eye_color', 'gender']
 try:
-    df[['eye_color_encoded', 'gender_encoded']] = oe.fit_transform(df[columns_to_encode])
+    df[['eye_color_encoded', 'gender_encoded']] = oe.fit_transform(
+        df[columns_to_encode]
+    )
 except Exception as upa:
     print(upa)
 
 # Convertimos nulos a string 'nan', es decir un valor posible mas para que no explote
-df[['eye_color_encoded', 'gender_encoded']] = oe.fit_transform(df[columns_to_encode].astype(str))
+df[['eye_color_encoded', 'gender_encoded']] = oe.fit_transform(
+    df[columns_to_encode].astype(str)
+)
 
-# > Una funcionalidad MUY interesante de muchas de las clases de sklearn que ayudan en la transformacion de 
+# > Una funcionalidad MUY interesante de muchas de las clases de sklearn que ayudan en la transformacion de
 # es que tienen la transformacion INVERSA!
 
 oe.inverse_transform(df[['eye_color_encoded', 'gender_encoded']])
-
 
 
 # Pregunta del millon:
@@ -201,12 +204,10 @@ df[['alignment', 'alignment_encoded']]
 le.inverse_transform(df.alignment_encoded)[:10]
 
 
-
 #
 # Preguntas V/F:
 # - esta bien aplicar LabelEncoder() a la columna "alignment".
 # - OrdinalEncoder() o LabelEncoder() de sklearn pueden trabajar con una supuesta columna "orden" cuyos valores son \['primero','segundo','tercero'] y van a realizar el encoding correctamente.
-
 
 
 # > Nota:
@@ -223,8 +224,10 @@ del df['gender_encoded']
 
 pd.options.display.max_columns = None
 
-ohe = OneHotEncoder() #drop='first'
-eye_color_encoded = ohe.fit_transform(df[['eye_color']].astype(str)).todense().astype(int)
+ohe = OneHotEncoder()  # drop='first'
+eye_color_encoded = (
+    ohe.fit_transform(df[['eye_color']].astype(str)).todense().astype(int)
+)
 eye_color_encoded = pd.DataFrame(eye_color_encoded).add_prefix('ec_')
 df = pd.concat([df, eye_color_encoded], axis=1)
 
@@ -248,7 +251,6 @@ display(with_dummies.head(2))
 print(with_dummies.shape)
 
 
-
 # > La necesidad de eliminar una columna se ve más claramente para una categórica de dos valores, veamos el caso de *Gender*
 
 gender_dummies = pd.get_dummies(df[['gender']])
@@ -263,7 +265,9 @@ display(gender_dummies.tail(5))
 
 unique_races = df['race'].value_counts(dropna=False)
 display(unique_races.head(10))
-unique_races.cumsum().plot(kind='bar', title="Distribución de la suma acumulativa de razas",figsize=(25,8))
+unique_races.cumsum().plot(
+    kind='bar', title="Distribución de la suma acumulativa de razas", figsize=(25, 8)
+)
 plt.plot()
 
 # >Con el top 10 cubrimos mas del 85% de la data
@@ -297,7 +301,7 @@ def plot_weight_vs_height(df, title=""):
 
 
 # _df = df[df.alignment != 'neutral'].reset_index(drop=True)
-plot_weight_vs_height(df , "- Valores originales")
+plot_weight_vs_height(df, "- Valores originales")
 # -
 
 # >Se observa una dispersión mucho mas grande de valores en el peso que en la altura.
@@ -353,7 +357,6 @@ for scaler in scalers:
 # Nota: me salteo el ejemplo ya que es muy simple
 
 
-
 # ##### KBinsDiscretizer
 # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.KBinsDiscretizer.html
 
@@ -390,7 +393,7 @@ print("Límites bins:", bins)
 
 df.isnull().sum()
 
-(df.isnull().mean()*100).to_frame('porcentaje nulls')
+(df.isnull().mean() * 100).to_frame('porcentaje nulls')
 
 # Veamos algunos registros de dichas variables accediendo con [.loc](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.loc.html)
 
@@ -451,10 +454,10 @@ df[cols.index]
 # +
 def show_strategies(df, name_col, k=-99):
     '''Devuelve el valor de imputacion de las tres estrategias para esa columna'''
-    
+
     _df = df[[name_col]].copy()
     s = df[name_col]
-    
+
     _df['median'] = s.fillna(s.median())
     _df['mean'] = s.fillna(s.mean())
     _df['mode'] = s.fillna(s.mode()[0])
@@ -471,23 +474,24 @@ show_strategies(df, 'weight')
 
 
 # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.FunctionTransformer.html
-#     
+#
 # lo salteo
+
 
 def compare_imputers(df, name_col, k):
     '''Devuelve el valor de imputacion de las estrategias para esa columna'''
-    
+
     median_imputer = SimpleImputer(strategy='median', fill_value=k)
     mean_imputer = SimpleImputer(strategy='mean', fill_value=k)
     mode_imputer = SimpleImputer(strategy='most_frequent', fill_value=k)
     constant_imputer = SimpleImputer(strategy='constant', fill_value=1234)
 
-    _df = df.copy()    
+    _df = df.copy()
     _df['median'] = median_imputer.fit_transform(df[[name_col]])
     _df['mean'] = mean_imputer.fit_transform(df[[name_col]])
     _df['mode'] = mode_imputer.fit_transform(df[[name_col]])
     _df['constant'] = constant_imputer.fit_transform(df[[name_col]])
-    
+
     return _df[[name_col, 'median', 'mode', 'constant']]
 
 
@@ -525,7 +529,7 @@ def hashing_encoding(df, cols, data_percent=0.85, verbose=False):
                 df[i].astype(str).values.reshape(-1, 1)
             ).todense()
             df = df.join(pd.DataFrame(hashed_features).add_prefix(i + '_'))
-    
+
     return df.drop(columns=cols)
 
 
@@ -535,7 +539,7 @@ def knn_imputer(df):
 
     # Aplicamos hashing para las categoricas
     df = hashing_encoding(df, cat_cols)
-    
+
     # Eliminamos name y alignment para imputar
     df = df.drop(columns=['name', 'alignment'])
 
@@ -556,14 +560,12 @@ display(
 # -
 
 
-
-# IterativeImputer  
+# IterativeImputer
 # https://scikit-learn.org/stable/modules/generated/sklearn.impute.IterativeImputer.html
 
 
-
 # Comentario Final:
-# - A veces va a ayudar a los modelos que le digamos explicitamente que ese valor fue "calculado", eso 
+# - A veces va a ayudar a los modelos que le digamos explicitamente que ese valor fue "calculado", eso
 # le puede permitir al modelo elegir si darle un poco
 
 # # Selección de variables
@@ -584,12 +586,12 @@ _df.var()
 
 
 # +
-def filter_by_variance(df, threshold):    
+def filter_by_variance(df, threshold):
     # Columnas con varianza calculable
     cols_con_varianza = df.var().index.values
     _df = df[cols_con_varianza].copy()
     print(f'columnas antes: {_df.columns.tolist()}')
-    
+
     # calculo varianzas
     selector = VarianceThreshold(threshold=threshold)
     vt = selector.fit(_df)
@@ -603,19 +605,14 @@ filter_by_variance(_df, 0)
 print()
 filter_by_variance(_df, 10)
 # -
-# Recursive Feature Eliminator:  
+# Recursive Feature Eliminator:
 # https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.RFE.html
-
 
 
 # # Agregando Informacion adicional
 # Se pueden crear nuevas variables a partir de las anteriores
 #
-# - Se puede incluir la "relacion" entre dos variables (ej: multiplicar dos variables)  
-# Ejemplo1: precio por metro cuadrado a partir del precio y los metros cuadrados de la propiedad.  
+# - Se puede incluir la "relacion" entre dos variables (ej: multiplicar dos variables)
+# Ejemplo1: precio por metro cuadrado a partir del precio y los metros cuadrados de la propiedad.
 # Ejemplo2: Crear features polinomicos
 # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.PolynomialFeatures.html
-
-
-
-

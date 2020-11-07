@@ -778,7 +778,7 @@ pd.DataFrame(y_train_boosting)[0].value_counts()
 
 # %%
 # boosting_model.fit(X_train,y_train)
-#SVC_model.fit(X_train, y_train)
+# SVC_model.fit(X_train, y_train)
 
 # %% [markdown]
 # ### Evaluación del modelo de cascading
@@ -813,24 +813,24 @@ remaining_points = X_validation.values[points_for_the_second_model_index]
 
 
 # %%
-#y_final_output = SVC_model.predict(remaining_points)
+# y_final_output = SVC_model.predict(remaining_points)
 
 
 # %%
-#y_validation_remaining_points = y_validation[points_for_the_second_model_index]
-#accuracy_score(y_final_output, y_validation_remaining_points)
+# y_validation_remaining_points = y_validation[points_for_the_second_model_index]
+# accuracy_score(y_final_output, y_validation_remaining_points)
 
 
 # %%
-#svc_pred = SVC_model.predict_proba(remaining_points)
-#y_pred_cascading = np.concatenate((sure_points_tree_validation_probs, svc_pred))
+# svc_pred = SVC_model.predict_proba(remaining_points)
+# y_pred_cascading = np.concatenate((sure_points_tree_validation_probs, svc_pred))
 
 
 # %%
-#y_labels_cascading = np.concatenate(
+# y_labels_cascading = np.concatenate(
 #    (y_validation[sure_points_index_validation], y_validation_remaining_points)
-#)
+# )
 
 
 # %%
-#plot, voting_roc = roc_multiclass(y_pred_cascading, y_labels_cascading, 0)
+# plot, voting_roc = roc_multiclass(y_pred_cascading, y_labels_cascading, 0)
