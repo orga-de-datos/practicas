@@ -61,6 +61,13 @@ jupyter labextension install @jupyter-widgets/jupyterlab-manager
 jupyter lab build
 ```
 
+## Plotly
+Para ver los graficos hechos con plotly:
+```bash
+jupyter labextension install jupyterlab-plotly@4.12.0
+jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget@4.12.0
+```
+
 ## Levantar jupyter lab
 Estando en la carpeta del repo
 ```bash
