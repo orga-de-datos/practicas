@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.6.0
+#       jupytext_version: 1.5.2
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -17,7 +17,7 @@
 # # Regresión Lineal en Python
 
 # En este notebook vamos a aprender a implementar regresiones utilizando Scikit-Learn en Python.
-# Para esto vamos a utilizar un dataset compuesto por características de distintos vinos. La idea es predecir la calidad del vino en base a diferentes factores. La calidad se determina por un puntaje de 0 a 10. El dataset puede encontrarse en este [link](https://www.kaggle.com/uciml/red-wine-quality-cortez-et-al-2009).
+# Para esto vamos a utilizar un dataset compuesto por características de distintos vinos. El dataset puede encontrarse en este [link](https://www.kaggle.com/uciml/red-wine-quality-cortez-et-al-2009).
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -56,12 +56,12 @@ plt.show()
 # Graficamos la distribución de los valores
 plt.figure(figsize=(15, 10))
 plt.tight_layout()
-seabornInstance.distplot(dataset['density'])
+seabornInstance.histplot(dataset['density'])
 
 # Determinamos los _atributos_ y los _labels_. Los atributos son las variables independientes, mientras que los labels son las variables que queremos determinar.
 # Como queremos determinar la Acidez en base a la Densidad, los valores de Densidad son nuestros atributos que se reflejan en la variable X y los valores de Acidez son nuestros labels, representados por la variable Y.
 #
-# #### Y = B1 X + B0
+# #### $Y = B_{1} * X + B_{0}$
 
 # +
 X = dataset['density'].values.reshape(-1, 1)
@@ -128,8 +128,146 @@ preds.plot(x="Predicciones", y="Residuos", kind="scatter")
 
 # Observamos el gráfico de Residuos vs Predichos para ver si tiene forma de "nube sin esctructura". Tiene forma de nube, pero presenta un agrupamiento en el centro lo que le da cierta estructura. Sin embargo, el agrupamiento se presenta en valores cercanos a 0, por lo que nuestro modelo presenta buenos resultados.
 
+# ### Regresión Polinomial
+
+# Lo que primero debemos hacer es crear nuestras nuevas variables polinomiales. Vamos a crear $X_{2}$ = density<sup>2</sup>
+
+# Polynomial features permite generar nuevas features mediante la multiplicación de las features actuales
+polynomial_features = PolynomialFeatures(degree=2)
+
+# +
+df = pd.read_csv(
+    'https://drive.google.com/uc?export=download&id=14G9ZOBJcVVT0d3ozPRNQBOZUr_qL-iXk'
+)
+df = df.sort_values(by=['density'])
+
+print("Density: \n")
+print(df['density'].values.reshape(-1, 1))
+print()
+
+print("Volatile Acidity: \n")
+print(df['volatile acidity'].values.reshape(-1, 1))
+print()
+
+# Por ejemplo
+x_poly_2 = polynomial_features.fit_transform(df[['density', 'volatile acidity']].values)
+x_poly_2
+# -
+
+# Para este caso vamos a agarrar la variable density y elevarla al cuadrado
+x_poly = polynomial_features.fit_transform(df['density'].values.reshape(-1, 1))
+print(x_poly)
+
+# Ahora volvemos a entrenar nuestro modelo lineal pero utilizando esta nueva variable.
+
+polymodel = LinearRegression()
+polymodel.fit(x_poly, df['fixed acidity'].values.reshape(-1, 1))
+print(polymodel.coef_)
+print(polymodel.intercept_)
+
+# Nos quedaría una ecuación con la siguiente estructura, con _density_ representando $X_{2}$:
+# #### $Y = B_{3} * X_{2}^{2} + B_{2} * X_{2} + B_{1} * 1 + B_{0}$
+
+# +
+acidity_pred = polymodel.predict(x_poly)
+
+fig = plt.figure(figsize=(12, 6))
+plt.scatter(df['density'], df['fixed acidity'])
+plt.plot(df['density'], acidity_pred, color='red')
+plt.xlabel('Densidad')
+plt.ylabel('Acidez')
+plt.show()
+# -
+
+# La línea de regresión, al estar representada ahora con una curva, se acopla mejor a los datos.
+
+# Ahora analicemos qué error tenemos en este caso.
+
+print(
+    "MSE: "
+    + str(metrics.mean_squared_error(df['fixed acidity'], acidity_pred, squared=True))
+)
+
+print(
+    "RMSE: "
+    + str(metrics.mean_squared_error(df['fixed acidity'], acidity_pred, squared=False))
+)
+
+# El error decreció, lo cual es bueno, veamos ahora el grafico de residuos para analizar si los supuestos se ajustan mejor
+
+# +
+plt.rcParams['figure.figsize'] = (10, 5)
+
+preds = pd.DataFrame(
+    {"Predicciones": acidity_pred.reshape(1599), "true": df['fixed acidity']}
+)
+preds["Residuos"] = preds["true"] - preds["Predicciones"]
+preds.plot(x="Predicciones", y="Residuos", kind="scatter")
+# -
+
+# El gráfico no logra superar al que obtuvimos con regresión lineal simple. La nube de puntos no está distribuida uniformemente. Muestra una agrupación en el centro, como en el caso de regresión simple, pero también presenta valores más alejados que resultan en una nube menos equilibrada.
+
+# Ahora probamos con un polinomio de grado 3
+
+# +
+polynomial_features = PolynomialFeatures(degree=3)
+
+df = df.sort_values(by=['density'])
+x_poly_3 = polynomial_features.fit_transform(df['density'].values.reshape(-1, 1))
+polymodel_3 = LinearRegression()
+polymodel_3.fit(x_poly_3, df['fixed acidity'].values.reshape(-1, 1))
+acidity_poly_pred = polymodel_3.predict(x_poly_3)
+
+fig = plt.figure(figsize=(12, 6))
+plt.scatter(df['density'], df['fixed acidity'])
+plt.plot(df['density'], acidity_poly_pred, color='red')
+plt.xlabel('Densidad')
+plt.ylabel('Acidez')
+plt.show()
+
+
+# -
+
+# La curva se ajusta aún más a los datos.
+
+# #### ¿Que sucede si aumentamos mucho el grado del polinomio?
+#
+# Recordemos que para tener medidas realistas de nuestros modelos es necesario, evaluar el error sobre <b>datos no usados en el entrenamiento</b>.
+#
+# Así que utilizaremos de nuevo k-fold cross validation, para lograr medidas mas realistas de cada tipo de regresión.
+#
+
+
+def rmse_cv(model, X_train, y_train):
+    rmse = np.sqrt(
+        -cross_val_score(
+            model, X_train, y_train, scoring="neg_mean_squared_error", cv=5
+        )
+    )
+    return rmse.mean()
+
+
+errors = []
+for i in range(1, 31):
+    polynomial_features = PolynomialFeatures(degree=i)
+    x_poly = polynomial_features.fit_transform(
+        df['fixed acidity'].values.reshape(-1, 1)
+    )
+    y = df['density'].values.reshape(-1, 1)
+    regressions = LinearRegression()
+    errors.append(rmse_cv(regressions, x_poly, y))
+
+errores = pd.DataFrame({"grado": range(1, 31), "RMSE": errors[0:30]})
+errores.plot(x="grado", y="RMSE")
+
+# Aumentar el grado del polinomio no es sinónimo de mayor precisión en los resultados. En la curva de RMSE por grado de polinomio encontramos que a partir del grado 15 el error comienza a aumentar considerablemente, para luego sufrir cambios más abruptos a partir del grado 27 aproximadamente.
+
+errors
+
 # ### Regresión Lineal Múltiple
 #
+
+# Ahora vamos a armar una regresión con más de una variable. Para esto, vamos a predecir la calidad del vino a través de varias variables que nos brinda el dataset original. La calidad se determina por un puntaje de 0 a 10.
 
 dataset = pd.read_csv(
     'https://drive.google.com/uc?export=download&id=14G9ZOBJcVVT0d3ozPRNQBOZUr_qL-iXk'
@@ -137,7 +275,7 @@ dataset = pd.read_csv(
 
 dataset.shape
 
-dataset.describe()
+dataset.head()
 
 # Dividimos los datos en atributos y labels
 X_dataset = dataset[
@@ -155,21 +293,7 @@ X_dataset = dataset[
         'alcohol',
     ]
 ]
-X = dataset[
-    [
-        'fixed acidity',
-        'volatile acidity',
-        'citric acid',
-        'residual sugar',
-        'chlorides',
-        'free sulfur dioxide',
-        'total sulfur dioxide',
-        'density',
-        'pH',
-        'sulphates',
-        'alcohol',
-    ]
-].values
+X = X_dataset.values
 y = dataset['quality'].values
 
 # Separamos nuestros datos en set de entrenamiento (80%) y set de test (holdout) (20%)
@@ -213,135 +337,4 @@ preds["Residuos"] = preds["true"] - preds["Predicciones"]
 preds.plot(x="Predicciones", y="Residuos", kind="scatter")
 # -
 
-# Vemos que no es una nube de puntos sin estructura, sino que existen ciertos patrones. Esto nos dice que existen correlaciones entre residuos y predichos. Nuestro modelo no es muy exitoso.
-
-# ### Regresión Polinomial
-
-# Lo que primero debemos hacer es crear nuestras nuevas variables polinomiales. Vamos a crear X_2 = density<sup>2</sup>
-
-# Polynomial features permite generar nuevas features mediante la multiplicación de las features actuales
-polynomial_features = PolynomialFeatures(degree=2)
-
-# +
-df = pd.read_csv(
-    'https://drive.google.com/uc?export=download&id=14G9ZOBJcVVT0d3ozPRNQBOZUr_qL-iXk'
-)
-df = df.sort_values(by=['density'])
-
-print("Density: \n")
-print(df['density'].values.reshape(-1, 1))
-print()
-
-print("Volatile Acidity: \n")
-print(df['volatile acidity'].values.reshape(-1, 1))
-print()
-
-x_poly_2 = polynomial_features.fit_transform(df[['density', 'volatile acidity']].values)
-print(x_poly_2.shape)
-x_poly_2
-# -
-
-x_poly = polynomial_features.fit_transform(df['density'].values.reshape(-1, 1))
-print(x_poly.shape)
-print(x_poly)
-
-df['density'].values.reshape(-1, 1)[0]
-
-x_poly[0]
-
-# Ahora volvemos a entrenar nuestro modelo lineal pero utilizando esta nueva variable
-
-polymodel = LinearRegression()
-polymodel.fit(x_poly, df['fixed acidity'].values.reshape(-1, 1))
-
-density_pred = polymodel.predict(x_poly)
-fig = plt.figure(figsize=(12, 6))
-plt.scatter(df['density'], df['fixed acidity'])
-plt.plot(df['density'], density_pred, color='red')
-plt.xlabel('Densidad')
-plt.ylabel('Acidez')
-plt.show()
-
-# La línea de regresión, al estar representada ahora con una curva, se acopla mejor a los datos.
-
-# Ahora analicemos qué error tenemos en este caso.
-
-print(
-    "MSE: "
-    + str(metrics.mean_squared_error(df['fixed acidity'], density_pred, squared=True))
-)
-
-print(
-    "RMSE: "
-    + str(metrics.mean_squared_error(df['fixed acidity'], density_pred, squared=False))
-)
-
-# El error decreció, lo cual es bueno, veamos ahora el grafico de residuos para analizar si los supuestos se ajustan mejor
-
-# +
-plt.rcParams['figure.figsize'] = (10, 5)
-
-preds = pd.DataFrame(
-    {"Predicciones": density_pred.reshape(1599), "true": df['fixed acidity']}
-)
-preds["Residuos"] = preds["true"] - preds["Predicciones"]
-preds.plot(x="Predicciones", y="Residuos", kind="scatter")
-# -
-
-# El gráfico es mejor que el de regresión lineal múltiple, pero no logra superar al que obtuvimos con regresión lineal simple. La nube de puntos no está distribuida uniformemente. Muestra una agrupación en el centro, como en el caso de regresión simple, pero también presenta valores más alejados que resultan en una nube menos equilibrada.
-
-# Ahora probamos con un polinomio de grado 3
-
-# +
-polynomial_features = PolynomialFeatures(degree=3)
-
-df = df.sort_values(by=['density'])
-x_poly_3 = polynomial_features.fit_transform(df['density'].values.reshape(-1, 1))
-polymodel_3 = LinearRegression()
-polymodel_3.fit(x_poly_3, df['fixed acidity'].values.reshape(-1, 1))
-life_pred = polymodel_3.predict(x_poly_3)
-fig = plt.figure(figsize=(12, 6))
-plt.scatter(df['density'], df['fixed acidity'])
-plt.plot(df['density'], life_pred, color='red')
-plt.xlabel('Densidad')
-plt.ylabel('Acidez')
-plt.show()
-
-
-# -
-
-# La curva se ajusta aún más a los datos.
-
-# #### ¿Que sucede si aumentamos mucho el grado del polinomio?
-#
-# Recordemos que para tener medidas realistas de nuestros modelos es necesario, evaluar el error sobre <b>datos no usados en el entrenamiento</b>.
-#
-# Así que utilizaremos de nuevo k-fold cross validation, para lograr medidas mas realistas de cada tipo de regresión.
-#
-
-
-def rmse_cv(model, X_train, y_train):
-    rmse = np.sqrt(
-        -cross_val_score(
-            model, X_train, y_train, scoring="neg_mean_squared_error", cv=5
-        )
-    )
-    return rmse.mean()
-
-
-errors = []
-for i in range(1, 31):
-    polynomial_features = PolynomialFeatures(degree=i)
-    x_poly = polynomial_features.fit_transform(
-        df['fixed acidity'].values.reshape(-1, 1)
-    )
-    y = df['density'].values.reshape(-1, 1)
-    regressions = LinearRegression()
-    errors.append(rmse_cv(regressions, x_poly, y))
-
-errores = pd.DataFrame({"grado": range(1, 31), "RMSE": errors[0:30]})
-errores.plot(x="grado", y="RMSE")
-
-# Aumentar el grado del polinomio no es sinónimo de mayor precisión en los resultados. En la curva de RMSE por grado de polinomio encontramos que a partir del grado 15 el error comienza a aumentar considerablemente, para luego sufrir cambios más abruptos a partir del grado 27 aproximadamente.
-
-errors
+# Vemos que no es una nube de puntos sin estructura, sino que existen ciertos patrones. Esto nos dice que existen correlaciones entre residuos y predichos. Tal vez existe un mejor modelo para predecir la variable target que la regresión lineal múltiple que utilizamos.
