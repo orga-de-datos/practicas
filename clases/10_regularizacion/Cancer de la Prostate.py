@@ -51,7 +51,7 @@ raw_data.shape
 
 # Este es un conjunto de datos bastante estándar, relativamente pequeño, con 97 observaciones y 9 variables. Aquí definiremos como objetivo y la cantidad de expresión de antígeno que está asociada con la detección de este cáncer (la columna lpsa del conjunto de datos). Las otras variables son características asociadas.
 #
-# Recuperamos nuestras variables explicativas para la regresión, que colocamos en una matriz X y nuestra variable explicada Y por separado. No recuperamos la última columna del conjunto de datos, que es un valor booleano asociado con la presencia de cáncer, porque no tratamos las variables discretas en este caso.
+# Recuperamos nuestras variables explicativas para la regresión, que colocamos en una matriz X y nuestra variable explicada Y por separado. No recuperamos la última columna del conjunto de datos, que es un valor booleano asociado con la presencia de cáncer porque no tratamos las variables discretas en este caso.
 
 X_train = raw_data[['lweight','age','lbph','svi','lcp','gleason','pgg45']]
 y_train = raw_data[['lpsa']]
@@ -108,7 +108,7 @@ y_train = raw_data.iloc[:]['lpsa']
 n_alphas = 200
 alphas = np.logspace(-5, 5, n_alphas)
 
-# Ahora podemos probar todas las regresiones estriadas con los diferentes valores del hiperparámetro α. Recuperamos las ponderaciones de los distintos coeficientes de la regresión asociada así como el error cuadrático.
+# Ahora podemos probar todas las regresiones ridge con los diferentes valores del hiperparámetro α. Recuperamos las ponderaciones de los distintos coeficientes de la regresión asociada así como el error cuadrático.
 
 # +
 ridge = linear_model.Ridge()
@@ -155,7 +155,7 @@ ax.add_artist(leg2)
 plt.show()
 # -
 
-# Como podemos ver, la regularización reduce el error en el conjunto de datos de prueba. Hacia alfa = 10, el mínimo parece encontrarse para la regresión Ridge. Podemos recuperar el valor mínimo:
+# Como podemos ver, la regularización reduce el error en el conjunto de datos de prueba. Hacia alfa = 100, el mínimo parece encontrarse para la regresión Ridge. Podemos recuperar el valor mínimo:
 
 min(errors)
 

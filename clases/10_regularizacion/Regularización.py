@@ -29,7 +29,7 @@ from sklearn.linear_model import Ridge
 from sklearn.linear_model import ElasticNet
 from sklearn.model_selection import cross_val_score
 from sklearn import preprocessing
-from sklearn.linear_model import LassoCV
+from sklearn.linear_model import Lasso,LassoCV
 
 import warnings
 warnings.filterwarnings(action='ignore')
@@ -47,7 +47,7 @@ boston_df.describe()
 
 # ### Semántica de los datos
 #
-# Cada registro de la base de datos describe un suburbio o una ciudad de Boston. Los datos se obtuvieron del Área Estadística Metropolitana Estándar de Boston (SMSA) en 1970. Los atributos se definen de la siguiente manera (tomados del Repositorio de Aprendizaje Automático de UCI1):
+# Cada registro de la base de datos describe un suburbio de Boston. Los datos se obtuvieron del Área Estadística Metropolitana Estándar de Boston (SMSA) en 1970. Los atributos se definen de la siguiente manera (tomados del Repositorio de Aprendizaje Automático de UCI1):
 #
 #  - CRIM: tasa de delincuencia per cápita
 #  - ZN: proporción de terreno residencial dividido en zonas para lotes de más de 25,000 pies cuadrados.
@@ -74,7 +74,7 @@ boston_df.describe()
 # +
 
 corrmat = boston_df.corr()
-k = 12  # number of variables for heatmap
+k = 14  # number of variables for heatmap
 cols = corrmat.nlargest(k, 'Price')['Price'].index
 cm = np.corrcoef(boston_df[cols].values.T)
 sns.set(font_scale=1.25)
@@ -148,11 +148,9 @@ scaled_boston_df = pd.DataFrame(scaled_df, columns=names)
 
 # -
 
-X_train = scaled_boston_df.drop("Price", axis=1)
-y_train = scaled_boston_df.filter(items=["Price"])
+scaled_boston_df.describe()
 
-
-scaled_boston_df
+# Volvemos a hacer split de la data poque ahor queremos trabajar con nuestro datos escalados
 
 X_train = scaled_boston_df.drop("Price", axis=1)
 y_train = boston_df.filter(items=["Price"])
@@ -170,11 +168,8 @@ def rmse_cv(model, X_train, y_train):
     return rmse
 
 
-# Volvemos a hacer split de la data poque ahor queremos trabajar con nuestro datos escalados
-
 # Comenzaremos por ajustar nuestra regresión mediante Ridge, probaremos con distintos valores de alpha y luego graficaremos el error (RMSE) en función de alpha
 
-model_ridge = Ridge()
 alphas = [
     0.001,
     0.005,
@@ -226,35 +221,99 @@ plt.title("Coeficientes en el Modelo Ridge ")
 #
 # Veamos ahora como se ajusta mediante Lasso
 
-model_lasso = LassoCV(
-    alphas=[
-        10,
-        30,
-        50,
-        55,
-        75,
-        100,
-        120,
-        150,
-        5,
-        4,
-        3,
-        2,
-        1,
-        0.1,
-        0.01,
-        0.05,
-        0.005,
-        0.0005,
-        0.0001,
-    ],
-    cv=5,
-).fit(X_train, y_train.values.ravel())
+# +
+alphas = [
+    0.0000001,
+    0.000001,
+    0.00001,
+    0.0001,
+    0.001,
+    0.005,
+    0.01,
+    0.05,
+    0.1,
+    0.3,
+    1,
+    3,
+    5,
+    10,
+    30,
+    50,
+    55,
+    
+]
+cv_lasso = [rmse_cv(Lasso(alpha=alpha), X_train, y_train).mean() for alpha in alphas]
+# -
 
-model_lasso.score( X_train, y_train.values.ravel())
+cv_lasso_serie = pd.Series(cv_lasso, index=alphas)
+cv_lasso_serie.plot(title="Validation - Just Do It")
+plt.xlabel("alpha")
+plt.ylabel("rmse")
+
+# ¿Por qué el error crece tanto más rápido que Ridge?
+
+cv_lasso_serie.min()
+
+model_lasso = Lasso(alpha=alphas[cv_lasso==cv_lasso_serie.min()])
+model_lasso.fit(X_train, y_train)
 
 # Dado que Lasso tiende a anular totalmente algunos coeficientes, podemos ver cuantas y cuales de nuestros coeficientes fueron anulados y por lo tanto, cuales variables pueden ser prescindibles para este ajuste
 
+coef = pd.Series(model_lasso.coef_, index=X_train.columns)
+print(
+    "Lasso seleccionó "
+    + str(sum(coef != 0))
+    + " variables y eliminó las otras "
+    + str(sum(coef == 0))
+    + " variables"
+)
+
+imp_coef = pd.concat([coef.sort_values()])
+plt.rcParams['figure.figsize'] = (8.0, 10.0)
+imp_coef.plot(kind="barh")
+plt.title("Coeficientes en el Modelo Lasso ")
+
+# Vemos que le dió un valor mucho mas chico a AGE con respecto a Ridge aunque no llegó a eliminarla del todo. 
+#
+# ¿A que puede deberse esto? 
+#
+# Ya que Lasso regulariza mucho más "rapido" que Ridge, hagamos foco en los landas mas chicos para ver que pasa
+
+# +
+alphas = [
+     0.0000001,
+    0.000001,
+    0.00001,
+    0.0001,
+    0.001,
+    0.005,
+    0.1,
+    0.3,
+    1,
+    
+    
+]
+cv_lasso = [rmse_cv(Lasso(alpha=alpha), X_train, y_train).mean() for alpha in alphas]
+# -
+
+cv_lasso_serie = pd.Series(cv_lasso, index=alphas)
+cv_lasso_serie.plot(title="Validation - Just Do It")
+plt.xlabel("alpha")
+plt.ylabel("rmse")
+
+# Podemos ver que para un landa de 0.4 el error es casi el mismo que aplicar OLS, chequemoslo
+
+# +
+
+model_lasso = Lasso(alpha=0.4)
+rmse_cv(model_lasso, X_train, y_train).mean()
+# -
+
+# El error es parecido, sin embargo es un poco mas bajo que con OLS.
+#
+# ¿Que habrá pasado ahora con los coeficientes de las variables?
+
+model_lasso.fit(X_train, y_train)
 coef = pd.Series(model_lasso.coef_, index=X_train.columns)
 print(
     "Lasso seleccionó "
@@ -273,31 +332,18 @@ plt.title("Coeficientes en el Modelo Lasso ")
 
 X_train['new_col'] = X_train['RM'] * 2
 
-model_lasso = LassoCV(
-    alphas=[
-        10,
-        30,
-        50,
-        55,
-        75,
-        100,
-        120,
-        150,
-        5,
-        4,
-        3,
-        2,
-        1,
-        0.1,
-        0.01,
-        0.05,
-        0.005,
-        0.0005,
-        0.0001,
-    ],
-    cv=5,
-).fit(X_train, y_train.values.ravel())
-rmse_cv(model_lasso, X_train, y_train.values.ravel()).mean()
+# +
+alphas = [
+    0.4
+    
+]
+cv_lasso = [rmse_cv(Lasso(alpha=alpha), X_train, y_train).mean() for alpha in alphas]
+cv_lasso_serie.min()
+# -
+
+cv_lasso_serie = pd.Series(cv_lasso, index=alphas)
+model_lasso = Lasso(alpha=alphas[cv_lasso==cv_lasso_serie.min()])
+model_lasso.fit(X_train, y_train)
 
 coef = pd.Series(model_lasso.coef_, index=X_train.columns)
 print(
@@ -332,8 +378,6 @@ cv_elasticNet = [
 ]
 # -
 
-cv_elasticNet
-
 cv_elasticNet = pd.Series(cv_elasticNet, index=alphas)
 cv_elasticNet.plot(title="Validation - Just Do It")
 plt.xlabel("alpha")
@@ -360,7 +404,7 @@ plt.title("Coeficientes en el Modelo Ridge ")
 # Veamos que pasa si al l1_ratio lo llevamos a 1
 
 # +
-elastic = ElasticNet(alpha=0.1, l1_ratio=1)
+elastic = ElasticNet(alpha=0.4, l1_ratio=1)
 elastic.fit(X_train, y_train)
 
 coeficientes = pd.DataFrame(
