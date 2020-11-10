@@ -35,7 +35,15 @@ import warnings
 from sklearn.model_selection import cross_val_score
 warnings.filterwarnings(action='ignore')
 
-raw_data = pd.read_csv('https://drive.google.com/file/d/1BEi_-ZifLqIkDGD8q0Uti7xPFynFcyJ0/view?usp=sharing', delimiter='\t')
+# +
+GSPREADHSEET_DOWNLOAD_URL = (
+    "https://docs.google.com/spreadsheets/d/{gid}/export?format=csv&id={gid}".format
+)
+
+SYSARMY_2020_2_GID = '12ydHqyonOaxXI9q0hJV231HHJG0bDIH3K7-rxidjpJI'
+# -
+
+raw_data = pd.read_csv(GSPREADHSEET_DOWNLOAD_URL(gid=SYSARMY_2020_2_GID))
 
 raw_data.head(10)
 
