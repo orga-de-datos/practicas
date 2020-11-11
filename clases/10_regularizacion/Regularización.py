@@ -7,11 +7,11 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.6.0
+#       jupytext_version: 1.5.2
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: env3
 #     language: python
-#     name: python3
+#     name: env3
 # ---
 
 # ### Regularización
@@ -254,7 +254,7 @@ plt.ylabel("rmse")
 
 cv_lasso_serie.min()
 
-model_lasso = Lasso(alpha=alphas[cv_lasso==cv_lasso_serie.min()])
+model_lasso = Lasso(alpha=np.array(alphas)[cv_lasso==cv_lasso_serie.min()])
 model_lasso.fit(X_train, y_train)
 
 # Dado que Lasso tiende a anular totalmente algunos coeficientes, podemos ver cuantas y cuales de nuestros coeficientes fueron anulados y por lo tanto, cuales variables pueden ser prescindibles para este ajuste
@@ -342,7 +342,7 @@ cv_lasso_serie.min()
 # -
 
 cv_lasso_serie = pd.Series(cv_lasso, index=alphas)
-model_lasso = Lasso(alpha=alphas[cv_lasso==cv_lasso_serie.min()])
+model_lasso = Lasso(alpha=np.array(alphas)[cv_lasso==cv_lasso_serie.min()])
 model_lasso.fit(X_train, y_train)
 
 coef = pd.Series(model_lasso.coef_, index=X_train.columns)
