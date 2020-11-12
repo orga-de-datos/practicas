@@ -55,7 +55,7 @@ Finalmente luego de poner las tablas TABLA 1 y TABLA 2, nos piden que lleguemos 
 recomendamos y por qué y que lo comparemos con respecto al baseline que anteriormente implementamos.
 
 
-##Notas Técnicas:
+## Notas Técnicas:
 - El formato esperado para las predicciones realizadas en cada .csv es igual al del archivo que ya utilizan en el 
 entrenamiento : https://drive.google.com/file/d/1km-AEIMnWVGqMtK-W28n59hqS5Kufhd0/view?usp=sharing en donde por cada 
 línea del archivo se tiene:  
