@@ -37,7 +37,7 @@ En donde:
 **(TABLA 2)** Tabla que liste:  
 \<Nombre Modelo\> \<nombre preprocesamiento\>  \<AUC-ROC\> \<Accuracy\> \<Precision\> \<Recall\> \<F1 score\>  
 En donde :  
-- **Nombre Modelo:** es el mejor modelo de los de su mismo tipo, enumerados en orden secuencial que se fueron realizando (<número> - <nombre>).
+- **Nombre Modelo:** es el mejor modelo de los de su mismo tipo, enumerados en orden secuencial que se fueron realizando (\<número\> - \<nombre\>).
 - **nombre preprocesamiento:** es el nombre del preprocesamiento (tiene que estar presente en la tabla anterior)
 - (el resto de las columnas son las métricas de ese Nombre Modelo)
 
