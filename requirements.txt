@@ -7,6 +7,7 @@ ipywidgets==7.5.1
 isort==4.3.21
 jupyterlab==2.2.9
 jupytext==1.6.0
+keras==2.3.1
 lightgbm==3.0.0
 matplotlib==3.3.2
 miceforest==2.0.3
@@ -17,3 +18,4 @@ pre-commit==2.8.2
 requests==2.24.0
 scikit-learn==0.23.2
 seaborn==0.11.0
+torch==1.4.0
