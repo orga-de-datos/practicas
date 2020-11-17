@@ -14,21 +14,17 @@
 #     name: python3
 # ---
 
-# + jupyter={"source_hidden": true}
 import sklearn
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# + jupyter={"source_hidden": true}
 sns.set()
 from sklearn.datasets import make_moons, make_circles, make_classification
 import matplotlib.animation as mpl_animation
 import matplotlib
 from IPython.display import HTML, Markdown
 
-
-# -
 
 # # Perceptrón base
 #
@@ -38,7 +34,7 @@ from IPython.display import HTML, Markdown
 #
 # Armaremos primero un dataset sintetico de dos clases linealmente separables. Esto quiere decir que podemos encontrar un hiperplano que separe el espacio de modo que cada clase quede en una sola region. Que sea linealmente separable nos sera importante para entender algunos detalles.
 
-# + jupyter={"source_hidden": true}
+# +
 def rotate(p, origin=(0, 0), degrees=0):
     angle = np.deg2rad(degrees)
     R = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
@@ -89,7 +85,7 @@ plt.show()
 #             actualizo b
 # ```
 
-# + jupyter={"source_hidden": true}
+# +
 epoch = 1
 
 b = 0.0
@@ -116,7 +112,9 @@ while True:
     epoch += 1
 
 
-# + jupyter={"source_hidden": true}
+# -
+
+
 def plot_hiperplane(w, b, X, y, title=None, _ax=None):
     ax = _ax
     if _ax is None:
@@ -149,9 +147,7 @@ def plot_hiperplane(w, b, X, y, title=None, _ax=None):
         return ax
 
 
-# + jupyter={"source_hidden": true}
 plot_hiperplane(w, b, X, y)
-# + jupyter={"source_hidden": true}
 display(
     Markdown(
         f"""Entonces, luego de 2 epochs es estable y ha encontrado un hiperplano separador $$y = {b} - {w[0]/w[1]:.2f}x$$
@@ -160,7 +156,6 @@ Se puede demostrar la convergencia bajo ciertas condiciones.
 - [aca por ejemplo](https://www.cse.iitb.ac.in/~shivaram/teaching/old/cs344+386-s2017/resources/classnote-1.pdf)"""
     )
 )
-# -
 
 # # Learning rate
 # Ahora tenemos nuestro perceptron base. Una pequenia (perdon, no tengo la enie mapeada (ni tildes)) modificacion que podemos hacerle es pesar $X_i$ al momento de actualizar $w$ y $b$.
@@ -171,7 +166,7 @@ Se puede demostrar la convergencia bajo ciertas condiciones.
 # ## Dataset no-linealmente-separable
 # Para ilustrar por que nos puede servir una tasa de aprendizaje, utilizemos un dataset no-linealmente-separable.
 
-# + jupyter={"source_hidden": true}
+# +
 # X, y = make_classification(
 #    n_features=2,
 #    n_redundant=0,
@@ -190,7 +185,9 @@ sns.scatterplot(X[:, 0], X[:, 1], hue=y, palette='RdBu')
 plt.show()
 
 
-# + jupyter={"source_hidden": true}
+# -
+
+
 def plot_lr(X, y, lr=0.1, epochs=50):
     fig, ax = plt.subplots(dpi=150)
 
@@ -252,15 +249,11 @@ def plot_lr(X, y, lr=0.1, epochs=50):
     display(HTML(anim.to_jshtml()))
 
 
-# + jupyter={"source_hidden": true}
 plot_lr(X, y, lr=0.1, epochs=50)
 
-# + jupyter={"source_hidden": true}
 plot_lr(X, y, lr=1.0, epochs=50)
 
-# + jupyter={"source_hidden": true}
 plot_lr(X, y, lr=2.0, epochs=50)
-# -
 
 # # Funciones de activacion
 #
@@ -272,7 +265,7 @@ plot_lr(X, y, lr=2.0, epochs=50)
 #
 # La función identidad está dada por $$f(x) = x$$
 
-# + jupyter={"source_hidden": true}
+# +
 x = np.linspace(-5, 5)
 y = x
 
@@ -294,7 +287,7 @@ plt.show()
 #
 # Te suena de algun lado?
 
-# + jupyter={"source_hidden": true}
+# +
 x = np.linspace(-5, 5)
 y = np.maximum(0.0, np.sign(x))
 
@@ -310,7 +303,7 @@ plt.show()
 #
 # La función tangente hiperbólica está dada por $$f(x) = \tanh{x}$$
 
-# + jupyter={"source_hidden": true}
+# +
 x = np.linspace(-5, 5)
 y = np.tanh(x)
 
@@ -330,7 +323,7 @@ plt.show()
 #              \end{array}
 #    \right. $$
 
-# + jupyter={"source_hidden": true}
+# +
 x = np.linspace(-5, 5)
 y = np.maximum(0, x)
 
@@ -346,7 +339,7 @@ plt.show()
 #
 # Resolvamos el ejemplo de antes! Veamos nuestro bello dataset, primero.
 
-# + jupyter={"source_hidden": true}
+# +
 X, y = make_moons(n_samples=1000, random_state=117, noise=0.1)
 
 plt.figure(dpi=200)
@@ -368,7 +361,7 @@ plt.show()
 #
 # Se puede acceder con tensorflow como [`tf.keras`](https://www.tensorflow.org/guide/keras?hl=es). [TensorFlow](https://www.tensorflow.org/?hl=es) es otro framework, desarrollado por Google.
 
-# + jupyter={"source_hidden": true}
+# +
 import keras
 
 in_l = keras.layers.Input(shape=(2,))
@@ -380,8 +373,8 @@ m = keras.models.Model(inputs=[in_l], outputs=[out_l])
 m.compile('sgd', loss='binary_crossentropy', metrics=['accuracy'])
 
 h = m.fit(X, y, epochs=500, batch_size=16, verbose=0, validation_split=0.3)
+# -
 
-# + jupyter={"source_hidden": true}
 plt.figure(dpi=125, figsize=(12, 4))
 plt.plot(h.history['loss'], label="loss")
 plt.plot(h.history['val_loss'], label="validation loss")
@@ -391,7 +384,6 @@ plt.xlabel('epoch')
 plt.legend()
 plt.show()
 
-# + jupyter={"source_hidden": true}
 plt.figure(dpi=125, figsize=(12, 6))
 plt.plot(h.history['accuracy'], label="accuracy")
 plt.plot(h.history['val_accuracy'], label="validation accuracy")
@@ -401,7 +393,7 @@ plt.xlabel('epoch')
 plt.legend()
 plt.show()
 
-# + jupyter={"source_hidden": true}
+# +
 plt.figure(dpi=200)
 
 xrange = X[:, 0].max() - X[:, 0].min()
@@ -433,12 +425,11 @@ plt.show()
 #
 # Fue principalmente desarrollado por Facebook. Es de mas bajo nivel (el equivalente seria mas cercado a tensorflow) pero permite gran flexibilidad, esta muy actualizado y tiene mucho uso en academia.
 
-# + jupyter={"source_hidden": true}
 import torch
 from progressbar import progressbar
 from sklearn.model_selection import ShuffleSplit
 
-# + jupyter={"source_hidden": true}
+# +
 hidden_layers = 128
 epochs = 500
 val_split = 0.3
@@ -454,7 +445,7 @@ val_idxs = idxs[:size]
 train_sampler = torch.utils.data.SubsetRandomSampler(train_idxs)
 valid_sampler = torch.utils.data.SubsetRandomSampler(val_idxs)
 
-# + jupyter={"source_hidden": true}
+# +
 train = torch.utils.data.TensorDataset(
     torch.from_numpy(X).float(), torch.from_numpy(y).float()
 )
@@ -506,8 +497,8 @@ for t in progressbar(range(epochs), max_value=epochs):
     accuracies.append(accuracy / float(train_loader.sampler.indices.size))
     val_losses.append(val_loss / float(val_loader.sampler.indices.size))
     val_accuracies.append(val_accuracy / float(val_loader.sampler.indices.size))
+# -
 
-# + jupyter={"source_hidden": true}
 plt.figure(dpi=125, figsize=(12, 4))
 plt.plot(losses, label="loss")
 plt.plot(val_losses, label="val_loss")
@@ -517,7 +508,6 @@ plt.xlabel('epoch')
 plt.legend()
 plt.show()
 
-# + jupyter={"source_hidden": true}
 plt.figure(dpi=125, figsize=(12, 6))
 plt.plot(accuracies, label="accuracy")
 plt.plot(val_accuracies, label="val_accuracy")
@@ -527,7 +517,7 @@ plt.xlabel('epoch')
 plt.legend()
 plt.show()
 
-# + jupyter={"source_hidden": true}
+# +
 plt.figure(dpi=200)
 
 xrange = X[:, 0].max() - X[:, 0].min()
@@ -611,7 +601,7 @@ plt.show()
 
 # # Perceptrón multiclase
 
-# + jupyter={"source_hidden": true}
+# +
 X, y = make_classification(
     n_features=2,
     n_redundant=0,
@@ -628,7 +618,7 @@ plt.figure(dpi=150)
 sns.scatterplot(X[:, 0], X[:, 1], hue=y, palette='Dark2')
 plt.show()
 
-# + jupyter={"source_hidden": true}
+# +
 import keras
 
 in_l = keras.layers.Input(shape=(2,))
@@ -647,8 +637,8 @@ h = m.fit(
     verbose=0,
     validation_split=0.3,
 )
+# -
 
-# + jupyter={"source_hidden": true}
 plt.figure(dpi=125, figsize=(12, 4))
 plt.plot(h.history['loss'], label="loss")
 plt.plot(h.history['val_loss'], label="validation loss")
@@ -658,7 +648,6 @@ plt.xlabel('epoch')
 plt.legend()
 plt.show()
 
-# + jupyter={"source_hidden": true}
 plt.figure(dpi=125, figsize=(12, 6))
 plt.plot(accuracies, label="accuracy")
 plt.plot(val_accuracies, label="val_accuracy")
@@ -668,7 +657,7 @@ plt.xlabel('epoch')
 plt.legend()
 plt.show()
 
-# + jupyter={"source_hidden": true}
+# +
 from sklearn.metrics import confusion_matrix
 import pandas as pd
 
@@ -689,7 +678,7 @@ def plot_confusion_matrix(y_true, y_pred):
 preds = np.argmax(m.predict(X), axis=1)
 plot_confusion_matrix(y, preds)
 
-# + jupyter={"source_hidden": true}
+# +
 plt.figure(dpi=200)
 ax = sns.scatterplot(x=X[:, 0], y=X[:, 1], hue=y, palette='Dark2')
 
@@ -703,5 +692,4 @@ ax.contourf(xx, yy, z, alpha=0.4, cmap='Dark2')
 ax.axis(False)
 
 plt.plot()
-
-# + jupyter={"source_hidden": true}
+# -
