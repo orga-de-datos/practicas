@@ -14,16 +14,20 @@
 #     name: python3
 # ---
 
+# +
 import sklearn
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-sns.set()
 from sklearn.datasets import make_moons, make_circles, make_classification
 import matplotlib.animation as mpl_animation
 import matplotlib
 from IPython.display import HTML, Markdown
+
+# -
+
+sns.set()
 
 
 # # Perceptrón base
@@ -66,7 +70,7 @@ plt.show()
 # ### Perceptron base
 # Recordemos que nuestras features vive en $R^2$. Y recordemos:
 #
-# $$f(b + \sum_{i=1}^{n}x_i \times w_i$$
+# $$f(b + \sum_{i=1}^{n}x_i \times w_i)$$
 #
 # Donde:
 # - $f$ es nuestra funcion de activacion
@@ -84,6 +88,8 @@ plt.show()
 #             actualizo w con X_i
 #             actualizo b
 # ```
+#
+# > estable: no se han actualizado los pesos durante todo un epoch
 
 # +
 epoch = 1
@@ -104,7 +110,9 @@ while True:
 
         w += (yi - yhat) * Xi
         b += yi - yhat
-        stable &= yi == yhat
+        if (yi != yhat).any():
+            stable = False
+        # stable &= yi == yhat
 
     if stable:
         break
@@ -148,6 +156,7 @@ def plot_hiperplane(w, b, X, y, title=None, _ax=None):
 
 
 plot_hiperplane(w, b, X, y)
+# + jupyter={"source_hidden": true}
 display(
     Markdown(
         f"""Entonces, luego de 2 epochs es estable y ha encontrado un hiperplano separador $$y = {b} - {w[0]/w[1]:.2f}x$$
@@ -156,7 +165,7 @@ Se puede demostrar la convergencia bajo ciertas condiciones.
 - [aca por ejemplo](https://www.cse.iitb.ac.in/~shivaram/teaching/old/cs344+386-s2017/resources/classnote-1.pdf)"""
     )
 )
-
+# -
 # # Learning rate
 # Ahora tenemos nuestro perceptron base. Una pequenia (perdon, no tengo la enie mapeada (ni tildes)) modificacion que podemos hacerle es pesar $X_i$ al momento de actualizar $w$ y $b$.
 #
@@ -165,20 +174,18 @@ Se puede demostrar la convergencia bajo ciertas condiciones.
 #
 # ## Dataset no-linealmente-separable
 # Para ilustrar por que nos puede servir una tasa de aprendizaje, utilizemos un dataset no-linealmente-separable.
-
 # +
-# X, y = make_classification(
-#    n_features=2,
-#    n_redundant=0,
-#    n_informative=2,
-#    random_state=1,
-#    n_clusters_per_class=1,
-#    class_sep=0.4,
-#    n_samples=100,
-# )
-# X = rotate(X, degrees=-30)
+X, y = make_classification(
+    n_features=2,
+    n_redundant=0,
+    n_informative=2,
+    random_state=1,
+    n_clusters_per_class=1,
+    class_sep=0.35,
+)
+X = rotate(X, degrees=-30)
 
-X, y = make_moons(n_samples=1000, random_state=0, noise=0.1)
+# X, y = make_moons(n_samples=1000, random_state=0, noise=0.1)
 
 plt.figure(dpi=150)
 sns.scatterplot(X[:, 0], X[:, 1], hue=y, palette='RdBu')
@@ -249,7 +256,7 @@ def plot_lr(X, y, lr=0.1, epochs=50):
     display(HTML(anim.to_jshtml()))
 
 
-plot_lr(X, y, lr=0.1, epochs=50)
+plot_lr(X, y, lr=0.001, epochs=50)
 
 plot_lr(X, y, lr=1.0, epochs=50)
 
@@ -265,7 +272,7 @@ plot_lr(X, y, lr=2.0, epochs=50)
 #
 # La función identidad está dada por $$f(x) = x$$
 
-# +
+# + jupyter={"source_hidden": true}
 x = np.linspace(-5, 5)
 y = x
 
@@ -287,7 +294,7 @@ plt.show()
 #
 # Te suena de algun lado?
 
-# +
+# + jupyter={"source_hidden": true}
 x = np.linspace(-5, 5)
 y = np.maximum(0.0, np.sign(x))
 
@@ -303,7 +310,7 @@ plt.show()
 #
 # La función tangente hiperbólica está dada por $$f(x) = \tanh{x}$$
 
-# +
+# + jupyter={"source_hidden": true}
 x = np.linspace(-5, 5)
 y = np.tanh(x)
 
@@ -323,7 +330,7 @@ plt.show()
 #              \end{array}
 #    \right. $$
 
-# +
+# + jupyter={"source_hidden": true}
 x = np.linspace(-5, 5)
 y = np.maximum(0, x)
 
@@ -335,7 +342,7 @@ plt.xlabel("x")
 plt.show()
 # -
 
-# # Perceptrón multicapa
+# # Primera red neuronal (MLP)
 #
 # Resolvamos el ejemplo de antes! Veamos nuestro bello dataset, primero.
 
@@ -362,18 +369,30 @@ plt.show()
 # Se puede acceder con tensorflow como [`tf.keras`](https://www.tensorflow.org/guide/keras?hl=es). [TensorFlow](https://www.tensorflow.org/?hl=es) es otro framework, desarrollado por Google.
 
 # +
+import tensorflow as tf
+
+physical_devices = tf.config.list_physical_devices('GPU')
+
+try:
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
+except:
+    pass
+
+# +
 import keras
 
 in_l = keras.layers.Input(shape=(2,))
-d1 = keras.layers.Dense(128, activation='relu')(in_l)
+d1 = keras.layers.Dense(32, activation='relu')(in_l)
 out_l = keras.layers.Dense(1, activation='sigmoid')(d1)
 
 m = keras.models.Model(inputs=[in_l], outputs=[out_l])
+# -
 
 m.compile('sgd', loss='binary_crossentropy', metrics=['accuracy'])
 
+m.summary()
+
 h = m.fit(X, y, epochs=500, batch_size=16, verbose=0, validation_split=0.3)
-# -
 
 plt.figure(dpi=125, figsize=(12, 4))
 plt.plot(h.history['loss'], label="loss")
@@ -434,7 +453,7 @@ hidden_layers = 128
 epochs = 500
 val_split = 0.3
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 idxs = np.arange(len(X))
 np.random.shuffle(idxs)
@@ -444,8 +463,8 @@ val_idxs = idxs[:size]
 
 train_sampler = torch.utils.data.SubsetRandomSampler(train_idxs)
 valid_sampler = torch.utils.data.SubsetRandomSampler(val_idxs)
+# -
 
-# +
 train = torch.utils.data.TensorDataset(
     torch.from_numpy(X).float(), torch.from_numpy(y).float()
 )
@@ -459,10 +478,10 @@ model = torch.nn.Sequential(
     torch.nn.Sigmoid(),
 )
 
-
 loss_fn = torch.nn.BCELoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 
+# +
 losses = []
 accuracies = []
 val_losses = []
@@ -597,99 +616,3 @@ plt.show()
 # # Optimizadores
 #
 # Si nos fijamos en el modelo de Keras, tenemos otro parametro: `optimizer`. Es el metodo para optimizar. Vimos en la teorica SGD, pero hay otros con distintas propiedaes.
-
-
-# # Perceptrón multiclase
-
-# +
-X, y = make_classification(
-    n_features=2,
-    n_redundant=0,
-    n_classes=3,
-    n_informative=2,
-    random_state=117,
-    n_clusters_per_class=1,
-    class_sep=0.92,
-)
-
-X = rotate(X, degrees=30)
-
-plt.figure(dpi=150)
-sns.scatterplot(X[:, 0], X[:, 1], hue=y, palette='Dark2')
-plt.show()
-
-# +
-import keras
-
-in_l = keras.layers.Input(shape=(2,))
-d1 = keras.layers.Dense(128, activation='relu')(in_l)
-out_l = keras.layers.Dense(3, activation='sigmoid')(d1)
-
-m = keras.models.Model(inputs=[in_l], outputs=[out_l])
-
-m.compile('sgd', loss='categorical_crossentropy', metrics=['accuracy'])
-
-h = m.fit(
-    X,
-    keras.utils.to_categorical(y),
-    epochs=500,
-    batch_size=32,
-    verbose=0,
-    validation_split=0.3,
-)
-# -
-
-plt.figure(dpi=125, figsize=(12, 4))
-plt.plot(h.history['loss'], label="loss")
-plt.plot(h.history['val_loss'], label="validation loss")
-plt.title('model loss')
-plt.ylabel('loss')
-plt.xlabel('epoch')
-plt.legend()
-plt.show()
-
-plt.figure(dpi=125, figsize=(12, 6))
-plt.plot(accuracies, label="accuracy")
-plt.plot(val_accuracies, label="val_accuracy")
-plt.title('model accuracy')
-plt.ylabel('accuracy')
-plt.xlabel('epoch')
-plt.legend()
-plt.show()
-
-# +
-from sklearn.metrics import confusion_matrix
-import pandas as pd
-
-
-def plot_confusion_matrix(y_true, y_pred):
-    names = sorted(set(y_true))
-    cm = confusion_matrix(y_true, y_pred, names)
-    df_cm = pd.DataFrame(cm, names, names)
-
-    plt.figure(dpi=100)
-    plt.title("Matriz de confusion")
-    sns.heatmap(df_cm, annot=True, annot_kws={"size": 16}, fmt='g', square=True)
-    plt.ylabel("True label")
-    plt.xlabel("Predicted label")
-    plt.show()
-
-
-preds = np.argmax(m.predict(X), axis=1)
-plot_confusion_matrix(y, preds)
-
-# +
-plt.figure(dpi=200)
-ax = sns.scatterplot(x=X[:, 0], y=X[:, 1], hue=y, palette='Dark2')
-
-xlim = ax.get_xlim()
-ylim = ax.get_ylim()
-
-xx, yy = np.meshgrid(np.linspace(*xlim, G), np.linspace(*ylim, G))
-z = np.argmax(m.predict(np.c_[xx.ravel(), yy.ravel()]), axis=1)
-z = z.reshape(xx.shape)
-ax.contourf(xx, yy, z, alpha=0.4, cmap='Dark2')
-ax.axis(False)
-
-plt.plot()
-# -
