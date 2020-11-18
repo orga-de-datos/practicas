@@ -159,13 +159,14 @@ plot_hiperplane(w, b, X, y)
 # + jupyter={"source_hidden": true}
 display(
     Markdown(
-        f"""Entonces, luego de 2 epochs es estable y ha encontrado un hiperplano separador $$y = {b} - {w[0]/w[1]:.2f}x$$
-Se puede demostrar la convergencia bajo ciertas condiciones.
-
-- [aca por ejemplo](https://www.cse.iitb.ac.in/~shivaram/teaching/old/cs344+386-s2017/resources/classnote-1.pdf)"""
+        f"""Entonces, luego de 2 epochs es estable y ha encontrado un hiperplano separador $$y = {b} - {w[0]/w[1]:.2f}x$$"""
     )
 )
 # -
+# Se puede demostrar la convergencia bajo ciertas condiciones.
+#
+# - [aca por ejemplo](https://www.cse.iitb.ac.in/~shivaram/teaching/old/cs344+386-s2017/resources/classnote-1.pdf)
+
 # # Learning rate
 # Ahora tenemos nuestro perceptron base. Una pequenia (perdon, no tengo la enie mapeada (ni tildes)) modificacion que podemos hacerle es pesar $X_i$ al momento de actualizar $w$ y $b$.
 #
@@ -174,6 +175,7 @@ Se puede demostrar la convergencia bajo ciertas condiciones.
 #
 # ## Dataset no-linealmente-separable
 # Para ilustrar por que nos puede servir una tasa de aprendizaje, utilizemos un dataset no-linealmente-separable.
+
 # +
 X, y = make_classification(
     n_features=2,
