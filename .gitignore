@@ -1,3 +1,7 @@
 **.ipynb_checkpoints
 venv
-.DS_Store
+**.swp
+**.DS_Store
+**.ipynb
+build
+clases/**/*.csv
