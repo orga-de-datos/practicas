@@ -39,6 +39,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score
 from sklearn.model_selection import KFold
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.preprocessing import LabelEncoder
+from itertools import chain
 
 pd.options.display.max_columns = None
 nltk.download('stopwords')
@@ -219,7 +220,11 @@ class LemmaTokenizer:
 
     def __call__(self, doc):
         return [self.wnl.lemmatize(t) for t in self.rt.tokenize(doc)]
-    
+
+vect = CountVectorizer()
+lemm = LemmaTokenizer()
+stop_words_new = list(chain.from_iterable(lemm(word) for word in stop_words))
+
 count_vec = CountVectorizer(
     stop_words=stop_words_new,
     tokenizer=LemmaTokenizer(),
