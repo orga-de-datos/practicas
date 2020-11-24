@@ -16,7 +16,7 @@
 
 # # Introducción a NLP
 #
-# En este notebook vamos a dar los primero pasos en el procesamiento de lenguaje natural. Para eso, vamos a utilizar un [dataset](https://github.com/jbesomi/texthero/tree/master/dataset/Superheroes%20NLP%20Dataset) de superhéroes para intentar predecir si un superhéroe es bueno o malo en base a la descripción de su historia, utilizando Bag of Words y TF-IDF. 
+# En este notebook vamos a dar los primeros pasos en el procesamiento de lenguaje natural. Para eso, vamos a utilizar un [dataset](https://github.com/jbesomi/texthero/tree/master/dataset/Superheroes%20NLP%20Dataset) de superhéroes para intentar predecir si un superhéroe es bueno o malo en base a la descripción de su historia, utilizando Bag of Words y TF-IDF. 
 
 # +
 import matplotlib.pyplot as plt
