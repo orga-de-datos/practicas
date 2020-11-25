@@ -119,7 +119,7 @@ print(pow_tokens)
 # ### Stemming
 
 # SnowballStemmer
-s_stemmer = SnowballStemmer(language='spanish')
+s_stemmer = SnowballStemmer(language='english')
 words = ['run','runner','running','ran','runs','feet', 'cats', 'cacti']
 for word in words:
     print(f'{word} --> {s_stemmer.stem(word)}')
@@ -145,7 +145,7 @@ for word in words:
 
 # Armamos un set con las stop words
 stop_words = set(stopwords.words('english'))
-#stopwords.words('english')
+# stopwords.words('english')
 
 # +
 count_vec = CountVectorizer(
@@ -193,7 +193,7 @@ plt.xticks(rotation=90)
 plt.show()
 
 # +
-# nltk también ofrece una forma de graficar la frecuencia de las palabras
+# nltk también ofrece una forma de obtener la frecuencia de las palabras
 tokenizer = RegexpTokenizer(r'\w+')
 pow_tokens = tokenizer.tokenize(' '.join(df_txt.history_text.str.lower()))
 
@@ -225,19 +225,19 @@ vect = CountVectorizer()
 lemm = LemmaTokenizer()
 stop_words_new = list(chain.from_iterable(lemm(word) for word in stop_words))
 
-count_vec = CountVectorizer(
+count_vec_lemm = CountVectorizer(
     stop_words=stop_words_new,
-    tokenizer=LemmaTokenizer(),
+    tokenizer=lemm,
     ngram_range=(2,2)
 )
-count_vec.fit(df_txt['history_text'].values.tolist())
-df_count_vec = count_vec.transform(df_txt['history_text'].values.tolist())
-df_count_vec.shape
+count_vec_lemm.fit(df_txt['history_text'].values.tolist())
+df_count_vec_lemm = count_vec_lemm.transform(df_txt['history_text'].values.tolist())
+df_count_vec_lemm.shape
 # -
 
 # Palabras por frecuencia de aparicion
 top_words = pd.Series(
-    df_count_vec.toarray().sum(axis=0), index=count_vec.get_feature_names()
+    df_count_vec_lemm.toarray().sum(axis=0), index=count_vec_lemm.get_feature_names()
 ).sort_values(ascending=False)
 top_words.index.name = 'word'
 top_words = top_words.to_frame('count').reset_index()
@@ -251,9 +251,9 @@ plt.title("Frecuencia de palabras")
 plt.xticks(rotation=90)
 plt.show()
 
-cv, pred = helper(df_count_vec, df_txt.alignment, MultinomialNB())
-print("AUC CV score:", cv)
-count_acc_mnb, count_auc_cv_mnb = plotting_helper(cv, pred, df_txt.alignment.values)
+cv_lemm, pred_lemm = helper(df_count_vec_lemm, df_txt.alignment, MultinomialNB())
+print("AUC CV score:", cv_lemm)
+count_acc_mnb, count_auc_cv_mnb = plotting_helper(cv_lemm, pred_lemm, df_txt.alignment.values)
 
 # ### Cómo aplicamos TF-IDF
 #
