@@ -9,6 +9,10 @@ import numpy as np
 
 sns.set()
 
+# %%
+# setear a True para entrenar todos  
+long_run = False
+
 # %% [markdown]
 # # Ensembles: bagging, boosting, stacking y voting
 #
@@ -588,27 +592,28 @@ random_forest_roc
 # Evaluamos un modelo tipo stack:
 
 # %%
-stacking_model.fit(X_train, y_train)
-
-
-# %%
-pred_prob_stack = stacking_model.predict_proba(X_validation)
-
-
-# %%
-plot, stacking_roc = roc_multiclass(pred_prob_stack, y_validation, 0)
-
-
-# %%
-stacking_roc
-
-
-# %%
-print(
+if long_run:
+    stacking_model.fit(X_train, y_train)
+    pred_prob_stack = stacking_model.predict_proba(X_validation)
+    plot, stacking_roc = roc_multiclass(pred_prob_stack, y_validation, 0)
+    print(stacking_roc)
+    print(
     "Accurary \nKnn solo: {:.2f} \nRandom forest solo: {:.2f} \nStacking: {:.3f}".format(
         knn_roc, random_forest_roc, stacking_roc
     )
 )
+
+
+# %%
+
+
+# %%
+
+
+# %%
+
+
+# %%
 
 # %% [markdown]
 # Vemos que el modelo de tipo stack tiene mayor ROC.
@@ -679,42 +684,29 @@ decision_tree_roc
 
 
 # %%
-clf_3.fit(X_train, y_train)
-pred_clf_3 = clf_3.predict_proba(X_validation)
+if long_run:
+    
+    clf_3.fit(X_train, y_train)
+    pred_clf_3 = clf_3.predict_proba(X_validation)
+    plot, SVC_roc = roc_multiclass(pred_clf_3, y_validation, 0)
+    print(SVC_roc)
 
-
-# %%
-plot, SVC_roc = roc_multiclass(pred_clf_3, y_validation, 0)
-
-
-# %%
-SVC_roc
 
 # %% [markdown]
 # Entrenamos el modelo de votacion:
 
 # %%
-clf.fit(X_train, y_train)
-
-
-# %%
-prob_pred_clf = clf.predict_proba(X_validation)
-
-
-# %%
-plot, voting_roc = roc_multiclass(prob_pred_clf, y_validation, 0)
-
-
-# %%
-voting_roc
-
-
-# %%
-print(
+if long_run:
+    clf.fit(X_train, y_train)
+    prob_pred_clf = clf.predict_proba(X_validation)
+    plot, voting_roc = roc_multiclass(prob_pred_clf, y_validation, 0)
+    print(voting_roc)
+    print(
     "Accurary \nKnn solo: {:.2f} \nRandom forest solo: {:.2f} \nStacking: {:.3f}".format(
         knn_roc, random_forest_roc, voting_roc
     )
 )
+
 
 # %% [markdown]
 # ## Cascading
@@ -777,8 +769,9 @@ pd.DataFrame(y_train_boosting)[0].value_counts()
 
 
 # %%
-# boosting_model.fit(X_train,y_train)
-# SVC_model.fit(X_train, y_train)
+if long_run:
+    boosting_model.fit(X_train,y_train)
+    SVC_model.fit(X_train, y_train)
 
 # %% [markdown]
 # ### Evaluación del modelo de cascading
@@ -813,24 +806,12 @@ remaining_points = X_validation.values[points_for_the_second_model_index]
 
 
 # %%
-# y_final_output = SVC_model.predict(remaining_points)
-
-
-# %%
-# y_validation_remaining_points = y_validation[points_for_the_second_model_index]
-# accuracy_score(y_final_output, y_validation_remaining_points)
-
-
-# %%
-# svc_pred = SVC_model.predict_proba(remaining_points)
-# y_pred_cascading = np.concatenate((sure_points_tree_validation_probs, svc_pred))
-
-
-# %%
-# y_labels_cascading = np.concatenate(
-#    (y_validation[sure_points_index_validation], y_validation_remaining_points)
-# )
-
-
-# %%
-# plot, voting_roc = roc_multiclass(y_pred_cascading, y_labels_cascading, 0)
+if long_run:
+    y_final_output = SVC_model.predict(remaining_points)
+    y_validation_remaining_points = y_validation[points_for_the_second_model_index]
+    accuracy_score(y_final_output, y_validation_remaining_points)
+    svc_pred = SVC_model.predict_proba(remaining_points)
+    y_pred_cascading = np.concatenate((sure_points_tree_validation_probs, svc_pred))
+    y_labels_cascading = np.concatenate(
+    (y_validation[sure_points_index_validation], y_validation_remaining_points))
+    plot, voting_roc = roc_multiclass(y_pred_cascading, y_labels_cascading, 0)
