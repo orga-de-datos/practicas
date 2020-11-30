@@ -9,14 +9,14 @@
 #       format_version: '1.5'
 #       jupytext_version: 1.6.0
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (venv)
 #     language: python
 #     name: python3
 # ---
 
 # # Introducción a NLP
 #
-# En este notebook vamos a dar los primeros pasos en el procesamiento de lenguaje natural. Para eso, vamos a utilizar un [dataset](https://github.com/jbesomi/texthero/tree/master/dataset/Superheroes%20NLP%20Dataset) de superhéroes para intentar predecir si un superhéroe es bueno o malo en base a la descripción de su historia, utilizando Bag of Words y TF-IDF. 
+# En este notebook vamos a dar los primeros pasos en el procesamiento de lenguaje natural. Para eso, vamos a utilizar un [dataset](https://github.com/jbesomi/texthero/tree/master/dataset/Superheroes%20NLP%20Dataset) de superhéroes para intentar predecir si un superhéroe es bueno o malo en base a la descripción de su historia, utilizando Bag of Words y TF-IDF.
 
 # +
 import matplotlib.pyplot as plt
@@ -34,7 +34,11 @@ from nltk.tokenize import (
     WhitespaceTokenizer,
     WordPunctTokenizer,
 )
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer, TfidfTransformer
+from sklearn.feature_extraction.text import (
+    CountVectorizer,
+    TfidfVectorizer,
+    TfidfTransformer,
+)
 from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score
 from sklearn.model_selection import KFold
 from sklearn.naive_bayes import MultinomialNB
@@ -97,7 +101,7 @@ def plotting_helper(cv, pred, label):
 
 # -
 
-# ## Tokenización 
+# ## Tokenización
 
 # WordPunctTokenizer
 wordpunct_tokenizer = WordPunctTokenizer()
@@ -120,7 +124,7 @@ print(pow_tokens)
 
 # SnowballStemmer
 s_stemmer = SnowballStemmer(language='english')
-words = ['run','runner','running','ran','runs','feet', 'cats', 'cacti']
+words = ['run', 'runner', 'running', 'ran', 'runs', 'feet', 'cats', 'cacti']
 for word in words:
     print(f'{word} --> {s_stemmer.stem(word)}')
 
@@ -131,7 +135,7 @@ for word in words:
 # WordNetLemmatizer
 lemmatizer = WordNetLemmatizer()
 
-words = ['run','runner','running','ran','runs','feet', 'cats', 'cacti']
+words = ['run', 'runner', 'running', 'ran', 'runs', 'feet', 'cats', 'cacti']
 for word in words:
     print(f'{word} --> {lemmatizer.lemmatize(word)}')
 # -
@@ -148,9 +152,7 @@ stop_words = set(stopwords.words('english'))
 # stopwords.words('english')
 
 # +
-count_vec = CountVectorizer(
-    stop_words=stop_words
-)
+count_vec = CountVectorizer(stop_words=stop_words)
 count_vec.fit(df_txt['history_text'].values.tolist())
 df_count_vec = count_vec.transform(df_txt['history_text'].values.tolist())
 df_count_vec.shape
@@ -210,7 +212,7 @@ print("AUC CV score:", cv)
 count_acc_mnb, count_auc_cv_mnb = plotting_helper(cv, pred, df_txt.alignment.values)
 
 
-# ### Otra opción 
+# ### Otra opción
 
 # +
 class LemmaTokenizer:
@@ -221,14 +223,13 @@ class LemmaTokenizer:
     def __call__(self, doc):
         return [self.wnl.lemmatize(t) for t in self.rt.tokenize(doc)]
 
+
 vect = CountVectorizer()
 lemm = LemmaTokenizer()
 stop_words_new = list(chain.from_iterable(lemm(word) for word in stop_words))
 
 count_vec_lemm = CountVectorizer(
-    stop_words=stop_words_new,
-    tokenizer=lemm,
-    ngram_range=(2,2)
+    stop_words=stop_words_new, tokenizer=lemm, ngram_range=(2, 2)
 )
 count_vec_lemm.fit(df_txt['history_text'].values.tolist())
 df_count_vec_lemm = count_vec_lemm.transform(df_txt['history_text'].values.tolist())
@@ -253,7 +254,9 @@ plt.show()
 
 cv_lemm, pred_lemm = helper(df_count_vec_lemm, df_txt.alignment, MultinomialNB())
 print("AUC CV score:", cv_lemm)
-count_acc_mnb, count_auc_cv_mnb = plotting_helper(cv_lemm, pred_lemm, df_txt.alignment.values)
+count_acc_mnb, count_auc_cv_mnb = plotting_helper(
+    cv_lemm, pred_lemm, df_txt.alignment.values
+)
 
 # ### Cómo aplicamos TF-IDF
 #
@@ -261,7 +264,7 @@ count_acc_mnb, count_auc_cv_mnb = plotting_helper(cv_lemm, pred_lemm, df_txt.ali
 
 # +
 # Al resultado de CountVectorizer le aplicamos TfidfTransformer para obtener el valor de TF-IDF
-tfidf_transformer = TfidfTransformer() 
+tfidf_transformer = TfidfTransformer()
 tfidf_transformer.fit(df_count_vec)
 tf_idf_vector = tfidf_transformer.transform(df_count_vec)
 
@@ -270,17 +273,21 @@ print()
 print(tf_idf_vector.toarray())
 
 # +
-first_document_vector=tf_idf_vector[0] 
+first_document_vector = tf_idf_vector[0]
 
 # Imprimimos el resultado para el primer documento
-df = pd.DataFrame(first_document_vector.T.todense(), index=count_vec.get_feature_names() , columns=["tfidf"]) 
-df.sort_values(by=["tfidf"],ascending=False)
+df = pd.DataFrame(
+    first_document_vector.T.todense(),
+    index=count_vec.get_feature_names(),
+    columns=["tfidf"],
+)
+df.sort_values(by=["tfidf"], ascending=False)
 # -
 
 df_txt.loc[0]['history_text']
 
-# Vemos que las palabras que tienen valor 0 son las que no se encuentran en el documento al que hace referencia el vector. 
-# Mientras menos común sea la palabra en nuestro corpus, mayor puntaje va a tener.  
+# Vemos que las palabras que tienen valor 0 son las que no se encuentran en el documento al que hace referencia el vector.
+# Mientras menos común sea la palabra en nuestro corpus, mayor puntaje va a tener.
 
 # +
 # Otra opción es usar directamente TfidfVectorizer que es el equivalente a usar CountVectorizer + TfidfTransformer
@@ -294,11 +301,15 @@ print()
 print(df_tfidf_vec.toarray())
 
 # +
-df_tfidf_first_document_vector = df_tfidf_vec[0] 
+df_tfidf_first_document_vector = df_tfidf_vec[0]
 
 # Imprimimos el resultado para el primer documento
-df = pd.DataFrame(df_tfidf_first_document_vector.T.todense(), index=tfidf_vec.get_feature_names() , columns=["tfidf"]) 
-df.sort_values(by=["tfidf"],ascending=False)
+df = pd.DataFrame(
+    df_tfidf_first_document_vector.T.todense(),
+    index=tfidf_vec.get_feature_names(),
+    columns=["tfidf"],
+)
+df.sort_values(by=["tfidf"], ascending=False)
 # -
 
 cv, pred = helper(df_tfidf_vec, df_txt.alignment, MultinomialNB())

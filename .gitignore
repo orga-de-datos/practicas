@@ -5,3 +5,4 @@ venv
 **.ipynb
 build
 clases/**/*.csv
+**.h5

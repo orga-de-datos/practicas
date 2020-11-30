@@ -9,9 +9,9 @@
 #       format_version: '1.5'
 #       jupytext_version: 1.5.2
 #   kernelspec:
-#     display_name: env3
+#     display_name: Python 3
 #     language: python
-#     name: env3
+#     name: python3
 # ---
 
 # ### Regularización
@@ -29,9 +29,10 @@ from sklearn.linear_model import Ridge
 from sklearn.linear_model import ElasticNet
 from sklearn.model_selection import cross_val_score
 from sklearn import preprocessing
-from sklearn.linear_model import Lasso,LassoCV
+from sklearn.linear_model import Lasso, LassoCV
 
 import warnings
+
 warnings.filterwarnings(action='ignore')
 # -
 
@@ -240,7 +241,6 @@ alphas = [
     30,
     50,
     55,
-    
 ]
 cv_lasso = [rmse_cv(Lasso(alpha=alpha), X_train, y_train).mean() for alpha in alphas]
 # -
@@ -254,7 +254,7 @@ plt.ylabel("rmse")
 
 cv_lasso_serie.min()
 
-model_lasso = Lasso(alpha=np.array(alphas)[cv_lasso==cv_lasso_serie.min()])
+model_lasso = Lasso(alpha=np.array(alphas)[cv_lasso == cv_lasso_serie.min()])
 model_lasso.fit(X_train, y_train)
 
 # Dado que Lasso tiende a anular totalmente algunos coeficientes, podemos ver cuantas y cuales de nuestros coeficientes fueron anulados y por lo tanto, cuales variables pueden ser prescindibles para este ajuste
@@ -273,15 +273,15 @@ plt.rcParams['figure.figsize'] = (8.0, 10.0)
 imp_coef.plot(kind="barh")
 plt.title("Coeficientes en el Modelo Lasso ")
 
-# Vemos que le dió un valor mucho mas chico a AGE con respecto a Ridge aunque no llegó a eliminarla del todo. 
+# Vemos que le dió un valor mucho mas chico a AGE con respecto a Ridge aunque no llegó a eliminarla del todo.
 #
-# ¿A que puede deberse esto? 
+# ¿A que puede deberse esto?
 #
 # Ya que Lasso regulariza mucho más "rapido" que Ridge, hagamos foco en los landas mas chicos para ver que pasa
 
 # +
 alphas = [
-     0.0000001,
+    0.0000001,
     0.000001,
     0.00001,
     0.0001,
@@ -290,8 +290,6 @@ alphas = [
     0.1,
     0.3,
     1,
-    
-    
 ]
 cv_lasso = [rmse_cv(Lasso(alpha=alpha), X_train, y_train).mean() for alpha in alphas]
 # -
@@ -333,16 +331,13 @@ plt.title("Coeficientes en el Modelo Lasso ")
 X_train['new_col'] = X_train['RM'] * 2
 
 # +
-alphas = [
-    0.4
-    
-]
+alphas = [0.4]
 cv_lasso = [rmse_cv(Lasso(alpha=alpha), X_train, y_train).mean() for alpha in alphas]
 cv_lasso_serie.min()
 # -
 
 cv_lasso_serie = pd.Series(cv_lasso, index=alphas)
-model_lasso = Lasso(alpha=np.array(alphas)[cv_lasso==cv_lasso_serie.min()])
+model_lasso = Lasso(alpha=np.array(alphas)[cv_lasso == cv_lasso_serie.min()])
 model_lasso.fit(X_train, y_train)
 
 coef = pd.Series(model_lasso.coef_, index=X_train.columns)
