@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.2
+#       jupytext_version: 1.6.0
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -51,6 +51,7 @@ from sklearn.cluster import KMeans
 kmeans = KMeans(n_clusters=4)
 kmeans.fit(X)
 y_kmeans = kmeans.predict(X)
+y_kmeans
 
 # +
 plt.figure(figsize=(20, 10))
@@ -168,6 +169,7 @@ interact(
 # ### Matriz de similaridad
 
 ordered_points = X[np.where(y_kmeans == clusters[0])]
+print(np.where(y_kmeans == clusters[0]))
 for i in clusters[1:]:
     points_cluster_i_index = np.where(y_kmeans == i)
     points_cluster_i = X[points_cluster_i_index]
