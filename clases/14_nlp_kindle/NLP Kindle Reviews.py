@@ -9,7 +9,7 @@
 #       format_version: '1.5'
 #       jupytext_version: 1.6.0
 #   kernelspec:
-#     display_name: Python 3 (venv)
+#     display_name: Python 3
 #     language: python
 #     name: python3
 # ---
@@ -51,7 +51,7 @@ from gensim.models.doc2vec import Doc2Vec
 
 # -
 
-df = pd.read_csv('../datasets/kindley_reviews.csv')
+df = pd.read_csv('https://drive.google.com/uc?export=download&id=1hIvsFSunMsYivzVxuAKcjIrJScOUNBTr')
 
 # Comencemos por ver un poco los datos
 
