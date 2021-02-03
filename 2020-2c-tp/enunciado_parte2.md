@@ -64,5 +64,10 @@ línea del archivo se tiene:
 - Todas las dependencias de librerías deben estar en un requirements.txt
 - La entrega se tiene que realizar en un .zip al mail orga.datos.fiuba@gmail.com
 
-##Fecha de entrega:
+## Fecha de entrega:
+- Entrega: 16 de Febrero
+- Defensa oral del tp: 23 de Febrero  
+
+Nota: entre la entrega y la defensa oral se pueden llegar a pedir correcciones para antes de la defensa oral de 
+considerarse necesarias.
 TODO: (despues del intervalo de mes y medio)
