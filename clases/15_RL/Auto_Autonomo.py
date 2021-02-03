@@ -15,40 +15,42 @@
 # ---
 
 # # Auto autónomo
-# Diseñaremos una simulación de un auto autónomo (Smartcab). El objetivo principal es demostrar, en un entorno simplificado, cómo se pueden utilizar las técnicas de RL para desarrollar un enfoque eficaz y seguro para abordar este problema.
+# Realizaremos la simulación de un auto autónomo (Smartcab). El objetivo principal es demostrar, en un entorno simplificado, cómo se pueden utilizar las técnicas de RL para desarrollar un enfoque eficaz y seguro para abordar este problema.
 #
 # El trabajo del Smartcab es recoger al pasajero en un lugar y dejarlo en otro. Aquí hay algunas cosas de las que nos encantaría que se ocupara nuestra Smartcab:
 #
-# Deje al pasajero en el lugar correcto.
-# Ahorre tiempo al pasajero tomando el mínimo tiempo posible para dejar
-# Cuida la seguridad de los pasajeros y las normas de tráfico.
-# Hay diferentes aspectos que deben considerarse aquí al modelar una solución de RL para este problema: recompensas, estados y acciones.
+#  - Deje al pasajero en el lugar correcto.
+#  - Ahorre tiempo al pasajero tomando el mínimo tiempo posible para dejar
+#  - Cuide la seguridad de los pasajeros y las normas de tránsito.
+#  
+# Como ya vimos, hay diferentes aspectos que deben considerarse aquí al modelar una solución de RL para este problema: recompensas, estados y acciones.
 #
 # ## 1. Recompensas
-# Dado que el agente (el conductor imaginario) está motivado por las recompensas y va a aprender a controlar la cabina mediante experiencias de prueba en el entorno, debemos decidir las recompensas y / o sanciones y su magnitud en consecuencia. Aquí algunos puntos a considerar:
+# Dado que el agente (el conductor imaginario) está motivado por las recompensas y va a aprender a controlar la cabina mediante experiencias de prueba en el entorno, debemos decidir las recompensas y/o sanciones y su magnitud en consecuencia. Aquí algunos puntos a considerar:
 #
 #  - El agente debe recibir una alta recompensa positiva por un abandono exitoso porque este comportamiento es muy deseado
 #  - El agente debe ser penalizado si intenta dejar a un pasajero en lugares incorrectos.
 #  - El agente debería obtener una recompensa levemente negativa por no llegar al destino después de cada paso de tiempo. "Ligeramente" negativo porque preferiríamos que nuestro agente llegara tarde en lugar de hacer movimientos equivocados tratando de llegar al destino lo más rápido posible
 #  
-# ## 2. State Space
+# ## 2. Estados
 # En el aprendizaje por refuerzo, el agente se encuentra con un estado y luego actúa de acuerdo con el estado en el que se encuentra.
 #
 # El State Space es el conjunto de todas las situaciones posibles en las que podría vivir nuestro taxi. El estado debe contener información útil que el agente necesita para realizar la acción correcta.
 #
-# Digamos que tenemos un área de entrenamiento para nuestro Smartcab donde lo estamos enseñando a transportar personas en un estacionamiento a cuatro ubicaciones diferentes (R, G, Y, B):
+# Digamos que tenemos un área de entrenamiento para nuestro Smartcab donde le estamos enseñando a transportar personas en un estacionamiento a cuatro ubicaciones diferentes (R, G, Y, B):
 #
 # ![title](auto_autonomo.png)
 #
-# Supongamos que Smartcab es el único vehículo en este estacionamiento. Podemos dividir el estacionamiento en una cuadrícula de 5x5, lo que nos da 25 posibles ubicaciones de taxis. Estas 25 ubicaciones son una parte de nuestro espacio estatal. Observe que el estado de ubicación actual de nuestro taxi es la coordenada (3, 1).
+# Supongamos que Smartcab es el único vehículo en este estacionamiento. Podemos dividir el estacionamiento en una cuadrícula de 5x5, lo que nos da 25 posibles ubicaciones de taxis. Estas 25 ubicaciones son una parte de nuestro espacio de estados. Observemos que el estado de ubicación actual de nuestro taxi es la coordenada (3, 1).
 #
-# También notará que hay cuatro (4) ubicaciones en las que podemos recoger y dejar a un pasajero: R, G, Y, B o [(0,0), (0,4), (4,0), (4,3)]en las coordenadas (fila, columna). Nuestra pasajeros ilustrada está en una ubicación Y y que desean ir a la ubicación R .
+# También notarán que hay cuatro (4) ubicaciones en las que podemos recoger y dejar a un pasajero: R, G, Y, B o [(0,0), (0,4), (4,0), (4,3)] en las coordenadas (fila, columna). Nuestro pasajero ilustrado está en una ubicación Y y desea ir a la ubicación R .
 #
-# Cuando también contabilizamos un (1) estado adicional de pasajero dentro del taxi, podemos tomar todas las combinaciones de ubicaciones de pasajeros y ubicaciones de destino para llegar a un número total de estados para nuestro entorno de taxi; hay cuatro (4) destinos y cinco (4 + 1) ubicaciones de pasajeros.
+# Contabilizando un (1) estado adicional de pasajero dentro del taxi, podemos tomar todas las combinaciones de ubicaciones de pasajeros y ubicaciones de destino para llegar a un número total de estados para nuestro entorno de taxi; hay cuatro (4) destinos y cinco (4 + 1) ubicaciones de pasajeros.
 #
 # Entonces, nuestro entorno de taxis ha 5 × 5 × 5 × 4 = 500 estados posibles totales.
 #
-# ## 3. Espacio de acción
+# ## 3. Acciones
+#
 # El agente se encuentra con uno de los 500 estados y realiza una acción. La acción en nuestro caso puede ser moverse en una dirección o decidir recoger / dejar a un pasajero.
 #
 # En otras palabras, tenemos seis acciones posibles:
@@ -62,22 +64,24 @@
 #  
 # Este es el espacio de acción : el conjunto de todas las acciones que nuestro agente puede realizar en un estado determinado.
 #
-# Notarán en la ilustración de arriba, que el taxi no puede realizar ciertas acciones en ciertos estados debido a las paredes. En el código del entorno, simplemente proporcionaremos una penalización de -1 por cada golpe de pared y el taxi no se moverá a ningún lado. Esto solo acumulará multas y hará que el taxi considere dar la vuelta a la pared.
+# Notarán en la ilustración de arriba, que el taxi no puede realizar ciertas acciones en ciertos estados debido a las paredes. En el código del entorno, simplemente proporcionaremos una penalización de -1 por cada "golpe" a la pared y el taxi no se moverá a ningún lado. Esto solo acumulará multas y hará que el taxi considere dar la vuelta a la pared.
 #
 # ## Implementación con Python
+#
 # Afortunadamente, OpenAI Gym ya tiene este entorno exacto construido para nosotros.
 #
-# Gym proporciona diferentes entornos de juego que podemos conectar a nuestro código y probar un agente. La biblioteca se encarga de la API para proporcionar toda la información que nuestro agente requeriría, como posibles acciones, puntaje y estado actual. Solo necesitamos enfocarnos solo en la parte del algoritmo para nuestro agente.
+# Gym proporciona diferentes entornos de juego que podemos conectar a nuestro código y probar un agente. La biblioteca se encarga de la API para proporcionar toda la información que nuestro agente requeriría, como posibles acciones, puntaje y estado actual. Solo necesitamos enfocarnos en la parte del algoritmo para nuestro agente.
 #
-# Usaremos el entorno Gym llamado Taxi-V2, del que se extrajeron todos los detalles explicados anteriormente. Los objetivos, recompensas y acciones son todos iguales.
+# Usaremos el entorno Gym llamado Taxi-V3, del que se extrajeron todos los detalles explicados anteriormente. Los objetivos, recompensas y acciones son todos iguales.
 #
 # ## Interfaz del gimnasio
-# Necesitamos instalar gymprimero. Ejecutar lo siguiente en un cuaderno de Jupyter debería funcionar:
+#
+# Necesitamos primero instalar gym. Como sabemos eso podemos hacerlo mediante pip:
 # ```bash
 # pip install cmake 'gym[atari]' scipy
 # ```
 #
-# Una vez instalado, podemos cargar el entorno del juego y renderizar lo que parece:
+# Una vez instalado, podemos cargar el entorno del juego y renderizarlo:
 
 # +
 import gym
@@ -90,13 +94,13 @@ env.render()
 
 # La interfaz principal del gimnasio es env, que es la interfaz del entorno unificado. Los siguientes son los envmétodos que nos serían de gran ayuda:
 #
-#  - <mark>env.reset</mark>: Restablece el entorno y devuelve un estado inicial aleatorio.
-#  - <mark>env.step(action)</mark>: Paso el entorno en un paso de tiempo. Devoluciones
+#  - `env.reset`: Restablece el entorno y devuelve un estado inicial aleatorio.
+#  - `env.step(action)`: Paso el entorno en un paso de tiempo. Devoluciones
 #      - <b>observación</b> : Observaciones del medio ambiente
 #      - <b>recompensa</b> : si su acción fue beneficiosa o no
 #      - <b>done</b> : Indica si hemos recogido y dejado a un pasajero, también llamado episodio
 #      - <b>info</b> : información adicional como el rendimiento y la latencia para fines de depuración
-#  - <mark>env.render</mark>: Renderiza un fotograma del entorno (útil para visualizar el entorno)
+#  - `env.render`: Renderiza un fotograma del entorno (útil para visualizar el entorno)
 #  
 # ## Recordatorio de nuestro problema
 # Aquí está nuestra declaración de problema reestructurada (de los documentos de Gym):
@@ -147,9 +151,9 @@ env.render()
 
 # Estamos usando las coordenadas de nuestra ilustración para generar un número correspondiente a un estado entre 0 y 499, que resulta ser 328 para el estado de nuestra ilustración.
 #
-# Luego, podemos establecer el estado del entorno manualmente <mark>env.s</mark> usando ese número codificado. Puede jugar con los números y verá que el taxi, el pasajero y el destino se mueven.
+# Luego, podemos establecer el estado del entorno manualmente `env.s` usando ese número codificado. Puede jugar con los números y verá que el taxi, el pasajero y el destino se mueven.
 #
-# ## La mesa de recompensas
+# ## Recompensas
 #
 # Cuando se crea el entorno Taxi, también se crea una tabla de recompensas inicial, llamada "P". Podemos pensar en ello como una matriz que tiene el número de estados como filas y el número de acciones como columnas, es decir, una matriz de estados x acciones.
 #
@@ -157,24 +161,24 @@ env.render()
 
 env.P[328]
 
-# Este diccionario tiene la estructura <mark>{action: [(probability, nextstate, reward, done)]}</mark>.
+# Este diccionario tiene la estructura```{action: [(probability, nextstate, reward, done)]}```.
 #
 # Algunas cosas a tener en cuenta:
 #
 #  - El 0-5 corresponde a las acciones (sur, norte, este, oeste, recogida, bajada) que el taxi puede realizar en nuestro estado actual en la ilustración.
-#  - En este entorno, <mark>probability</mark> siempre es 1.0.
-#  - El <mark>nextstate</mark> es el estado en el que estaríamos si tomamos la acción en este índice del dict
+#  - En este entorno, `probability` siempre es 1.0.
+#  - El `nextstate` es el estado en el que estaríamos si tomamos la acción en este índice del dict
 #  - Todas las acciones de movimiento tienen una recompensa de -1 y las acciones de recoger / dejar tienen una recompensa de -10 en este estado en particular. Si estamos en un estado en el que el taxi tiene un pasajero y está en la parte superior del destino correcto, veríamos una recompensa de 20 en la acción de devolución (5)
-#  - <mark>done</mark> se utiliza para indicarnos cuándo hemos dejado a un pasajero en el lugar correcto. Cada abandono exitoso es el final de un <b>episodio</b>.
+#  - `done` se utiliza para indicarnos cuándo hemos dejado a un pasajero en el lugar correcto. Cada abandono exitoso es el final de un <b>episodio</b>.
 #  
 # Tenga en cuenta que si nuestro agente eligiera explorar la acción dos (2) en este estado, estaría yendo hacia el este contra una pared. El código fuente ha hecho imposible mover el taxi a través de una pared, por lo que si el taxi elige esa acción, seguirá acumulando -1 penalizaciones, lo que afecta la <b>recompensa a largo plazo</b>.
 #
 # ## Resolver el entorno sin aprendizaje por refuerzo
 # Veamos qué pasaría si intentamos utilizar la fuerza bruta para resolver el problema sin RL.
 #
-# Dado que tenemos nuestra <mark>P</mark> tabla de recompensas predeterminadas en cada estado, podemos intentar que nuestro taxi navegue solo con eso.
+# Dado que tenemos nuestra `P` tabla de recompensas predeterminadas en cada estado, podemos intentar que nuestro taxi navegue solo con eso.
 #
-# Crearemos un bucle infinito que se ejecutará hasta que un pasajero llegue a un destino (un episodio ), o en otras palabras, cuando la recompensa recibida sea 20. El <mark>env.action_space.sample()</mark> método selecciona automáticamente una acción aleatoria del conjunto de todas las acciones posibles.
+# Crearemos un bucle infinito que se ejecutará hasta que un pasajero llegue a un destino (un episodio ), o en otras palabras, cuando la recompensa recibida sea 20. El `env.action_space.sample()` método selecciona automáticamente una acción aleatoria del conjunto de todas las acciones posibles.
 #
 # Veamos qué pasa:
 #
@@ -239,13 +243,13 @@ print_frames(frames)
 # ### Refrescando Q-learning
 # Básicamente, Q-learning permite al agente usar las recompensas del entorno para aprender, con el tiempo, la mejor acción a tomar en un estado determinado.
 #
-# En nuestro entorno de Taxi, tenemos la tabla de recompensas <mark>P</mark>, de la que el agente aprenderá. Lo hace buscando recibir una recompensa por realizar una acción en el estado actual y luego actualizar un valor Q para recordar si esa acción fue beneficiosa.
+# En nuestro entorno de Taxi, tenemos la tabla de recompensas `P`, de la que el agente aprenderá. Lo hace buscando recibir una recompensa por realizar una acción en el estado actual y luego actualizar un valor Q para recordar si esa acción fue beneficiosa.
 #
-# Los valores almacenados en la tabla Q se denominan valores Q y se asignan a una <mark>(state, action)</mark> combinación.
+# Los valores almacenados en la tabla Q se denominan valores Q y se asignan a una `(state, action)` combinación.
 #
 # Un valor Q para una combinación particular de estado-acción es representativo de la "calidad" de una acción tomada desde ese estado. Mejores valores de Q implican mejores posibilidades de obtener mayores recompensas.
 #
-# Por ejemplo, si el taxi se enfrenta a un estado que incluye a un pasajero en su ubicación actual, es muy probable que el valor Q de <mark>pickup</mark> sea mayor en comparación con otras acciones, como <mark>dropoff</mark> o <mark>north</mark>.
+# Por ejemplo, si el taxi se enfrenta a un estado que incluye a un pasajero en su ubicación actual, es muy probable que el valor Q de `pickup` sea mayor en comparación con otras acciones, como `dropoff` o `north`.
 #
 # Los valores Q se inicializan a un valor arbitrario y, a medida que el agente se expone al entorno y recibe diferentes recompensas al ejecutar diferentes acciones, los valores Q se actualizan mediante la ecuación:
 #
@@ -286,15 +290,16 @@ print_frames(frames)
 #  - Si se alcanza el estado objetivo, finalice y repita el proceso.
 #  
 # ## Explotación de valores aprendidos
+#
 # Después de suficiente exploración aleatoria de acciones, los valores Q tienden a converger sirviendo a nuestro agente como una función de valor de acción que puede explotar para elegir la acción más óptima de un estado dado.
 #
-# Existe una compensación entre exploración (elegir una acción aleatoria) y explotación (elegir acciones basadas en valores Q ya aprendidos). Queremos evitar que la acción tome siempre la misma ruta y posiblemente se sobreajuste, por lo que introduciremos otro parámetro llamadoϵ "épsilon" para atender esto durante el entrenamiento.
+# Como vimos en la teórica existe un tradeoff entre exploración (elegir una acción aleatoria) y explotación (elegir acciones basadas en valores Q ya aprendidos). Queremos evitar que la acción tome siempre la misma ruta y posiblemente sobreajuste, por lo que introduciremos otro parámetro llamado ϵ "épsilon" para atender esto durante el entrenamiento.
 #
 # En lugar de simplemente seleccionar la acción de valor Q mejor aprendida, a veces preferimos explorar más el espacio de acción. Un valor épsilon más bajo da como resultado episodios con más penalizaciones (en promedio), lo cual es obvio porque estamos explorando y tomando decisiones al azar.
 #
 # ## Implementando Q-learning en Python
 #
-# Entrenando al Agente
+# ### Entrenando al Agente
 # Primero, inicializaremos la Q-table a un 500 × 6 matriz de ceros:
 
 import numpy as np
@@ -303,9 +308,9 @@ q_table = np.zeros([env.observation_space.n, env.action_space.n])
 
 # Ahora podemos crear el algoritmo de entrenamiento que actualizará esta Q-table a medida que el agente explora el entorno durante miles de episodios.
 #
-# En la primera parte de <mark>while not done</mark>, decidimos si elegir una acción aleatoria o explotar los valores Q ya calculados. Esto se hace simplemente usando el <mark>epsilon</mark> valor y comparándolo con la <mark>random.uniform(0, 1)</mark>función, que devuelve un número arbitrario entre 0 y 1.
+# En la primera parte de `while not done `, decidimos si elegir una acción aleatoria o explotar los valores Q ya calculados. Esto se hace simplemente usando el `epsilon` valor y comparándolo con la `random.uniform(0, 1`función, que devuelve un número arbitrario entre 0 y 1.
 #
-# Ejecutamos la acción elegida en el entorno para obtener el <mark>next_state</mark>y el <mark>reward</mark> de realizar la acción. Después de eso, calculamos el valor Q máximo para las acciones correspondientes a <mark>next_state</mark>, y con eso, podemos actualizar fácilmente nuestro valor Q a <mark>new_q_value</mark>:
+# Ejecutamos la acción elegida en el entorno para obtener el `next_state`y el `reward` de realizar la acción. Después de eso, calculamos el valor Q máximo para las acciones correspondientes a `next_state`, y con eso, podemos actualizar fácilmente nuestro valor Q a `new_q_value`:
 
 # +
 # %%time
@@ -399,5 +404,32 @@ print(f"Average penalties per episode: {total_penalties / episodes}")
 # -
 
 # Podemos ver en la evaluación que el desempeño del agente mejoró significativamente y no incurrió en penalizaciones, lo que significa que realizó las acciones correctas de recogida / devolución con 100 pasajeros diferentes.
+#
+# ## Hiperparámetros y optimizaciones
+# Los valores de `alpha`,` gamma` y `epsilon` se basaron principalmente en la intuición y en algunos "hit and trial", pero hay mejores formas de obtener buenos valores.
+#
+# Idealmente, los tres deberían disminuir con el tiempo porque a medida que el agente continúa aprendiendo, en realidad construye antecedentes más resistentes;
+#
+#  - α: (la tasa de aprendizaje) debería disminuir a medida que continúa adquiriendo una base de conocimientos cada vez más amplia.
+#  - γ: a medida que se acerca más y más al final, su preferencia por la recompensa a corto plazo debería aumentar, ya que no estará el tiempo suficiente para obtener la recompensa a largo plazo, lo que significa que su gamma debería disminuir.
+#  - ϵ: a medida que desarrollamos nuestra estrategia, tenemos menos necesidad de exploración y más explotación para obtener más utilidad de nuestra política, por lo que a medida que aumentan los ensayos, épsilon debería disminuir.
+#  
+# ## Ajuste de los hiperparámetros
+#
+# Una forma sencilla de generar mediante programación el mejor conjunto de valores del hiperparámetro es crear una función de búsqueda integral (similar a grid search) que seleccione los parámetros que darían como resultado la mejor proporción de recompensa/pasos. El motivo por el que establecemos recompensa/pasos es que queremos elegir parámetros que nos permitan obtener la máxima recompensa lo más rápido posible. Es posible que también deseemos realizar un seguimiento del número de penalizaciones correspondientes a la combinación de valores de hiperparámetro porque esto también puede ser un factor decisivo (no queremos que nuestro agente inteligente viole las reglas a costa de llegar más rápido). Una forma más elegante de obtener la combinación correcta de valores de hiperparámetros sería usar algoritmos genéticos (no lo vimos pero para que sepan).
+#
+# ## Conclusión y lo que viene
+#
+# Q-learning es uno de los algoritmos de aprendizaje por refuerzo más fáciles. Sin embargo, el problema con Q-earning es que, una vez que el número de estados en el entorno es muy alto, se vuelve difícil implementarlos con Q table ya que el tamaño se volvería muy, muy grande. Las técnicas de vanguardia utilizan redes neuronales profundas en lugar de Q-table (aprendizaje por refuerzo profundo). La red neuronal recibe información de estado y acciones en la capa de entrada y aprende a generar la acción correcta a lo largo del tiempo. Las técnicas de aprendizaje profundo (como las redes neuronales convolucionales) también se utilizan para interpretar los píxeles en la pantalla y extraer información del juego (como puntuaciones), y luego dejar que el agente controle el juego.
+#
+# Hemos hablado mucho sobre el aprendizaje por refuerzo y los juegos. Pero el aprendizaje por refuerzo no se limita solo a los juegos. Se utiliza para gestionar carteras de valores y finanzas, para hacer robots humanoides, para la fabricación y la gestión de inventarios, para desarrollar agentes de IA generales, que son agentes que pueden realizar varias cosas con un solo algoritmo, como el mismo agente que juega varios juegos de Atari. Open AI también tiene una plataforma llamada universo para medir y entrenar la inteligencia general de una IA en miles de juegos, sitios web y otras aplicaciones generales.
+#
+# ## Para que sigan ustedes
+# Si quieren continuar con este proyecto para mejorarlo, aqcá hay algunas cosas que puede agregar:
+#
+#  - Conviertir este código en un módulo de funciones que puede usar múltiples entornos
+#  - Tunear alfa, gamma y / o épsilon usando un decay sobre episodios
+#  - Implementar un grid search para descubrir los mejores hiperparámetros
+#
 
 
