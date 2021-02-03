@@ -418,7 +418,7 @@ print(f"Average penalties per episode: {total_penalties / episodes}")
 #
 # Una forma sencilla de generar mediante programación el mejor conjunto de valores del hiperparámetro es crear una función de búsqueda integral (similar a grid search) que seleccione los parámetros que darían como resultado la mejor proporción de recompensa/pasos. El motivo por el que establecemos recompensa/pasos es que queremos elegir parámetros que nos permitan obtener la máxima recompensa lo más rápido posible. Es posible que también deseemos realizar un seguimiento del número de penalizaciones correspondientes a la combinación de valores de hiperparámetro porque esto también puede ser un factor decisivo (no queremos que nuestro agente inteligente viole las reglas a costa de llegar más rápido). Una forma más elegante de obtener la combinación correcta de valores de hiperparámetros sería usar algoritmos genéticos (no lo vimos pero para que sepan).
 #
-# ## Conclusión y lo que viene
+# ## Conclusión 
 #
 # Q-learning es uno de los algoritmos de aprendizaje por refuerzo más fáciles. Sin embargo, el problema con Q-earning es que, una vez que el número de estados en el entorno es muy alto, se vuelve difícil implementarlos con Q table ya que el tamaño se volvería muy, muy grande. Las técnicas de vanguardia utilizan redes neuronales profundas en lugar de Q-table (aprendizaje por refuerzo profundo). La red neuronal recibe información de estado y acciones en la capa de entrada y aprende a generar la acción correcta a lo largo del tiempo. Las técnicas de aprendizaje profundo (como las redes neuronales convolucionales) también se utilizan para interpretar los píxeles en la pantalla y extraer información del juego (como puntuaciones), y luego dejar que el agente controle el juego.
 #
@@ -430,6 +430,7 @@ print(f"Average penalties per episode: {total_penalties / episodes}")
 #  - Conviertir este código en un módulo de funciones que puede usar múltiples entornos
 #  - Tunear alfa, gamma y / o épsilon usando un decay sobre episodios
 #  - Implementar un grid search para descubrir los mejores hiperparámetros
+#  - Usar otro enviroments! https://gym.openai.com/envs
 #
 
 
