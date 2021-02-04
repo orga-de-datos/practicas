@@ -433,4 +433,16 @@ print(f"Average penalties per episode: {total_penalties / episodes}")
 #  - Usar otro enviroments! https://gym.openai.com/envs
 #
 
+# +
+
+import time
+env = gym.make('Assault-ram-v0')
+env.reset()
+for _ in range(1000):
+    env.render()
+    env.step(env.action_space.sample()) # take a random action
+    time.sleep(0.005)
+env.close()
+# -
+
 
