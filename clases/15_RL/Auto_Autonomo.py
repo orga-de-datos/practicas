@@ -105,7 +105,7 @@ env.render()
 # ## Recordatorio de nuestro problema
 # Aquí está nuestra declaración de problema reestructurada (de los documentos de Gym):
 #
-# <i>"Hay 4 ubicaciones (etiquetadas con letras diferentes) y nuestro trabajo es recoger al pasajero en una ubicación y dejarlo en otra. Recibimos +20 puntos por una entrega exitosa y perdemos 1 punto por cada vez. paso que da. También hay una penalización de 10 puntos por acciones ilegales de recoger y dejar ".</i>
+# <i>"Hay 4 ubicaciones (etiquetadas con letras diferentes) y nuestro trabajo es recoger al pasajero en una ubicación y dejarlo en otra. Recibimos +20 puntos por una entrega exitosa y perdemos 1 punto por cada  paso que da. También hay una penalización de 10 puntos por acciones ilegales de recoger y dejar ".</i>
 #
 # Adentremonos más en la librería
 #
@@ -121,9 +121,9 @@ print("State Space {}".format(env.observation_space))
 
 #  - El <b>cuadrado relleno</b> representa el taxi, que es amarillo sin pasajero y verde con pasajero.
 #  - La <b>línea ("|")</b> representa una pared que el taxi no puede cruzar.
-#  - <b>R, G, Y, B</b> son las posibles ubicaciones de recogida y destino. La <b>letra azul</b> representa la ubicación actual de recogida de pasajeros y la <b>letra morada</b> es el destino actual.
+#  - <b>R, G, Y, B</b> son las posibles ubicaciones de recogida y destino. La <b>letra azul</b> representa la ubicación actual de recogida de pasajeros y la <b>letra rosa</b> es el destino actual.
 #  
-# Según lo verificado por las impresiones, tenemos un <b>Action Space</b> de tamaño 6 y un <b>State Space</b> de tamaño 500. Como verá, nuestro algoritmo RL no necesitará más información que estas dos cosas. Todo lo que necesitamos es una forma de identificar un estado de forma única asignando un número único a cada estado posible, y RL aprende a elegir un número de acción del 0 al 5 donde:
+# Según lo verificado por los output, tenemos un <b>Action Space</b> de tamaño 6 y un <b>State Space</b> de tamaño 500. Como verá, nuestro algoritmo RL no necesitará más información que estas dos cosas. Todo lo que necesitamos es una forma de identificar un estado de forma única asignando un número único a cada estado posible, y RL aprende a elegir un número de acción del 0 al 5 donde:
 #
 #  - 0 = sur
 #  - 1 = norte
@@ -131,11 +131,12 @@ print("State Space {}".format(env.observation_space))
 #  - 3 = oeste
 #  - 4 = recogida
 #  - 5 = abandono
-# Recuerde que los 500 estados corresponden a una codificación de la ubicación del taxi, la ubicación del pasajero y la ubicación de destino.
+#  
+# Recuerden que los 500 estados corresponden a una codificación de la ubicación del taxi, la ubicación del pasajero y la ubicación de destino.
 #
 # El aprendizaje por refuerzo aprenderá un mapeo de <b>estados</b> para la <b>acción</b> óptima a realizar en ese estado por exploración , es decir, el agente explora el entorno y toma acciones basadas en recompensas definidas en el entorno.
 #
-# La acción óptima para cada estado es la acción que tiene la <b>recompensa acumulativa a largo plazo más alta</b> .
+# La acción óptima para cada estado es la acción que tiene la <b>recompensa acumulada más alta a largo plazo </b> .
 #
 # ## Volvamos a nuestra ilustración
 #
@@ -365,7 +366,7 @@ print("Training finished.\n")
 
 q_table[328]
 
-# El valor máximo de Q es "norte" (-1,971), por lo que parece que Q-learning ha aprendido efectivamente la mejor acción a realizar en el estado de nuestra ilustración.
+# El valor máximo de Q es "norte" (-2,273, puede variar en cada corrida), por lo que parece que Q-learning ha aprendido efectivamente la mejor acción a realizar en el estado de nuestra ilustración.
 #
 # ## Evaluando al agente
 #
