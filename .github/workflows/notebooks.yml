@@ -19,19 +19,21 @@ jobs:
           pipx install jupytext
           pip install -r requirements.txt
       - name: Compilar notebooks
-        continue-on-error: true
         run: |
           for D in clases/*/; do jupytext --to notebook --execute ${D}*.py || true; done
       - name: Copiar notebooks
+        if: always()
         run: |
           mkdir -p build/notebooks
           cp clases/**/*.ipynb --parents build/notebooks
           cp requirements.txt build/notebooks/clases
       - name: Install SSH Client 🔑
+        if: always()
         uses: webfactory/ssh-agent@v0.4.1
         with:
           ssh-private-key: ${{ secrets.DEPLOY_KEY }}
       - name: Deployar notebooks 📓🚀
+        if: always()
         uses: JamesIves/github-pages-deploy-action@3.7.1
         with:
           BRANCH: notebooks
