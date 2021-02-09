@@ -83,7 +83,7 @@
 #
 # Una vez instalado, podemos cargar el entorno del juego y renderizarlo:
 
-# +
+# + jupyter={"source_hidden": true}
 import gym
 
 env = gym.make("Taxi-v3").env
@@ -123,7 +123,7 @@ print("State Space {}".format(env.observation_space))
 #  - La <b>línea ("|")</b> representa una pared que el taxi no puede cruzar.
 #  - <b>R, G, Y, B</b> son las posibles ubicaciones de recogida y destino. La <b>letra azul</b> representa la ubicación actual de recogida de pasajeros y la <b>letra rosa</b> es el destino actual.
 #  
-# Según lo verificado por los output, tenemos un <b>Action Space</b> de tamaño 6 y un <b>State Space</b> de tamaño 500. Como verá, nuestro algoritmo RL no necesitará más información que estas dos cosas. Todo lo que necesitamos es una forma de identificar un estado de forma única asignando un número único a cada estado posible, y RL aprende a elegir un número de acción del 0 al 5 donde:
+# Según lo verificado por los output, tenemos un <b>Action Space</b> de tamaño 6 y un <b>State Space </b> de tamaño 500. Como verá, nuestro algoritmo RL no necesitará más información que estas dos cosas. Todo lo que necesitamos es una forma de identificar un estado de forma única asignando un número único a cada estado posible, y RL aprende a elegir un número de acción del 0 al 5 donde:
 #
 #  - 0 = sur
 #  - 1 = norte
