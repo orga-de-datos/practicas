@@ -9,7 +9,7 @@
 #       format_version: '1.5'
 #       jupytext_version: 1.6.0
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (venv)
 #     language: python
 #     name: python3
 # ---
@@ -49,9 +49,52 @@ from scipy.stats import randint as sp_randint
 import nltk
 from gensim.models.doc2vec import Doc2Vec
 
+
+# +
+import requests
+
+
+def download_file_from_google_drive(id, destination):
+    URL = "https://docs.google.com/uc?export=download"
+
+    session = requests.Session()
+
+    response = session.get(URL, params={'id': id}, stream=True)
+    token = get_confirm_token(response)
+
+    if token:
+        params = {'id': id, 'confirm': token}
+        response = session.get(URL, params=params, stream=True)
+
+    save_response_content(response, destination)
+
+
+def get_confirm_token(response):
+    for key, value in response.cookies.items():
+        if key.startswith('download_warning'):
+            return value
+
+    return None
+
+
+def save_response_content(response, destination):
+    CHUNK_SIZE = 32768
+
+    with open(destination, "wb") as f:
+        for chunk in response.iter_content(CHUNK_SIZE):
+            if chunk:  # filter out keep-alive new chunks
+                f.write(chunk)
+
+
 # -
 
-df = pd.read_csv('https://drive.google.com/uc?export=download&id=1hIvsFSunMsYivzVxuAKcjIrJScOUNBTr')
+download_file_from_google_drive(
+    "1hIvsFSunMsYivzVxuAKcjIrJScOUNBTr", "kindle_reviews.csv"
+)
+
+df = pd.read_csv("kindle_reviews.csv")
+
+df.columns
 
 # Comencemos por ver un poco los datos
 
