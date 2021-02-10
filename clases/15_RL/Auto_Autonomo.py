@@ -9,7 +9,7 @@
 #       format_version: '1.5'
 #       jupytext_version: 1.6.0
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (venv)
 #     language: python
 #     name: python3
 # ---
@@ -22,7 +22,7 @@
 #  - Deje al pasajero en el lugar correcto.
 #  - Ahorre tiempo al pasajero tomando el mínimo tiempo posible para dejar
 #  - Cuide la seguridad de los pasajeros y las normas de tránsito.
-#  
+#
 # Como ya vimos, hay diferentes aspectos que deben considerarse aquí al modelar una solución de RL para este problema: recompensas, estados y acciones.
 #
 # ## 1. Recompensas
@@ -31,7 +31,7 @@
 #  - El agente debe recibir una alta recompensa positiva por un abandono exitoso porque este comportamiento es muy deseado
 #  - El agente debe ser penalizado si intenta dejar a un pasajero en lugares incorrectos.
 #  - El agente debería obtener una recompensa levemente negativa por no llegar al destino después de cada paso de tiempo. "Ligeramente" negativo porque preferiríamos que nuestro agente llegara tarde en lugar de hacer movimientos equivocados tratando de llegar al destino lo más rápido posible
-#  
+#
 # ## 2. Estados
 # En el aprendizaje por refuerzo, el agente se encuentra con un estado y luego actúa de acuerdo con el estado en el que se encuentra.
 #
@@ -61,7 +61,7 @@
 #  4. west
 #  5. pickup
 #  6. dropoff
-#  
+#
 # Este es el espacio de acción : el conjunto de todas las acciones que nuestro agente puede realizar en un estado determinado.
 #
 # Notarán en la ilustración de arriba, que el taxi no puede realizar ciertas acciones en ciertos estados debido a las paredes. En el código del entorno, simplemente proporcionaremos una penalización de -1 por cada "golpe" a la pared y el taxi no se moverá a ningún lado. Esto solo acumulará multas y hará que el taxi considere dar la vuelta a la pared.
@@ -101,7 +101,7 @@ env.render()
 #      - <b>done</b> : Indica si hemos recogido y dejado a un pasajero, también llamado episodio
 #      - <b>info</b> : información adicional como el rendimiento y la latencia para fines de depuración
 #  - `env.render`: Renderiza un fotograma del entorno (útil para visualizar el entorno)
-#  
+#
 # ## Recordatorio de nuestro problema
 # Aquí está nuestra declaración de problema reestructurada (de los documentos de Gym):
 #
@@ -112,7 +112,7 @@ env.render()
 #
 
 # +
-env.reset() # reset environment to a new, random state
+env.reset()  # reset environment to a new, random state
 env.render()
 
 print("Action Space {}".format(env.action_space))
@@ -122,7 +122,7 @@ print("State Space {}".format(env.observation_space))
 #  - El <b>cuadrado relleno</b> representa el taxi, que es amarillo sin pasajero y verde con pasajero.
 #  - La <b>línea ("|")</b> representa una pared que el taxi no puede cruzar.
 #  - <b>R, G, Y, B</b> son las posibles ubicaciones de recogida y destino. La <b>letra azul</b> representa la ubicación actual de recogida de pasajeros y la <b>letra rosa</b> es el destino actual.
-#  
+#
 # Según lo verificado por los output, tenemos un <b>Action Space</b> de tamaño 6 y un <b>State Space</b> de tamaño 500. Como verá, nuestro algoritmo RL no necesitará más información que estas dos cosas. Todo lo que necesitamos es una forma de identificar un estado de forma única asignando un número único a cada estado posible, y RL aprende a elegir un número de acción del 0 al 5 donde:
 #
 #  - 0 = sur
@@ -131,7 +131,7 @@ print("State Space {}".format(env.observation_space))
 #  - 3 = oeste
 #  - 4 = recogida
 #  - 5 = abandono
-#  
+#
 # Recuerden que los 500 estados corresponden a una codificación de la ubicación del taxi, la ubicación del pasajero y la ubicación de destino.
 #
 # El aprendizaje por refuerzo aprenderá un mapeo de <b>estados</b> para la <b>acción</b> óptima a realizar en ese estado por exploración , es decir, el agente explora el entorno y toma acciones basadas en recompensas definidas en el entorno.
@@ -143,7 +143,9 @@ print("State Space {}".format(env.observation_space))
 # De hecho, podemos tomar nuestra ilustración anterior, codificar su estado y dárselo al entorno para que se renderice en Gym. Recuerde que tenemos el taxi en la fila 3, columna 1, nuestro pasajero está en la ubicación 2 y nuestro destino es la ubicación 0. Usando el método de codificación de estado Taxi-v2, podemos hacer lo siguiente:
 
 # +
-state = env.encode(3, 1, 2, 0) # (taxi row, taxi column, passenger index, destination index)
+state = env.encode(
+    3, 1, 2, 0
+)  # (taxi row, taxi column, passenger index, destination index)
 print("State:", state)
 
 env.s = state
@@ -171,7 +173,7 @@ env.P[328]
 #  - El `nextstate` es el estado en el que estaríamos si tomamos la acción en este índice del dict
 #  - Todas las acciones de movimiento tienen una recompensa de -1 y las acciones de recoger / dejar tienen una recompensa de -10 en este estado en particular. Si estamos en un estado en el que el taxi tiene un pasajero y está en la parte superior del destino correcto, veríamos una recompensa de 20 en la acción de devolución (5)
 #  - `done` se utiliza para indicarnos cuándo hemos dejado a un pasajero en el lugar correcto. Cada abandono exitoso es el final de un <b>episodio</b>.
-#  
+#
 # Tenga en cuenta que si nuestro agente eligiera explorar la acción dos (2) en este estado, estaría yendo hacia el este contra una pared. El código fuente ha hecho imposible mover el taxi a través de una pared, por lo que si el taxi elige esa acción, seguirá acumulando -1 penalizaciones, lo que afecta la <b>recompensa a largo plazo</b>.
 #
 # ## Resolver el entorno sin aprendizaje por refuerzo
@@ -191,7 +193,7 @@ env.s = 328  # set environment to illustration's state
 epochs = 0
 penalties, reward = 0, 0
 
-frames = [] # for animation
+frames = []  # for animation
 
 done = False
 
@@ -201,25 +203,27 @@ while not done:
 
     if reward == -10:
         penalties += 1
-    
+
     # Put each rendered frame into dict for animation
-    frames.append({
-        'frame': env.render(mode='ansi'),
-        'state': state,
-        'action': action,
-        'reward': reward
+    frames.append(
+        {
+            'frame': env.render(mode='ansi'),
+            'state': state,
+            'action': action,
+            'reward': reward,
         }
     )
 
     epochs += 1
-    
-    
+
+
 print("Timesteps taken: {}".format(epochs))
 print("Penalties incurred: {}".format(penalties))
 
 # +
 from IPython.display import clear_output
 from time import sleep
+
 
 def print_frames(frames):
     for i, frame in enumerate(frames):
@@ -229,8 +233,9 @@ def print_frames(frames):
         print(f"State: {frame['state']}")
         print(f"Action: {frame['action']}")
         print(f"Reward: {frame['reward']}")
-        sleep(.1)
-        
+        sleep(0.1)
+
+
 print_frames(frames)
 # -
 
@@ -289,7 +294,7 @@ print_frames(frames)
 #  - Actualice los valores de la tabla Q utilizando la ecuación.
 #  - Establezca el siguiente estado como el estado actual.
 #  - Si se alcanza el estado objetivo, finalice y repita el proceso.
-#  
+#
 # ## Explotación de valores aprendidos
 #
 # Después de suficiente exploración aleatoria de acciones, los valores Q tienden a converger sirviendo a nuestro agente como una función de valor de acción que puede explotar para elegir la acción más óptima de un estado dado.
@@ -304,6 +309,7 @@ print_frames(frames)
 # Primero, inicializaremos la Q-table a un 500 × 6 matriz de ceros:
 
 import numpy as np
+
 q_table = np.zeros([env.observation_space.n, env.action_space.n])
 
 
@@ -334,18 +340,18 @@ for i in range(1, 100001):
 
     epochs, penalties, reward, = 0, 0, 0
     done = False
-    
+
     while not done:
         if random.uniform(0, 1) < epsilon:
-            action = env.action_space.sample() # Explore action space
+            action = env.action_space.sample()  # Explore action space
         else:
-            action = np.argmax(q_table[state]) # Exploit learned values
+            action = np.argmax(q_table[state])  # Exploit learned values
 
-        next_state, reward, done, info = env.step(action) 
-        
+        next_state, reward, done, info = env.step(action)
+
         old_value = q_table[state, action]
         next_max = np.max(q_table[next_state])
-        
+
         new_value = (1 - alpha) * old_value + alpha * (reward + gamma * next_max)
         q_table[state, action] = new_value
 
@@ -354,7 +360,7 @@ for i in range(1, 100001):
 
         state = next_state
         epochs += 1
-        
+
     if i % 100 == 0:
         clear_output(wait=True)
         print(f"Episode: {i}")
@@ -383,9 +389,9 @@ episodes = 100
 for _ in range(episodes):
     state = env.reset()
     epochs, penalties, reward = 0, 0, 0
-    
+
     done = False
-    
+
     while not done:
         action = np.argmax(q_table[state])
         state, reward, done, info = env.step(action)
@@ -414,12 +420,12 @@ print(f"Average penalties per episode: {total_penalties / episodes}")
 #  - α: (la tasa de aprendizaje) debería disminuir a medida que continúa adquiriendo una base de conocimientos cada vez más amplia.
 #  - γ: a medida que se acerca más y más al final, su preferencia por la recompensa a corto plazo debería aumentar, ya que no estará el tiempo suficiente para obtener la recompensa a largo plazo, lo que significa que su gamma debería disminuir.
 #  - ϵ: a medida que desarrollamos nuestra estrategia, tenemos menos necesidad de exploración y más explotación para obtener más utilidad de nuestra política, por lo que a medida que aumentan los ensayos, épsilon debería disminuir.
-#  
+#
 # ## Ajuste de los hiperparámetros
 #
 # Una forma sencilla de generar mediante programación el mejor conjunto de valores del hiperparámetro es crear una función de búsqueda integral (similar a grid search) que seleccione los parámetros que darían como resultado la mejor proporción de recompensa/pasos. El motivo por el que establecemos recompensa/pasos es que queremos elegir parámetros que nos permitan obtener la máxima recompensa lo más rápido posible. Es posible que también deseemos realizar un seguimiento del número de penalizaciones correspondientes a la combinación de valores de hiperparámetro porque esto también puede ser un factor decisivo (no queremos que nuestro agente inteligente viole las reglas a costa de llegar más rápido). Una forma más elegante de obtener la combinación correcta de valores de hiperparámetros sería usar algoritmos genéticos (no lo vimos pero para que sepan).
 #
-# ## Conclusión 
+# ## Conclusión
 #
 # Q-learning es uno de los algoritmos de aprendizaje por refuerzo más fáciles. Sin embargo, el problema con Q-earning es que, una vez que el número de estados en el entorno es muy alto, se vuelve difícil implementarlos con Q table ya que el tamaño se volvería muy, muy grande. Las técnicas de vanguardia utilizan redes neuronales profundas en lugar de Q-table (aprendizaje por refuerzo profundo). La red neuronal recibe información de estado y acciones en la capa de entrada y aprende a generar la acción correcta a lo largo del tiempo. Las técnicas de aprendizaje profundo (como las redes neuronales convolucionales) también se utilizan para interpretar los píxeles en la pantalla y extraer información del juego (como puntuaciones), y luego dejar que el agente controle el juego.
 #
@@ -434,16 +440,21 @@ print(f"Average penalties per episode: {total_penalties / episodes}")
 #  - Usar otro enviroments! https://gym.openai.com/envs
 #
 
-# +
+import gym
+from IPython import display
+import matplotlib
+import matplotlib.pyplot as plt
 
 import time
+
 env = gym.make('Assault-ram-v0')
 env.reset()
+plt.figure(figsize=(9, 9))
+img = plt.imshow(env.render(mode='rgb_array'))
 for _ in range(1000):
-    env.render()
-    env.step(env.action_space.sample()) # take a random action
+    img.set_data(env.render(mode='rgb_array'))  # just update the data
+    display.display(plt.gcf())
+    display.clear_output(wait=True)
+    env.step(env.action_space.sample())  # take a random action
     time.sleep(0.005)
 env.close()
-# -
-
-
