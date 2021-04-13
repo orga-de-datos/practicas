@@ -7,9 +7,9 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.1
+#       jupytext_version: 1.6.0
 #   kernelspec:
-#     display_name: Python 3 (venv)
+#     display_name: Python 3
 #     language: python
 #     name: python3
 # ---
@@ -50,7 +50,9 @@ df = pd.read_csv("superheroes.csv")
 
 # ## Inspeccionando un dataframe
 
-# vemos los primeros elementos
+# A los items individuales se los suele llamar _samples_ y a sus propiedades _features_.
+
+# vemos los primeros elementos o samples
 df.head()
 
 df.tail()
@@ -58,6 +60,10 @@ df.tail()
 df.sample()
 
 df.sample(10)
+
+# La estructura de un dataset se puede obtener mediante _shape_. Devuelve el número de samples y el número de features.
+
+df.shape
 
 # ## Información sobre un dataframe
 
@@ -117,9 +123,9 @@ df[['Race', 'Skin color']]
 
 # ## Obtener filas
 
-condition = df['Skin color'] == 'blue'
+piel_azul = df['Skin color'] == 'blue'
 
-condition.head()
+piel_azul.head()
 
 # Si ahora queremos filtrar y quedarnos solamente con los datos que cumplen la condición:
 
@@ -354,15 +360,15 @@ df.name.apply(lambda x: x.lower())
 
 # ### Timestamp
 
-pd.Timestamp("2020-09-30 04:32:18 PM")
+pd.Timestamp("2020-04-14 04:32:18 PM")
 
 # ### DatetimeIndex
 
-fechas = ['2020-03-20', '2020-03-18', '2020/09/30']
+fechas = ['2021-03-21', '2021-09-21', '2021/12/21']
 indice_fechas = pd.DatetimeIndex(fechas)
 indice_fechas
 
-descripciones = ['cuarentena', 'cumpleañito', 'hoy']
+descripciones = ['otoño', 'primavera', 'verano']
 desc_serie = pd.Series(data=descripciones, index=indice_fechas)
 desc_serie
 
@@ -411,7 +417,6 @@ bicis_df = bicis_df.sort_index()
 bicis_df.loc['2012-11-19 20:00:00':'2012-12-30 20:00:00']
 
 bicis_df.truncate(before='2012-11-19 22:00:00', after='2012-12-01 00:00:00')
-# -
 
 # ### `dt` accessor
 
@@ -422,7 +427,7 @@ fechas_series
 fechas_series.dt.second
 
 fechas_series = pd.date_range(
-    start='22/06/2019', end='28/06/2019', freq='D'
+    start='04/12/2021', end='04/18/2021', freq='D'
 ).to_series()
 fechas_series.dt.dayofweek
 

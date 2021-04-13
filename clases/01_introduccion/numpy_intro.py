@@ -7,9 +7,9 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.1
+#       jupytext_version: 1.6.0
 #   kernelspec:
-#     display_name: Python 3 (venv)
+#     display_name: Python 3
 #     language: python
 #     name: python3
 # ---
@@ -65,13 +65,21 @@ print()
 
 print('Recortada: ')
 print(matriz_de_enteros[:2, :3])
-# -
 
+# +
 # 3D
+# arange() genera valores de un intervalo pasado por parámetro
+# reshape() modifica la forma del numpy array
+
 x = np.arange(45).reshape(3, 3, 5)
 x
+# -
 
 x[0]
+
+x[0][1]
+
+x[0][1][2]
 
 #
 # ¿Cómo conseguimos estos valores? ([fuente](https://towardsdatascience.com/indexing-and-slicing-of-1d-2d-and-3d-arrays-in-numpy-e731afff0bbe))
@@ -110,6 +118,8 @@ a
 
 # Existen varias operaciones para cambiar la forma de un arreglo de numpy
 
+matriz_de_enteros
+
 # +
 # Obtener las dimensiones del arreglo
 
@@ -124,6 +134,7 @@ matriz_de_enteros.shape
 # Modificar la forma de un arreglo
 
 enteros = np.array([3, 6, 9, 12])
+print(f"enteros: {enteros}")
 np.reshape(enteros, (2, 2))
 
 # +
@@ -171,6 +182,7 @@ a + 2
 a ** 2
 
 b = np.ones(4)
+print(f"b: {b}")
 a + b
 
 # ### Estadística
@@ -209,7 +221,9 @@ a
 b = np.array([5, 2, 1, 8])
 print(f"a: {a.shape}")
 print(f"b: {b.shape}")
-a + b
+# a + b
+print()
+print(f"a + b:\n {a + b}")
 
 # + tags=["raises-exception"]
 # Armamos un array que tenga distinta cantidad de filas y columnas que a
@@ -225,5 +239,8 @@ print(f"a: {a.shape}")
 print(f"b: {b.shape}")
 a + b
 
+# Si b es un entero
 b = 4
 a + b
+
+
