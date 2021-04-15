@@ -65,7 +65,7 @@ El link de los datos se encuentra en: TODO-link al drice
 
 
 ### Fecha de Entrega
-- Entrega del notebook: Miercoles 12 de mayo. Al mail orga.datos.fiuba@gmail.com
+- Entrega del notebook: Miercoles 12 de mayo. En un repo de github PRIVADO compartido al mail orga.datos.fiuba@gmail.com
 - Defensa oral del tp: Martes 18 de mayo.
 
 ### Condiciones de una entrega válida:
