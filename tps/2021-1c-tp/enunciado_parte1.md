@@ -57,9 +57,23 @@ Se espera que presenten el notebook en una charla de 20 minutos y dijeron que qu
 
 ### Explicación de los datos recolectados:
 
-TODO: poner explicacion de los campos
+**edad**: numero, indica la edad   
+**categoria_de_trabajo**: texto, cada valor indica el tipo de trabajo  
+**educacion_alcanzada**: text, cada valor indica la educacion alcanzada  
+**anios_estudiados**: numero, indica la cantidad de años que estudió  
+**estado_marital**: texto, indica el estado marital  
+**trabajo**: texto, indica que tipo de trabajo realiza  
+**rol_familiar_registrado**: texto, indica que rol tiene dentro del grupo familiar  
+**religion**: texto, indica a que religion pertenece  
+**genero**: texto, indica genero  
+**horas_trabajo_registradas**: numero, indica la cantidad de horas que trabaja por semana  
+**barrio**: texto, indica que barrio de capital reside  
+**income**: numero (variable tarjet) indica si tiene alto valor adquisitivo(valor 1) o bajo
+valor adquisitivo(valor 0)  
+**ganancia_perdida_declarada_bolsa_argentina**: numero, indica el resultado de las operaciones 
+en bolsa que realizó durante el ultimo año.  
 
-Nota: algunos campos en la encuesta **pueden estar vacíos**.
+Nota: algunos campos en la encuesta **pueden estar vacíos**.  
 
 El link de los datos se encuentra en: TODO-link al drice
 
