@@ -51,36 +51,36 @@ anteriores puntos.
    
 Se espera que presenten el notebook en una charla de 20 minutos y dijeron que quieren explícitamente el formato:
 - pregunta
-- grafico/s para responder esa pregunta.
-- por cada grafico quieren un comentario escrito de que se interpreta en el mismo
-- respuesta a la pregunta en base a todos los grafico y análisis de los mismos
+- gráfico/s para responder esa pregunta
+- por cada gráfico quieren un comentario escrito de que se interpreta en el mismo
+- respuesta a la pregunta en base a todos los gráficos y análisis de los mismos
 
 ### Explicación de los datos recolectados:
 
-**edad**: numero, indica la edad   
+**edad**: número, indica la edad   
 **categoria_de_trabajo**: texto, cada valor indica el tipo de trabajo  
-**educacion_alcanzada**: text, cada valor indica la educacion alcanzada  
-**anios_estudiados**: numero, indica la cantidad de años que estudió  
+**educacion_alcanzada**: texto, cada valor indica la educación alcanzada  
+**anios_estudiados**: número, indica la cantidad de años que estudió  
 **estado_marital**: texto, indica el estado marital  
 **trabajo**: texto, indica que tipo de trabajo realiza  
 **rol_familiar_registrado**: texto, indica que rol tiene dentro del grupo familiar  
-**religion**: texto, indica a que religion pertenece  
-**genero**: texto, indica genero  
-**horas_trabajo_registradas**: numero, indica la cantidad de horas que trabaja por semana  
+**religion**: texto, indica a que religión pertenece  
+**genero**: texto, indica género  
+**horas_trabajo_registradas**: número, indica la cantidad de horas que trabaja por semana  
 **barrio**: texto, indica que barrio de capital reside  
-**income**: numero (variable tarjet) indica si tiene alto valor adquisitivo(valor 1) o bajo
-valor adquisitivo(valor 0)  
-**ganancia_perdida_declarada_bolsa_argentina**: numero, indica el resultado de las operaciones 
-en bolsa que realizó durante el ultimo año.  
+**income**: número (variable target) indica si tiene alto valor adquisitivo (valor 1) o bajo
+valor adquisitivo (valor 0)  
+**ganancia_perdida_declarada_bolsa_argentina**: número, indica el resultado de las operaciones 
+en bolsa que realizó durante el último año.  
 
 Nota: algunos campos en la encuesta **pueden estar vacíos**.  
 
-El link de los datos se encuentra en: TODO-link al drice
+El link de los datos se encuentra en: https://docs.google.com/spreadsheets/d/1-DWTP8uwVS-dZY402-dm0F9ICw_6PNqDGLmH0u8Eqa0/edit?usp=sharing
 
 
 ### Fecha de Entrega
 - Entrega del notebook: Miercoles 12 de mayo. En un repo de github PRIVADO compartido al mail orga.datos.fiuba@gmail.com
-- Defensa oral del tp: Martes 18 de mayo.
+- Defensa oral del TP: Martes 18 de mayo.
 
 ### Condiciones de una entrega válida:
 - El notebook debe poder ser ejecutado de forma secuencial de principio a fin por su corrector, todas las dependencias 
