@@ -68,7 +68,7 @@ Se espera que presenten el notebook en una charla de 20 minutos y dijeron que qu
 **genero**: texto, indica género  
 **horas_trabajo_registradas**: número, indica la cantidad de horas que trabaja por semana  
 **barrio**: texto, indica que barrio de capital reside  
-**income**: número (variable target) indica si tiene alto valor adquisitivo (valor 1) o bajo
+**tiene_alto_valor_adquisitivo**: número (variable target) indica si tiene alto valor adquisitivo (valor 1) o bajo
 valor adquisitivo (valor 0)  
 **ganancia_perdida_declarada_bolsa_argentina**: número, indica el resultado de las operaciones 
 en bolsa que realizó durante el último año.  
