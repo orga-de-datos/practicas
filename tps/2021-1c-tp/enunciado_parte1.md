@@ -73,7 +73,9 @@ valor adquisitivo (valor 0)
 **ganancia_perdida_declarada_bolsa_argentina**: número, indica el resultado de las operaciones 
 en bolsa que realizó durante el último año.  
 
-Nota: algunos campos en la encuesta **pueden estar vacíos**.  
+Nota1: algunos campos en la encuesta **pueden estar vacíos**.  
+Nota2: San Isidro es un valor valido en el campo barrio  
+Nota3: el valor de orden en el campo educacion_alcanzada es x_grado < x_anio < universidad_x_anio  
 
 El link de los datos se encuentra en: https://docs.google.com/spreadsheets/d/1-DWTP8uwVS-dZY402-dm0F9ICw_6PNqDGLmH0u8Eqa0/edit?usp=sharing
 
