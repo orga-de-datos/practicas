@@ -101,6 +101,14 @@ _Nota_: Esto se debe hacer en la terminal donde hemos dejado levantado el server
 ## Comprobación del entorno
 Con estos pasos ejecutados, se debería abrir en el navegador la interfaz de jupyterlab. Probar ejecutar algún notebook.
 
+# Levantar el entorno con docker/podman
+Desde el repo clonado:
+```bash
+docker build -t jupyter_datos .
+docker run -p 127.0.0.1:8888:8888 jupyter_datos
+```
+
+
 # Entorno de desarrollo
 Esta sección es relevante para docentes y quien quiera contribuir a este repositorio. Las secciones siguientes explican los pasos adicionales requeridos para contribuir y los jobs de `Github actions` que hacen el deploy de todo.
 
