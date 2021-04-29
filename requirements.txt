@@ -8,7 +8,6 @@ ipympl==0.5.8
 ipywidgets==7.5.1
 isort==4.3.21
 jupyterlab==2.2.9
-jupytext==1.6.0
 keras==2.3.1
 lightgbm==3.0.0
 matplotlib==3.3.2
@@ -17,7 +16,6 @@ nltk
 pandas==1.1.4
 pandas-profiling==2.8.0
 plotly==4.12.0
-pre-commit==2.8.2
 progressbar2
 python-louvain==0.14
 requests==2.24.0
