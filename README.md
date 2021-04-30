@@ -6,7 +6,7 @@ Este repositorio contiene los notebooks de las clases prácticas y la guía de e
 Consultar la siguiente sección para instalar correctamente el entorno y poder ejecutarlos localmente. Alternativamente, desde los badges se puede ejecutar desde el navegador utilizando [binder](https://mybinder.org) o [google colaboratory](https://colab.research.google.com).
 
 # Guía de instalación del entorno
-La siguiente guía supone que se está usando ubuntu. Se ha probado en una instalación limpia de ubuntu 20.04. Cualquier problema que pueda surgir, consultar por slack ([leer esto primero](#como-hacer-buenas-preguntas-por-slack)).
+La siguiente guía supone que se está usando ubuntu. Se ha probado en una instalación limpia de ubuntu 20.10. Cualquier problema que pueda surgir, consultar por slack ([leer esto primero](#como-hacer-buenas-preguntas-por-slack)).
 
 Leer atentamente **toda** la guía antes de proceder.
 
@@ -16,7 +16,7 @@ Primero tenemos que asegurarnos de tener instaladas las dependencias del sistema
 ```bash
 # add-apt-repository universe
 # apt update
-# apt install --yes python3 python3-dev python3-virtualenv python3-pip git
+# apt install --yes python3 python3-dev python3-virtualenv python3-pip git graphviz make cmake
 ```
 
 ## Clonar el repositorio
@@ -62,10 +62,11 @@ pip install -r requirements.txt
 Vamos a usar el comando `[labextension](https://jupyterlab.readthedocs.io/en/stable/user/extensions.html)` para instalar algunos plugins usados durante la cursada. Previamente necesitamos instalar [node.js](https://nodejs.org/en/).
 
 ```bash
-# apt install apt install curl
+# apt install -y curl
 $ curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
-$ source ~/.profile
+$ source ~/.bashrc
 $ nvm install node
+$ source ~/.bashrc
 ```
 
 ### Jupyter widgets
