@@ -5,10 +5,10 @@ Este repositorio contiene los notebooks de las clases prácticas y la guía de e
 
 Consultar la siguiente sección para instalar correctamente el entorno y poder ejecutarlos localmente. Alternativamente, desde los badges se puede ejecutar desde el navegador utilizando [binder](https://mybinder.org) o [google colaboratory](https://colab.research.google.com).
 
-
-
 # Guía de instalación del entorno
-La siguiente guía supone que se está usando ubuntu. Se ha probado en una instalación limpia de ubuntu 20.04. Cualquier problema que pueda surgir, consultar por slack.
+La siguiente guía supone que se está usando ubuntu. Se ha probado en una instalación limpia de ubuntu 20.04. Cualquier problema que pueda surgir, consultar por slack ([leer esto primero](#como-hacer-buenas-preguntas-por-slack)).
+
+Leer atentamente **toda** la guía antes de proceder.
 
 ## Dependencias del sistema
 Primero tenemos que asegurarnos de tener instaladas las dependencias del sistema.
@@ -19,7 +19,6 @@ Primero tenemos que asegurarnos de tener instaladas las dependencias del sistema
 # apt install --yes python3 python3-dev python3-virtualenv python3-pip git
 ```
 
-
 ## Clonar el repositorio
 ```bash
 $ git clone https://github.com/orga-de-datos/practicas.git
@@ -27,7 +26,7 @@ $ cd practicas
 $ git checkout notebooks
 ```
 
-**IMPORTANTE**: el branch es `notebooks`, no `master`.
+**IMPORTANTE**: el branch a utilizar es `notebooks`, no `master`.
 
 ## [Opcional] Crear un entorno virtual
 [venv](https://docs.python.org/3/library/venv.html) es un modulo que permite crear entornos virtuales livianos de python. Esto es muy útil para que no haya conflictos entre dependencias requeridas en distintos proyectos/entornos.
@@ -91,12 +90,12 @@ Al levantar `jupyter lab`, por defecto se toma la ubicación actual como base de
 jupyter lab
 ```
 
-_Nota_: Si en los pasos anteriores usamos un `virtualenv`, hay que activarlo primero.
+__Nota__: Si en los pasos anteriores usamos un `virtualenv`, hay que activarlo primero.
 
 ### Cerrar jupyter lab
 Con doble `Ctrl+C` se cierra sin confirmación. Con `Ctrl+C` una sola vez, pedirá confirmación.
 
-_Nota_: Esto se debe hacer en la terminal donde hemos dejado levantado el server.
+__Nota__: Esto se debe hacer en la terminal donde hemos dejado levantado el server.
 
 ## Comprobación del entorno
 Con estos pasos ejecutados, se debería abrir en el navegador la interfaz de jupyterlab. Probar ejecutar algún notebook.
@@ -105,12 +104,25 @@ Con estos pasos ejecutados, se debería abrir en el navegador la interfaz de jup
 Desde el repo clonado:
 ```bash
 docker build -t jupyter_datos .
-docker run -p 127.0.0.1:8888:8888 jupyter_datos
+docker run -p 127.0.0.1:8888:8888 -v .:/notebooks jupyter_datos
 ```
+
+Luego abrir en un navegador la dirección `127.0.0.1:8888`.
+
+__Nota__: si el puerto `8888` está en uso por otra aplicación, cambiarlo.
+
+# Como hacer buenas preguntas por slack
+[Este](http://www.bioinformaticscareerguide.com/2017/09/how-to-ask-good-programming-question_20.html) post y [este](https://stackoverflow.com/help/how-to-ask) articulo de ayuda de stackoverflow dan una buena idea de como pedir ayuda:
+1. Buscar si no han preguntado algo similar antes.
+2. Explicar que es lo que querés hacer.
+3. Comentar que pasos seguiste, que errores te encontraste y como intentaste solucionarlos.
+4. Incluir información relevante: sistema operativo, logs de errores, etc. Si envías código o logs, usar backticks (`) para formatear el texto. Por otro lado, texto >>>> una imagen: la imagen queda cortada, y quizás lo que está mas arriba a vos no te dice nada pero a quien lo lee, sí. Por otro lado, se puede copiar/pegar y buscar dentro del texto.
+5. Dejar que te ayuden: si te piden información extra, es por algún motivo. Te puede parecer obvia la respuesta, pero es muy difícil saber que es lo que el otro no sabe. Si no funciona, dar detalles de por qué no funciona.
+6. Cuando tengas la solución, escribila. Como ejercicio para reafirmar lo que acabas de aprender y para que otras personas puedan valerse de eso si llegan a tu misma situación.
 
 
 # Entorno de desarrollo
-Esta sección es relevante para docentes y quien quiera contribuir a este repositorio. Las secciones siguientes explican los pasos adicionales requeridos para contribuir y los jobs de `Github actions` que hacen el deploy de todo.
+Esta sección es relevante para docentes y quien quiera contribuir a este repositorio. Las secciones siguientes explican los pasos adicionales requeridos para contribuir y los jobs de `Github actions` que hacen el deploy de notebooks y la guía de ejercicios.
 
 ## Jupytext
 Ver PRs de notebooks es difícil, porque son JSONs. Si fueron ejecutados, además puede haber imágenes en base64, tablas o texto largo incluido. En este sentido, ver el diff de un notebook es muy difícil desde github (a fecha de abril 2021). Como apuntamos a que los cambios sean colaborativos, lo ideal es que quien revise un PR (si fuera necesario) pueda entender los cambios desde el mismo PR.
@@ -156,4 +168,4 @@ Este pipeline recorre la carpeta `clases`, pasa cada `.py` creados con `jupytext
 
 Si algún notebook no se renderizara, se pueden revisar los logs de github actions a ver cual fue el error.
 
-_Nota_: los notebooks deberían poder correr de punta a punta sin errores para poder ser pasados a `.ipynb`. Si alguna celda se **requiere** que falle, hay que recordar ponerle el tag `raises-exception` a dicha celda.
+Como recordatorio, todos los notebooks deberían poder correr de punta a punta sin errores para poder ser pasados a `.ipynb`. Si alguna celda se **requiere** que falle, hay que recordar ponerle el tag `raises-exception` a dicha celda. Esto además asegura que quienes quieran usar los notebooks para seguir las clases puedan hacerlo sin problemas.
