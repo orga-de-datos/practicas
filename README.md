@@ -66,7 +66,7 @@ Vamos a usar el comando `[labextension](https://jupyterlab.readthedocs.io/en/sta
 $ curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
 $ source ~/.bashrc
 $ nvm install node
-$ source ~/.bashrc
+$ source ~/.profile
 ```
 
 ### Jupyter widgets
