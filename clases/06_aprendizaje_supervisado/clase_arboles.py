@@ -144,11 +144,13 @@ dataset_nonsmokers = dataset[dataset.smoker == 'no']
 
 dataset_smokers.age.plot(kind='hist', ax=axes[0], xlim=dataset.age.min())
 axes[0].set_title("Age - Smokers")
-axes[0].set_ylabel("Age")
+axes[0].set_ylabel("Cantidad")
+axes[0].set_xlabel("Age")
 
 dataset_nonsmokers.age.plot(kind='hist', ax=axes[1], xlim=dataset.age.min())
 axes[1].set_title("Age - Non Smokers")
-axes[1].set_ylabel("Age")
+axes[1].set_ylabel("Cantidad")
+axes[1].set_xlabel("Age")
 
 plt.show()
 
@@ -160,18 +162,21 @@ dataset_nonsmokers = dataset[dataset.smoker == 'no']
 
 dataset_smokers.bmi.plot(kind='hist', ax=axes[0], xlim=0)
 axes[0].set_title("BMI - Smokers")
-axes[0].set_ylabel("BMI")
+axes[0].set_ylabel("Cantidad")
+axes[0].set_xlabel("BMI")
 
 dataset_nonsmokers.bmi.plot(kind='hist', ax=axes[1], xlim=0)
 axes[1].set_title("BMI - Non Smokers")
-axes[1].set_ylabel("BMI")
+axes[1].set_ylabel("Cantidad")
+axes[1].set_xlabel("BMI")
 
 plt.show()
 # -
 
-plt.figure(dpi=100)
+plt.figure(dpi=100, figsize=(10, 5))
 sns.countplot(data=dataset, x='region', hue='smoker')
-plt.title("Cantidad por region")
+plt.title("Cantidad de fumadores/no fumadores por region")
+plt.ylabel("Cantidad")
 plt.show()
 
 # +
@@ -205,13 +210,15 @@ dataset_smokers.charges.plot(
     kind='hist', ax=axes[0], xlim=dataset.charges.min(), bins=50
 )
 axes[0].set_title("Charges - Smokers")
-axes[0].set_ylabel("Charges")
+axes[0].set_ylabel("Cantidad")
+axes[0].set_xlabel("Charges")
 
 dataset_nonsmokers.charges.plot(
     kind='hist', ax=axes[1], xlim=dataset.charges.min(), bins=50
 )
 axes[1].set_title("Charges - Non Smokers")
-axes[1].set_ylabel("Charges")
+axes[1].set_xlabel("Charges")
+axes[1].set_ylabel("Cantidad")
 
 plt.show()
 # -
@@ -223,9 +230,7 @@ accuracy_score(dataset.smoker, pred)
 
 # Increible, partimos a ojo el espacio con un if y tenemos mas de 0.92 de score!
 #
-# Esto tiene un problema, que si lo hacemos a ojo pero somos medio chicatos [1], puede no ser optimo. Veamos como generaliza la idea.
-#
-# [1] - Este chiste es gracioso porque la clase la preparo Javi, que empezo a usar anteojos mientras cursaba sisop.
+# Veamos como generaliza la idea, sin tener que decidir _a ojo_ la/s particion/es.
 
 # # Manejo de variables
 #
