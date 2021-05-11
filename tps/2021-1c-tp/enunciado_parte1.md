@@ -27,7 +27,7 @@ Si bien la agencia quiere empezar a usar técnicas avanzadas de predicción e in
 todavía tiene desconfianza en las mismas (personalmente comentaron que tienen miedo que las máquinas
 se revelen contra ellos) por lo que inicialmente no quieren nada complicado sino una serie muy simple
 de decisiones lógicas que les permitan en poco tiempo hacer una primera ronda de campaña digital. Se
-espera que este código simple (baseline) tenga una accuracy aceptable (mayor a ??%) y que esté basada y justificada
+espera que este código simple (baseline) tenga una accuracy aceptable (mayor a 80%) y que esté basada y justificada
 en la investigación previa.
 
 
