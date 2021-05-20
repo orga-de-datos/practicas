@@ -8,9 +8,9 @@ chismosean).
 ## Tarea
 El director general de recaudación está muy interesado en utilizar algoritmos de machine learning desde que escuchó 
 que el otro equipo (esos engreidos de FiuDec) lo utiliza para pronosticar los aumentos de precios, por esto es que hizo un curso 
-para entender cómo funciona. Con su conocimiento al respecto exige que probemos varios modelos reportando cual de todos 
-fue el mejor (según la métrica AUC-ROC), también pretende que utilicemos técnicas para buscar la mejor configuración de 
-hiperparámetros, que intentemos hacer al menos un ensamble, que utilicemos cross-validation para comparar los modelos y 
+para entender cómo funciona. Con su conocimiento al respecto exige que probemos varios modelos (al menos 5 tipos distintos) 
+reportando cual de todos fue el mejor (según la métrica AUC-ROC), también pretende que utilicemos técnicas para buscar la mejor
+configuración de hiperparámetros, que intentemos hacer al menos un ensamble, que utilicemos cross-validation para comparar los modelos y 
 que presentemos varias métricas del modelo final:  
 - AUC-ROC
 - Matriz de confusión
