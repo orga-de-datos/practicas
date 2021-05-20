@@ -21,8 +21,9 @@ que presentemos varias métricas del modelo final:
 El director también sabe los dilemas que resultan de llevar un prototipo a producción, por lo que nos pidió 
 encarecidamente que dejemos muy explícitos los pasos de pre-procesamiento/feature engineering que usamos en cada 
 modelo, y que dejemos toda la lógica del preprocesado en un archivo python llamado preprocesing.py en donde van a 
-estar todas las funciones utilizadas para preprocesamiento, claro está, el espera que si dos modelos tienen el 
-mismo preprocesado entonces usen la misma función en preprocessing.py.  
+estar todas las funciones utilizadas para preprocesamiento, de hecho, él espera que apliquemos al menos dos tecnicas
+de preprocesamiento distintos por cada tipo de modelo y espera que si dos modelos tienen el mismo preprocesado 
+entonces usen la misma función en preprocessing.py.  
 
 ## Entrega
 El formato de entrega va a ser un breve informe en PDF con:
