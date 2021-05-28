@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.2
+#       jupytext_version: 1.6.0
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -45,11 +45,13 @@ dataset
 # Analizamos la correlación de las variables de a pares
 seabornInstance.pairplot(dataset)
 
+seabornInstance.pairplot(dataset[['fixed acidity', 'density']])
+
 # Nos quedamos con la siguiente correlación
 dataset.plot(x='density', y='fixed acidity', style='o')
 plt.title('Acidez vs Densidad')
-plt.xlabel('density')
-plt.ylabel('fixed acidity')
+plt.xlabel('Density')
+plt.ylabel('Fixed acidity')
 plt.show()
 
 
@@ -92,6 +94,9 @@ Y_pred = regressor.predict(X)
 
 plt.scatter(X, Y, color='gray')
 plt.plot(X, Y_pred, color='red', linewidth=2)
+plt.title('Acidez vs Densidad')
+plt.xlabel('Density')
+plt.ylabel('Fixed acidity')
 plt.show()
 # -
 
@@ -107,12 +112,16 @@ dataset
 # **1) Error Cuadrático Medio (Mean Squared Error)**
 #
 # Medida de qué tan cercana es la recta de regresión a los puntos que representan los datos. Mientras más chico más cerca está nuestro modelo de los datos reales. Al ser un valor elevado al cuadrado, es sensible a valores de diferencias grandes.
+#
+# #### $MSE = \frac1n \sum_{i=1}^n (y - \hat{y} )^2$
 
 print("MSE: " + str(metrics.mean_squared_error(Y, Y_pred, squared=True)))
 
 # **2) Raíz del Error Cuadrático Medio (Root Mean Squared Error)**
 #
 # Tiene las mismas unidades que los valores representados en el eje vertical. Es la distancia de un punto hasta la recta de regresión, medida en línea recta. Mide el desvío estándar (cuánto se alejan los valores de la media).
+#
+# #### $RMSE =  \sqrt{\frac1n \sum_{i=1}^n (y - \hat{y} )^2}$
 
 print("RMSE: " + str(metrics.mean_squared_error(Y, Y_pred, squared=False)))
 
@@ -123,7 +132,7 @@ plt.rcParams['figure.figsize'] = (10, 5)
 
 preds = pd.DataFrame({"Predicciones": Y_pred.flatten(), "true": Y.flatten()})
 preds["Residuos"] = preds["true"] - preds["Predicciones"]
-preds.plot(x="Predicciones", y="Residuos", kind="scatter")
+preds.plot(x="Predicciones", y="Residuos", kind="scatter", title="Residuos vs Predichos")
 # -
 
 # Observamos el gráfico de Residuos vs Predichos para ver si tiene forma de "nube sin esctructura". Tiene forma de nube, pero presenta un agrupamiento en el centro lo que le da cierta estructura. Sin embargo, el agrupamiento se presenta en valores cercanos a 0, por lo que nuestro modelo presenta buenos resultados.
@@ -131,6 +140,8 @@ preds.plot(x="Predicciones", y="Residuos", kind="scatter")
 # ### Regresión Polinomial
 
 # Lo que primero debemos hacer es crear nuestras nuevas variables polinomiales. Vamos a crear $X_{2}$ = density<sup>2</sup>
+
+# #### Ejemplo
 
 # Polynomial features permite generar nuevas features mediante la multiplicación de las features actuales
 polynomial_features = PolynomialFeatures(degree=2)
@@ -154,6 +165,8 @@ x_poly_2 = polynomial_features.fit_transform(df[['density', 'volatile acidity']]
 x_poly_2
 # -
 
+# #### Volvemos al caso de estudio
+
 # Para este caso vamos a agarrar la variable density y elevarla al cuadrado
 x_poly = polynomial_features.fit_transform(df['density'].values.reshape(-1, 1))
 print(x_poly)
@@ -174,6 +187,7 @@ acidity_pred = polymodel.predict(x_poly)
 fig = plt.figure(figsize=(12, 6))
 plt.scatter(df['density'], df['fixed acidity'])
 plt.plot(df['density'], acidity_pred, color='red')
+plt.title('Acidez vs Densidad')
 plt.xlabel('Densidad')
 plt.ylabel('Acidez')
 plt.show()
@@ -192,17 +206,18 @@ print(
     "RMSE: "
     + str(metrics.mean_squared_error(df['fixed acidity'], acidity_pred, squared=False))
 )
+len(df.index)
 
-# El error decreció, lo cual es bueno, veamos ahora el grafico de residuos para analizar si los supuestos se ajustan mejor
+# El error disminuyó, lo cual es bueno, veamos ahora el grafico de residuos para analizar si los supuestos se ajustan mejor
 
 # +
 plt.rcParams['figure.figsize'] = (10, 5)
 
 preds = pd.DataFrame(
-    {"Predicciones": acidity_pred.reshape(1599), "true": df['fixed acidity']}
+    {"Predicciones": acidity_pred.reshape(len(df.index)), "true": df['fixed acidity']}
 )
 preds["Residuos"] = preds["true"] - preds["Predicciones"]
-preds.plot(x="Predicciones", y="Residuos", kind="scatter")
+preds.plot(x="Predicciones", y="Residuos", kind="scatter", title="Residuos vs Predichos")
 # -
 
 # El gráfico no logra superar al que obtuvimos con regresión lineal simple. La nube de puntos no está distribuida uniformemente. Muestra una agrupación en el centro, como en el caso de regresión simple, pero también presenta valores más alejados que resultan en una nube menos equilibrada.
@@ -221,6 +236,7 @@ acidity_poly_pred = polymodel_3.predict(x_poly_3)
 fig = plt.figure(figsize=(12, 6))
 plt.scatter(df['density'], df['fixed acidity'])
 plt.plot(df['density'], acidity_poly_pred, color='red')
+plt.title('Acidez vs Densidad')
 plt.xlabel('Densidad')
 plt.ylabel('Acidez')
 plt.show()
@@ -247,22 +263,78 @@ def rmse_cv(model, X_train, y_train):
     return rmse.mean()
 
 
+custom_degree = 200
 errors = []
-for i in range(1, 31):
+for i in range(1, custom_degree + 1):
     polynomial_features = PolynomialFeatures(degree=i)
     x_poly = polynomial_features.fit_transform(
-        df['fixed acidity'].values.reshape(-1, 1)
+        df['density'].values.reshape(-1, 1)
     )
-    y = df['density'].values.reshape(-1, 1)
+    y = df['fixed acidity'].values.reshape(-1, 1)
     regressions = LinearRegression()
     errors.append(rmse_cv(regressions, x_poly, y))
 
-errores = pd.DataFrame({"grado": range(1, 31), "RMSE": errors[0:30]})
-errores.plot(x="grado", y="RMSE")
+errores = pd.DataFrame({"grado": range(1, custom_degree + 1), "RMSE": errors})
+errores.plot(x="grado", y="RMSE", xlabel="Grado", ylabel="RMSE", title="RMSE según el grado del polinomio")
 
-# Aumentar el grado del polinomio no es sinónimo de mayor precisión en los resultados. En la curva de RMSE por grado de polinomio encontramos que a partir del grado 15 el error comienza a aumentar considerablemente, para luego sufrir cambios más abruptos a partir del grado 27 aproximadamente.
+# Aumentar el grado del polinomio no es sinónimo de mayor precisión en los resultados. 
 
-errors
+# #### ¿Qué pasa si probamos polinomios de mayor grado en el set de entrenamiento?
+
+# +
+errors_2 = []
+    
+for i in range(1, custom_degree + 1):
+    polynomial_features = PolynomialFeatures(degree=i)
+    x_poly = polynomial_features.fit_transform(
+        df['density'].values.reshape(-1, 1)
+    )
+    y = df['fixed acidity'].values.reshape(-1, 1)
+    regressions = LinearRegression()
+    regressions.fit(x_poly, y)
+    errors_2.append(metrics.mean_squared_error(y, regressions.predict(x_poly), squared=False))
+
+# -
+
+errores_2 = pd.DataFrame({"grado": range(1, custom_degree + 1), "RMSE": errors_2[0:custom_degree + 1]})
+errores_2.plot(x="grado", y="RMSE", xlabel="Grado", ylabel="RMSE", title="RMSE según el grado del polinomio")
+
+# +
+polynomial_features = PolynomialFeatures(degree=custom_degree)
+
+df = df.sort_values(by=['density'])
+x_poly_train = polynomial_features.fit_transform(
+        df['density'].values.reshape(-1, 1)
+    )
+polymodel_train = LinearRegression()
+polymodel_train.fit(x_poly_train, df['fixed acidity'].values.reshape(-1, 1))
+acidity_poly_pred = polymodel_train.predict(x_poly_train)
+
+fig = plt.figure(figsize=(12, 6))
+plt.scatter(df['density'].values, df['fixed acidity'].values)
+plt.plot(df['density'].values, acidity_poly_pred, color='red')
+plt.xlabel('Densidad')
+plt.ylabel('Acidez')
+plt.title('Acidez vs Densidad')
+plt.show()
+
+# +
+df = df.sort_values(by=['density'])
+x_poly_train = polynomial_features.fit_transform(
+        df['density'].values.reshape(-1, 1)
+    )
+polymodel_train = LinearRegression()
+polymodel_train.fit(x_poly_train, df['fixed acidity'].values.reshape(-1, 1))
+acidity_poly_pred = polymodel_train.predict(x_poly_train)
+
+fig = plt.figure(figsize=(12, 6))
+plt.scatter(df['density'].values[600:800], df['fixed acidity'].values[600:800])
+plt.plot(df['density'].values[600:800], acidity_poly_pred[600:800], color='red')
+plt.xlabel('Densidad')
+plt.ylabel('Acidez')
+plt.title('Acidez vs Densidad Zoom')
+plt.show()
+# -
 
 # ### Regresión Lineal Múltiple
 #
@@ -334,7 +406,7 @@ plt.rcParams['figure.figsize'] = (10, 5)
 
 preds = pd.DataFrame({"Predicciones": y_pred, "true": y_holdout})
 preds["Residuos"] = preds["true"] - preds["Predicciones"]
-preds.plot(x="Predicciones", y="Residuos", kind="scatter")
+preds.plot(x="Predicciones", y="Residuos", kind="scatter", title="Residuos vs Predichos")
 # -
 
 # Vemos que no es una nube de puntos sin estructura, sino que existen ciertos patrones. Esto nos dice que existen correlaciones entre residuos y predichos. Tal vez existe un mejor modelo para predecir la variable target que la regresión lineal múltiple que utilizamos.
