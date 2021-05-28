@@ -15,7 +15,6 @@
 # ---
 
 # +
-# import miceforest as mf
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -37,6 +36,7 @@ from sklearn.preprocessing import (
     StandardScaler,
 )
 
+pd.options.display.max_columns = None
 # -
 
 # Leemos el dataset, que está en formato CSV desde google drive.
@@ -55,7 +55,7 @@ report
 
 # # Verificando la "calidad" de los datos
 
-# ### Chequeo de valores NULOS
+# #### Chequeo de valores NULOS
 
 # Los valores nulos pueden tener distintas formas de ser represantados:
 # - nan
@@ -80,7 +80,7 @@ tienen_guion
 # - alignment
 
 # +
-# Asi se haria para quedarnos con las filas que tienen "-" en alguna de sus columnas
+# Asi se haria para quedarnos con las FILAS que tienen "-" en alguna de sus columnas
 
 df[df.astype('str').eq('-').any(1)]
 # -
@@ -89,11 +89,15 @@ df[df.astype('str').eq('-').any(1)]
 
 df = df.replace('-', np.nan)
 
+# > Un ejemplo de ver valores nan se hace con la funcion .isna()
+
+df[df.alignment.isna()]
+
 # > Hay alguna variable que este en "blanco" ?
 
-df.astype('str').eq('').any()
+df.astype('str').eq('').any(0)
 
-# > Vemos que ninguna variable esta en blanco
+# > Vemos que ninguna variable esta en blanco  
 # > Nota: Siendo un poco más putitanos deberiamos chequear que :
 # - por medio de la regex "^-*[0-9]*\$" fijarnos que las columnas de numeros contengan solo numeros
 # - por medio de la regex "^ *\$" fijarnos que no haya varios valores de vacios (lo mismo para otros caracteres que sospechamos que pueden ser usados para representar un valor NULO
@@ -101,43 +105,61 @@ df.astype('str').eq('').any()
 
 # #### Chequeo de variables numericas:
 #
-# > Ahora vamos a chequear los limites de las columnas que tengan valores numericos.
+# > Ahora vamos a chequear los limites de las columnas que tengan valores numericos.  
 # Las columnas edad y peso no deberian tener valores negativos.
 
+# +
+# Nota: observar como uso .to_frame() para convertir una pd.Series en un pd.DataFrame 
+# para que se vea "bonito"
+
 columnas_con_numeros = ['height', 'weight']
-(df[columnas_con_numeros] < 0).any()
+(df[columnas_con_numeros] < 0).any().to_frame('Menor que 0 ?')
+# -
 
 for c in columnas_con_numeros:
     print(c)
-    display(df[df[c] < 0][c].value_counts())
+    display(df[df[c] < 0][c].value_counts().to_frame())
     print()
 
 # > Pasamos los valores -99 de las columnas height y weight a nan
 
-df = df.replace({'height': -99.0, 'weight': -99.0}, np.nan)
+df = df.replace({'height': -99.0, 'weight': -99.0}, value=np.nan)
 
-# > Dependiendo del dataset, a veces tenemos informacion duplicada que no queremos
+
+
+# #### Duplicados:
+# > Dependiendo del dataset, a veces tenemos informacion duplicada que no queremos  
 # > Alertamos una fila duplicada, la eliminamos
+#
 
-# >  df.duplicated() devuelve una serie de booleanos indicando se una fila es duplicada o no
-# df.drop_duplicates() devuelve un dataframe nuevo con las filas duplicadas eliminadas
-# Nota: podemos pasarle el parametro subset=\<columnas a mirar> para solo considerar algunas columnas para ver si esta duplicado o no
+# >  df.duplicated()   -> devuelve una serie de booleanos indicando se una fila es duplicada o no  
+# df.drop_duplicates() -> devuelve un dataframe nuevo con las filas duplicadas eliminadas  
+#
+# > Nota: podemos pasarle el parametro subset=\<columnas a mirar> para solo considerar algunas columnas para ver si esta duplicado o no
 
 df[df.duplicated(keep=False)]
 
 size_antes = len(df)
 df = df.drop_duplicates()
 size_despues = len(df)
-print(f'se eliminaron: {size_despues-size_antes} filas duplicadas')
+print(f'se eliminaron: {size_antes-size_despues} filas duplicadas')
 
 # > Nota: a veces es util "resetear" el indice despues de eliminar filas (ya sea por drop duplicates o por algun otro filtro)
 
 df.reset_index(drop=True, inplace=True)
 
 
+
+
+
+
+
 # # Conversion de Variables
 
 # En esta sección mostraremos las principales estrategias para convertir variables según su tipo.
+
+
+
 
 # ## Conversion de variables categoricas:
 # Hay veces que tenemos que trabajar un poco en las variables que tenemos para que puedan ser usadas en los modelos.
@@ -145,6 +167,8 @@ df.reset_index(drop=True, inplace=True)
 # ### Preguntas antes de empezar:
 # - Alta vs Baja Cardinalidad de una Variable Categorica, que significa ?
 # - Que significa que una Variable contenga informacion del Orden?
+
+
 
 # ### Categóricas de baja cardinalidad
 
@@ -164,19 +188,26 @@ df.reset_index(drop=True, inplace=True)
 
 # Por cada valor de la variable categórica asigna un valor entero
 
-oe = OrdinalEncoder()
+oe = OrdinalEncoder(dtype='int')
 columns_to_encode = ['eye_color', 'gender']
 try:
     df[['eye_color_encoded', 'gender_encoded']] = oe.fit_transform(
         df[columns_to_encode]
     )
 except Exception as upa:
-    print(upa)
+    print(f'Apa lalanga: {upa}')
+
+# > Una posible opcion para tratar con nans, es reconocerlo como tal y asignarle su propia categoria
+
+# Aca vemos como pasar el nan al texto "nan" y por lo tanto es un "nuevo" color
+df['eye_color'].astype(str).unique()
 
 # Convertimos nulos a string 'nan', es decir un valor posible mas para que no explote
 df[['eye_color_encoded', 'gender_encoded']] = oe.fit_transform(
     df[columns_to_encode].astype(str)
 )
+
+df[['eye_color', 'eye_color_encoded', 'gender', 'gender_encoded']]
 
 # > Una funcionalidad MUY interesante de muchas de las clases de sklearn que ayudan en la transformacion de
 # es que tienen la transformacion INVERSA!
@@ -184,9 +215,15 @@ df[['eye_color_encoded', 'gender_encoded']] = oe.fit_transform(
 oe.inverse_transform(df[['eye_color_encoded', 'gender_encoded']])
 
 
-# Pregunta del millon:
+
+
+# **Pregunta del millon**:
 # - Esta todo bien con esta trasnformacion??
 # - Puedo usar las columnas 'eye_color_encoded' y 'gender_encoded' ??
+
+
+
+
 
 # #### Label Encoder
 # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.LabelEncoder.html
@@ -204,25 +241,34 @@ df[['alignment', 'alignment_encoded']]
 le.inverse_transform(df.alignment_encoded)[:10]
 
 
+
+
 #
-# Preguntas V/F:
-# - esta bien aplicar LabelEncoder() a la columna "alignment".
-# - OrdinalEncoder() o LabelEncoder() de sklearn pueden trabajar con una supuesta columna "orden" cuyos valores son \['primero','segundo','tercero'] y van a realizar el encoding correctamente.
+# ***Preguntas V/F***:
+# - Esta bien aplicar LabelEncoder() a la columna "alignment" ?
+# - OrdinalEncoder() o LabelEncoder() de sklearn pueden trabajar con una supuesta columna "orden" cuyos valores son \['primero','segundo','tercero'] y van a realizar el encoding correctamente ?
 
 
 # > Nota:
 # Hay veces que es muy util aplicar OrdinalEncoder() o LabelEncoder() a una variable NO ordinal si el modelo que va a usar los datos no va a utilizar el orden.
 #
 
+# +
+# borramos del dataframe las columnas que no nos interesan
+# tambien se puede usar df = df.drop(columns=['alignment_encoded', 'eye_color_encoded', 'gender_encoded'])
+
 del df['alignment_encoded']
 del df['eye_color_encoded']
 del df['gender_encoded']
+# -
+
+
 
 # #### One Hot Encoding
 
 # Crea una columna binaria por cada valor de la variable
 
-pd.options.display.max_columns = None
+
 
 ohe = OneHotEncoder()  # drop='first'
 eye_color_encoded = (
@@ -230,6 +276,10 @@ eye_color_encoded = (
 )
 eye_color_encoded = pd.DataFrame(eye_color_encoded).add_prefix('ec_')
 df = pd.concat([df, eye_color_encoded], axis=1)
+
+# +
+# len(df.name.unique())
+# -
 
 ohe.categories_
 
@@ -243,8 +293,8 @@ with_dummies = pd.get_dummies(df, columns=['eye_color'], dummy_na=True)
 display(with_dummies.head(2))
 print(with_dummies.shape)
 
-# Para evitar problemas de colinealidad se debe excluir una categoría del set (la ausencia de todas - vector de 0s - indica la presencia de la categoría faltante) <br>
-# La función de pandas ya viene con una parámetro para esto:
+# Para evitar problemas de colinealidad ***en los features*** se debe excluir una categoría del set (la ausencia de todas - vector de 0s - indica la presencia de la categoría faltante) <br>
+# La función de pandas ya viene con una parámetro para esto ***drop_first=True***:
 
 with_dummies = pd.get_dummies(df, columns=['eye_color'], dummy_na=True, drop_first=True)
 display(with_dummies.head(2))
@@ -253,7 +303,7 @@ print(with_dummies.shape)
 
 # > La necesidad de eliminar una columna se ve más claramente para una categórica de dos valores, veamos el caso de *Gender*
 
-gender_dummies = pd.get_dummies(df[['gender']])
+gender_dummies = pd.get_dummies(df[['gender']],dummy_na=True, drop_first=True)
 display(gender_dummies.tail(5))
 
 # >Con una sola columna tenemos toda la información necesaria
@@ -272,8 +322,36 @@ plt.plot()
 
 # >Con el top 10 cubrimos mas del 85% de la data
 
+# >Hay varias cosas que podemos hacer para reducir la dimensionalidad  
+# >Veamos 2 (hay mas)
+
+
+
+
+# Una opcion es mapear todas las variables que tienen muy pocas apariciones en una mas grande
+#
+
+races = df.race.value_counts()
+
+races = races[races < 2].index
+races
+
+# +
+races = df.race.value_counts()
+races = races[races < 2].index
+
+df.race.replace(to_replace = races, value='other').value_counts()
+
+# Nota: Esto se guardaria en el dataframe haciendo
+# df['race'] = df.race.replace(to_replace = races, value='other')
+# -
+
+
+
+# Otra opcion es producir un hash que tenga una dimension menor a las columnas del one hot
+
 # https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.FeatureHasher.html
-fh = FeatureHasher(n_features=10, input_type='string')
+fh = FeatureHasher(n_features=3, input_type='string')
 hashed_features = fh.fit_transform(df['race'].astype(str)).todense()
 hashed_features = pd.DataFrame(hashed_features).add_prefix('race_')
 pd.concat([df[['race']], hashed_features], ignore_index=True, axis=1)
@@ -311,20 +389,11 @@ plot_weight_vs_height(df, "- Valores originales")
 # Aparece el concepto de *Scaler*, una transformación por la cual escalamos a un determinado rango/distribución, veamos distintas implementaciones:
 
 # +
-# def get_fitted_scaler(cols, scaler_instance):
-#     '''Devuelve el scaler entrenado para las columnas informadas'''
-#     # fit del scaler
-#     values = cols.values
-#     scaler_instance.fit(values)
-#     return scaler_instance
-
-
-def transform(cols, cols_to_transform, scaler):
-    values = scaler.transform(cols)
-    return df[['name', 'alignment']].join(
-        pd.DataFrame(values, columns=cols_to_transform)
-    )
-
+# StandardScaler   -> promedio=0, desviacion estandar=1                       (cada feature)
+# MinMaxScaler     -> escala valores de 0 a 1, (o rango pasado por parametro) (cada feature)
+# RobustScaler     -> escala siendo robusto a outliers                        (cada feature)
+# PowerTransformer -> modifica los datos para que tengan una gausiana         (cada feature)
+# Normalizer       -> modifica los datos para que tengan norma=1              (cada fila)
 
 scalers = [
     StandardScaler(),  # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html
@@ -385,13 +454,26 @@ display(_df)
 print("Límites bins:", bins)
 # -
 
-# # Missings (Trabajando con valores faltantes)
 
-# ## Opcion 1: remover los nulos del dataset
+
+
+
+# # Missings (Trabajando con valores faltantes)
 
 # Veamos que variables contienen nulos
 
-df.isnull().sum()
+df.isnull().sum().to_frame('Cantidad nulls')
+
+
+
+# ### Opcion 0: Tratarla como una "categoria" o valor más
+# Vimos un ejemplo con el One Hot Encoder
+
+df.gender.astype(str).value_counts().to_frame('cantidad')
+
+
+
+# ### Opcion 1: remover los nulos del dataset
 
 (df.isnull().mean() * 100).to_frame('porcentaje nulls')
 
@@ -410,7 +492,7 @@ df.loc[:, df.isnull().sum() > 0].head()
 # eliminar filas con nulos
 
 less_rows = df.dropna(axis=0)
-less_rows.shape
+len(less_rows)
 # -
 
 # Nos quedarían 50 registros válidos en el set
@@ -437,9 +519,9 @@ NULL_REMOVE_PERCENT = 0.30
 cols = df.isna().mean()
 cols = cols[cols < NULL_REMOVE_PERCENT]
 df[cols.index]
-
-
 # -
+
+
 
 # ## Opcion 2: completar usando info de esa columna (Univariadas)
 
@@ -484,7 +566,7 @@ def compare_imputers(df, name_col, k):
     median_imputer = SimpleImputer(strategy='median', fill_value=k)
     mean_imputer = SimpleImputer(strategy='mean', fill_value=k)
     mode_imputer = SimpleImputer(strategy='most_frequent', fill_value=k)
-    constant_imputer = SimpleImputer(strategy='constant', fill_value=1234)
+    constant_imputer = SimpleImputer(strategy='constant', fill_value=-99)
 
     _df = df.copy()
     _df['median'] = median_imputer.fit_transform(df[[name_col]])
@@ -505,6 +587,8 @@ _df = compare_imputers(df, 'height', -99)
 display(_df[_df['height'].isna()].head(5))
 
 # -
+
+
 
 # ## Opcion 3: completar usando info de las demas columnas (Multivariada)
 
@@ -560,13 +644,15 @@ display(
 # -
 
 
-# IterativeImputer
+# IterativeImputer  
 # https://scikit-learn.org/stable/modules/generated/sklearn.impute.IterativeImputer.html
 
 
-# Comentario Final:
+# ***Comentario Final***:
 # - A veces va a ayudar a los modelos que le digamos explicitamente que ese valor fue "calculado", eso
-# le puede permitir al modelo elegir si darle un poco
+# le puede permitir al modelo elegir si darle un poco de menos importancia (relativa a las originales) si fue calculado.
+
+
 
 # # Selección de variables
 
@@ -575,6 +661,8 @@ display(
 
 # Por varianza, se define un umbral mínimo para considerar variables. Por defecto elimina las features de varianza 0 (sin cambios) <br>
 # Como en el set no tenemos ejemplos, agreguemos variables con esas condiciones
+
+# ### Filtramos variables de forma estadistica
 
 _df = df.copy()
 _df['with_zero_variance'] = 10
@@ -605,14 +693,24 @@ filter_by_variance(_df, 0)
 print()
 filter_by_variance(_df, 10)
 # -
-# Recursive Feature Eliminator:
+# #### Filtramos Variables usando modelos de ML
+
+# Recursive Feature Eliminator:  
+#
+# Usa un modelo de machine learning que pueda devolver lo que ese modelo considera de "importante" a cada variable y va eliminando la de "menos importancia"
+#
 # https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.RFE.html
+
+
+
 
 
 # # Agregando Informacion adicional
 # Se pueden crear nuevas variables a partir de las anteriores
 #
-# - Se puede incluir la "relacion" entre dos variables (ej: multiplicar dos variables)
-# Ejemplo1: precio por metro cuadrado a partir del precio y los metros cuadrados de la propiedad.
+# - Se puede incluir la "relacion" entre dos variables (ej: multiplicar dos variables)  
+# Ejemplo1: precio por metro cuadrado a partir del precio y los metros cuadrados de la propiedad.  
 # Ejemplo2: Crear features polinomicos
 # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.PolynomialFeatures.html
+
+
