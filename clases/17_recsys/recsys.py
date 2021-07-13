@@ -60,6 +60,72 @@
 #
 #
 
+# + jupyter={"source_hidden": true} tags=[]
+from typing import Sequence, Tuple
+import numpy as np
+
+# source: https://github.com/raminqaf/Metrics/blob/fix/average-percision-calculation/Python/ml_metrics/average_precision.py
+def apk(actual: list, predicted: list, k=10) -> float:
+    """
+    Computes the average precision at k.
+    This function computes the average precision at k between two lists of
+    items.
+    Parameters
+    ----------
+    actual : list
+             A list of elements that are to be predicted
+    predicted : list
+             A list of predicted elements (order does matter)
+    k : int, optional
+        The maximum number of predicted elements
+    Returns
+    -------
+    score : float
+            The average precision at k over the input lists
+    """
+    if len(predicted) > k:
+        predicted = predicted[:k]
+
+    sum_precision = 0.0
+    num_hits = 0.0
+
+    for i, prediction in enumerate(predicted):
+        if prediction in actual[:k] and prediction not in predicted[:i]:
+            num_hits += 1.0
+            precision_at_i = num_hits / (i + 1.0)
+            sum_precision += precision_at_i
+
+    if num_hits == 0.0:
+        return 0.0
+
+    return sum_precision / num_hits
+
+
+def mapk(actual: list, predicted: list, k=10) -> float:
+    """
+    Computes the mean average precision at k.
+    This function computes the mean average precision at k between two lists
+    of lists of items.
+    Parameters
+    ----------
+    actual : list
+             A list of lists of elements that are to be predicted
+             (order doesn't matter in the lists)
+    predicted : list
+                A list of lists of predicted elements
+                (order matters in the lists)
+    k : int, optional
+        The maximum number of predicted elements
+    Returns
+    -------
+    score : double
+            The mean average precision at k over the input lists
+    """
+    return np.mean([apk(a, p, k) for a, p in zip(actual, predicted)])
+
+
+# -
+
 # # Entrenamiento
 #
 # Tenemos que considerar algunas cosas diferentes:
@@ -88,7 +154,7 @@ from pathlib import Path
 
 file_path = Path('~/.surprise_data/ml-100k/ml-100k/')
 
-# + jupyter={"source_hidden": true} tags=[]
+# + tags=[]
 ratings = pd.read_csv(
     file_path / 'u.data',
     names=["user_id", "item_id", "rating", "timestamp"],
@@ -96,7 +162,7 @@ ratings = pd.read_csv(
     parse_dates=['timestamp'],
 )
 
-# + jupyter={"source_hidden": true} tags=[]
+# + tags=[]
 movies = pd.read_csv(
     file_path / 'u.item',
     names=[
@@ -130,7 +196,7 @@ movies = pd.read_csv(
     parse_dates=['release_date', 'video_release_date'],
 )
 
-# + jupyter={"source_hidden": true} tags=[]
+# + tags=[]
 users = pd.read_csv(
     file_path / 'u.data',
     names=["user_id", "age", "gender", "occupation", "zip_code"],
@@ -148,13 +214,74 @@ users.head()
 
 ratings.pivot(index="user_id", columns="item_id", values="rating")
 
+ratings.pivot(index="user_id", columns="item_id", values="rating").info(
+    memory_usage='deep'
+)
+
+(943 * 1682 * 8 / 1024) / 1024
+
 ratings.pivot(
     index="user_id", columns="item_id", values="rating"
 ).isna().values.flatten().mean()
 
+
 # Podriamos:
 # - Eliminar usuarios con poca actividad
 # - Eliminar películas con pocas vistas
+
+# # Algoritmos base
+
+# ## Recomendar peliculas del mismo genero
+# Al dar un puntaje a una pelicula, podemos recomendar peliculas del mismo genero, que el usuario no haya visto aun, ordenadas por su score promedio.
+
+# +
+def recommend(user_id, movie_id):
+    # movies of the same categories
+    sim_movies = movies[
+        (
+            movies[movies.columns[6:]].values
+            == movies[movies.movie_id == movie_id][movies.columns[6:]].values
+        ).all(axis=1)
+    ]
+    # movies seen by the user
+    user_movies = ratings[ratings.user_id == user_id]
+    # filter movies seen by the user
+    sim_movies = sim_movies[
+        ~sim_movies.movie_id.isin([*user_movies.item_id.tolist(), movie_id])
+    ]
+    # add score
+    sim_movies = sim_movies.merge(
+        ratings.groupby('item_id').rating.mean(), left_on='movie_id', right_index=True
+    )
+    # return by rating ordered descending
+    return sim_movies.sort_values('rating', ascending=False)
+
+
+recommend(user_id=597, movie_id=289)
+# -
+
+# ## Buscar usuarios similares!
+# Podriamos pensar en buscar los top _k_ usuarios mas similares y recomendar en base a los puntajes que le han dado a cosas que yo no haya visto.
+# Similares como? Que hayan tenido interacciones/reseñas similares!
+
+wfratings = ratings.pivot(index="user_id", columns="item_id", values="rating")
+wfratings = wfratings.fillna(0)  # Queremos esto?
+
+# +
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+
+similarities = cosine_similarity(wfratings, wfratings)
+# -
+
+user_id = 1
+k = 5
+a = similarities[user_id - 1, :]
+most_similar_users = np.argpartition(a, -k - 1)[-k - 1 : -1][::-1]
+
+ratings[ratings.user_id.isin([*most_similar_users, user_id])].pivot(
+    index="user_id", columns="item_id", values="rating"
+)
 
 # # Algoritmos interesantes
 
@@ -224,11 +351,49 @@ test_precision = precision_at_k(model, data['test'], k=5).mean()
 print(test_precision)
 # -
 
-# ## Vowpal Wabbit
+# ## [Vowpal Wabbit](https://vowpalwabbit.org)
 # En la clase de RL mencionamos brevemente que MAB se usan en sistemas de recomendacion de contenido.
 #
 # - [A Contextual-Bandit Approach to Personalized News Article Recommendation](https://arxiv.org/pdf/1003.0146.pdf)
 #
+
+# ## [W2V](https://radimrehurek.com/gensim/models/word2vec.html)
+# Podemos usar el historial de reseñas para armar una secuencia y tratar de predecir los siguientes items.
+
+sequences = (
+    ratings.sort_values("timestamp").groupby("user_id").item_id.agg(list)
+)  # les juro que esto queda bien ordenado al hacer groupby
+sequences
+
+# +
+K = 10
+
+train = sequences.apply(lambda x: x[:-K])
+test = sequences.apply(lambda x: x[-K:])
+# -
+
+from gensim.models import Word2Vec
+
+model = Word2Vec(
+    sentences=train.values,
+    vector_size=100,
+    window=20,
+    min_count=1,
+    workers=32,
+    epochs=50,
+)
+
+predictions = []
+for i in train.index:
+    predictions.append([x[0] for x in model.predict_output_word(train.loc[i], K)])
+
+mapk(test.values.tolist(), predictions, k=K)
+
+PatKs = [len(set(train_) & set(test_)) / K for train_, test_ in zip(test, predictions)]
+
+pd.Series(PatKs).value_counts()
+
+pd.Series(PatKs).mean()
 
 # # Links
 # - [competitive-recsys: A collection of resources for Recommender Systems (RecSys)](https://github.com/chihming/competitive-recsys)
