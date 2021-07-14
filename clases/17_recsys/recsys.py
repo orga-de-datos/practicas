@@ -60,7 +60,7 @@
 #
 #
 
-# + jupyter={"source_hidden": true} tags=[]
+# + tags=[] jupyter={"source_hidden": true}
 from typing import Sequence, Tuple
 import numpy as np
 
@@ -135,6 +135,9 @@ def mapk(actual: list, predicted: list, k=10) -> float:
 #
 # ## Corte temporal
 # Nos quedamos con la actividad hasta un tiempo $t$ y evaluamos las recomendaciones contra la actividad posterior. Hay que considerar el caso donde no tenga actividad el usuario, por ejemplo.
+#
+# ## Cold start
+# Como incorporamos o predecimos para usuarios que nunca vimos hasta el momento?
 
 # # Ejemplo de dataset para recsys
 #
@@ -149,12 +152,12 @@ import pandas as pd
 # Load the movielens-100k dataset (download it if needed),
 _ = Dataset.load_builtin('ml-100k')
 
-# +
+# + tags=[] jupyter={"source_hidden": true}
 from pathlib import Path
 
 file_path = Path('~/.surprise_data/ml-100k/ml-100k/')
 
-# + tags=[]
+# + tags=[] jupyter={"source_hidden": true}
 ratings = pd.read_csv(
     file_path / 'u.data',
     names=["user_id", "item_id", "rating", "timestamp"],
@@ -162,7 +165,7 @@ ratings = pd.read_csv(
     parse_dates=['timestamp'],
 )
 
-# + tags=[]
+# + tags=[] jupyter={"source_hidden": true}
 movies = pd.read_csv(
     file_path / 'u.item',
     names=[
@@ -196,11 +199,11 @@ movies = pd.read_csv(
     parse_dates=['release_date', 'video_release_date'],
 )
 
-# + tags=[]
+# + tags=[] jupyter={"source_hidden": true}
 users = pd.read_csv(
-    file_path / 'u.data',
+    file_path / 'u.user',
     names=["user_id", "age", "gender", "occupation", "zip_code"],
-    sep='\t',
+    sep='|',
 )
 # -
 
@@ -214,11 +217,17 @@ users.head()
 
 ratings.pivot(index="user_id", columns="item_id", values="rating")
 
+f'Peliculas en promedio que vio cada usuario: {ratings.groupby("user_id").item_id.agg("count").values.mean()}'
+
+f"De entre {ratings.item_id.nunique()} peliculas"
+
 ratings.pivot(index="user_id", columns="item_id", values="rating").info(
     memory_usage='deep'
 )
 
 (943 * 1682 * 8 / 1024) / 1024
+
+# Que porcentaje de None tenemos?
 
 ratings.pivot(
     index="user_id", columns="item_id", values="rating"
@@ -234,7 +243,7 @@ ratings.pivot(
 # ## Recomendar peliculas del mismo genero
 # Al dar un puntaje a una pelicula, podemos recomendar peliculas del mismo genero, que el usuario no haya visto aun, ordenadas por su score promedio.
 
-# +
+
 def recommend(user_id, movie_id):
     # movies of the same categories
     sim_movies = movies[
@@ -257,8 +266,9 @@ def recommend(user_id, movie_id):
     return sim_movies.sort_values('rating', ascending=False)
 
 
-recommend(user_id=597, movie_id=289)
-# -
+sample_rating = ratings.sample(1)
+display(movies[movies.movie_id == sample_rating.item_id.iloc[0]].iloc[0])
+recommend(user_id=sample_rating.user_id.iloc[0], movie_id=sample_rating.item_id.iloc[0])
 
 # ## Buscar usuarios similares!
 # Podriamos pensar en buscar los top _k_ usuarios mas similares y recomendar en base a los puntajes que le han dado a cosas que yo no haya visto.
@@ -282,6 +292,11 @@ most_similar_users = np.argpartition(a, -k - 1)[-k - 1 : -1][::-1]
 ratings[ratings.user_id.isin([*most_similar_users, user_id])].pivot(
     index="user_id", columns="item_id", values="rating"
 )
+
+# Y teniendo los usuarios mas similares, como los usamos? Que hacemos?
+# - Con un threshold, majority voting
+# - Promedio de los que han visto?
+# - Podemos considerar scores promedio de cada pelicula y las tendencias de cada user a scorear (siempre muy alto? siempre muy bajo?)
 
 # # Algoritmos interesantes
 
@@ -373,27 +388,29 @@ test = sequences.apply(lambda x: x[-K:])
 # -
 
 from gensim.models import Word2Vec
+from IPython.display import display
 
 model = Word2Vec(
     sentences=train.values,
-    vector_size=100,
-    window=20,
+    vector_size=10,
+    window=100,
     min_count=1,
     workers=32,
     epochs=50,
 )
 
+# +
 predictions = []
 for i in train.index:
     predictions.append([x[0] for x in model.predict_output_word(train.loc[i], K)])
 
-mapk(test.values.tolist(), predictions, k=K)
-
 PatKs = [len(set(train_) & set(test_)) / K for train_, test_ in zip(test, predictions)]
 
-pd.Series(PatKs).value_counts()
-
-pd.Series(PatKs).mean()
+print(f"MAP: {mapk(test.values.tolist(), predictions, k=K)}")
+print("Precision at K:")
+display(pd.Series(PatKs).value_counts())
+print(f"Mean: {pd.Series(PatKs).mean()}")
+# -
 
 # # Links
 # - [competitive-recsys: A collection of resources for Recommender Systems (RecSys)](https://github.com/chihming/competitive-recsys)
