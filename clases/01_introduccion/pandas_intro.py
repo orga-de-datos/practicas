@@ -7,9 +7,9 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.6.0
+#       jupytext_version: 1.11.3
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
@@ -25,7 +25,7 @@
 
 # # Estructuras de datos
 
-# Dos estructuras fundamentales dentro de pandas son Series y DataFrames. Los dataframes son tablas de datos. Cada columna es una Series.
+# Dos estructuras fundamentales dentro de pandas son Series y DataFrames. Los dataframes son tablas de datos. Cada columna es una Series. Revisar la [documentacion](https://pandas.pydata.org/pandas-docs/stable/user_guide/dsintro.html#).
 #
 # Para comenzar, vamos a crear nuestro primer DataFrame a partir de un archivo CSV que contiene un [dataset sobre superhéroes](https://www.kaggle.com/claudiodavi/superhero-set/home).
 
@@ -44,6 +44,7 @@ with requests.get(
 import pandas as pd
 
 df = pd.read_csv("superheroes.csv")
+# pd.read_csv("https://docs.google.com/spreadsheets/d/1nuJAaaH_IP8Q80CsyS940EVaePkbmqhN3vlorDxYMnA/export?format=csv")
 # -
 
 # También podemos crear dataframes desde listas, diccionarios y otras estructuras.
@@ -320,6 +321,17 @@ pd.pivot_table(
         'Alignment': lambda x: Counter(x).most_common(1)[0][0],
     },
 )
+
+# # Checkpoint
+#
+# Desde el siguiente snippet:
+# ```python
+# import pandas as pd
+#
+# pd.read_csv("https://docs.google.com/spreadsheets/d/1nuJAaaH_IP8Q80CsyS940EVaePkbmqhN3vlorDxYMnA/export?format=csv")
+# ```
+#
+# Encontrar el promedio de altura por raza, considerando solo los personajes _buenos_.
 
 # # Sobre vistas y columnas
 
