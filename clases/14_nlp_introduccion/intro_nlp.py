@@ -9,7 +9,7 @@
 #       format_version: '1.5'
 #       jupytext_version: 1.6.0
 #   kernelspec:
-#     display_name: Python 3 (venv)
+#     display_name: Python 3
 #     language: python
 #     name: python3
 # ---
@@ -94,8 +94,12 @@ def plotting_helper(cv, pred, label):
         confusion_matrix(label, np.argmax(pred.values, axis=1)).round(2),
         annot=True,
         fmt='g',
+        xticklabels=['Bad', 'Good'],
+        yticklabels=['Bad', 'Good'],
     )
     plt.title("Accuracy : %s" % accuracy_score(np.argmax(pred.values, axis=1), label))
+    plt.ylabel("Real")
+    plt.xlabel("Predicho")
     return (accuracy_score(np.argmax(pred.values, axis=1), label), cv)
 
 
