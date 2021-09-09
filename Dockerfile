@@ -1,4 +1,4 @@
-FROM ubuntu:focal as initial
+FROM ubuntu:focal
 
 MAINTAINER CrossNox <imermet@fi.uba.ar>
 
@@ -53,10 +53,6 @@ RUN pip3 install -r requirements.txt --no-cache-dir
 
 RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager jupyterlab-plotly plotlywidget
 RUN jupyter lab build && jupyter lab clean && jlpm cache clean
-
-FROM ubuntu:focal
-
-COPY --from=initial / /
 
 VOLUME /notebooks
 

@@ -59,7 +59,7 @@ pip install -r requirements.txt
 ```
 
 ## Instalar plugins
-Vamos a usar el comando `[labextension](https://jupyterlab.readthedocs.io/en/stable/user/extensions.html)` para instalar algunos plugins usados durante la cursada. Previamente necesitamos instalar [node.js](https://nodejs.org/en/).
+Vamos a usar el comando [labextension](https://jupyterlab.readthedocs.io/en/stable/user/extensions.html) para instalar algunos plugins usados durante la cursada. Previamente necesitamos instalar [node.js](https://nodejs.org/en/).
 
 ```bash
 # apt install -y curl
