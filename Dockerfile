@@ -1,4 +1,4 @@
-FROM ubuntu:focal
+FROM ubuntu:focal as initial
 
 MAINTAINER CrossNox <imermet@fi.uba.ar>
 
@@ -15,8 +15,10 @@ RUN add-apt-repository universe && \
 
 RUN apt install -y make build-essential libssl-dev zlib1g-dev \
     libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev \
-    libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl \
-    graphviz
+    libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl
+
+RUN apt install -y curl graphviz && \
+    apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 ENV NVM_DIR /root/.nvm
 ENV NODE_VERSION stable
@@ -28,7 +30,8 @@ RUN curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | ba
     && DEFAULT_NODE_VERSION=$(nvm version default) \
     && ln -sf /root/.nvm/versions/node/$DEFAULT_NODE_VERSION/bin/node /usr/bin/nodejs \
     && ln -sf /root/.nvm/versions/node/$DEFAULT_NODE_VERSION/bin/node /usr/bin/node \
-    && ln -sf /root/.nvm/versions/node/$DEFAULT_NODE_VERSION/bin/npm /usr/bin/npm
+    && ln -sf /root/.nvm/versions/node/$DEFAULT_NODE_VERSION/bin/npm /usr/bin/npm \
+    && nvm cache clear
 
 ENV PYENV_ROOT /root/.pyenv
 ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
@@ -40,16 +43,20 @@ RUN set -ex \
     && pyenv global $PYTHON_VERSION \
     && pyenv rehash
 
-RUN pip3 install setuptools
+RUN pip3 install setuptools --no-cache-dir
 
 COPY ./requirements.txt /requirements.txt
 
 WORKDIR /
 
-RUN pip3 install -r requirements.txt
+RUN pip3 install -r requirements.txt --no-cache-dir
 
 RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager jupyterlab-plotly plotlywidget
-RUN jupyter lab build
+RUN jupyter lab build && jupyter lab clean && jlpm cache clean
+
+FROM ubuntu:focal
+
+COPY --from=initial / /
 
 VOLUME /notebooks
 
