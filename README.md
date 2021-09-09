@@ -102,6 +102,11 @@ __Nota__: Esto se debe hacer en la terminal donde hemos dejado levantado el serv
 Con estos pasos ejecutados, se debería abrir en el navegador la interfaz de jupyterlab. Probar ejecutar algún notebook.
 
 # Levantar el entorno con docker/podman
+```bash
+docker run -p 127.0.0.1:9999:8888 -v .:/notebooks ghcr.io/crossnox/jupyter_datos:latest
+```
+
+## Build de la imagen
 Desde el repo clonado:
 ```bash
 docker build -t jupyter_datos .
@@ -110,7 +115,7 @@ docker run -p 127.0.0.1:8888:8888 -v .:/notebooks jupyter_datos
 
 Luego abrir en un navegador la dirección `127.0.0.1:8888`.
 
-__Nota__: si el puerto `8888` está en uso por otra aplicación, cambiarlo.
+__Nota__: si el puerto `8888` está en uso por otra aplicación, cambiarlo (en el primer 8888).
 
 # Como hacer buenas preguntas por slack
 [Este](http://www.bioinformaticscareerguide.com/2017/09/how-to-ask-good-programming-question_20.html) post y [este](https://stackoverflow.com/help/how-to-ask) articulo de ayuda de stackoverflow dan una buena idea de como pedir ayuda:
@@ -170,3 +175,6 @@ Este pipeline recorre la carpeta `clases`, pasa cada `.py` creados con `jupytext
 Si algún notebook no se renderizara, se pueden revisar los logs de github actions a ver cual fue el error.
 
 Como recordatorio, todos los notebooks deberían poder correr de punta a punta sin errores para poder ser pasados a `.ipynb`. Si alguna celda se **requiere** que falle, hay que recordar ponerle el tag `raises-exception` a dicha celda. Esto además asegura que quienes quieran usar los notebooks para seguir las clases puedan hacerlo sin problemas.
+
+## GH-actions: docker
+Los tags del formato `jl-docker-v*` lanzan un gh-action que hace el build and push de la imagen de docker.
