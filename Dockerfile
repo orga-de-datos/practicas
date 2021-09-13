@@ -1,24 +1,27 @@
-FROM ubuntu:focal
+FROM python:3.7.9-slim-buster
 
 MAINTAINER CrossNox <imermet@fi.uba.ar>
-
-RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 EXPOSE 8888
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update --assume-yes && apt-get install -y software-properties-common
-
-RUN add-apt-repository universe && \
-    apt update --assume-yes && \
-    apt install -y --no-install-recommends git curl gcc g++ cmake zlib1g-dev libz-dev
+RUN apt-get update --assume-yes && apt-get upgrade --assume-yes
+RUN apt-get install -y --no-install-recommends git curl gcc g++ cmake zlib1g-dev libz-dev
 
 RUN apt install -y make build-essential libssl-dev zlib1g-dev \
     libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev \
-    libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl
+    libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl graphviz
 
-RUN apt install -y curl graphviz && \
-    apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get purge --auto-remove -yqq  \
+        && apt-get autoremove -yqq --purge \
+        && apt-get clean \
+        && rm -rf \
+        /var/lib/apt/lists/* \
+        /tmp/* \
+        /var/tmp/* \
+        /usr/share/man \
+        /usr/share/doc \
+        /usr/share/doc-base
 
 ENV NVM_DIR /root/.nvm
 ENV NODE_VERSION stable
@@ -32,16 +35,6 @@ RUN curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | ba
     && ln -sf /root/.nvm/versions/node/$DEFAULT_NODE_VERSION/bin/node /usr/bin/node \
     && ln -sf /root/.nvm/versions/node/$DEFAULT_NODE_VERSION/bin/npm /usr/bin/npm \
     && nvm cache clear
-
-ENV PYENV_ROOT /root/.pyenv
-ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
-ENV PYTHON_VERSION 3.7.9
-RUN set -ex \
-    && curl https://pyenv.run | bash \
-    && pyenv update \
-    && pyenv install $PYTHON_VERSION \
-    && pyenv global $PYTHON_VERSION \
-    && pyenv rehash
 
 RUN pip3 install setuptools --no-cache-dir
 
