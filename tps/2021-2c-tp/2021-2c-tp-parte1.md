@@ -58,34 +58,10 @@ Se espera que presenten el notebook en una charla de 20 minutos y dijo que quier
 - respuesta a la pregunta en base a todos los gráficos y análisis de los mismos  
 
 Sin este formato, el tp no va a ser aceptado.
+Tener en cuenta que pueden tener dos notebooks, uno con lo mas importante para presentar durante la reunion de 20 min, 
+y otro con graficos y analisis adicionales que no son importantes para la reunión.   
 
 ### Explicación de los datos recolectados:
-
-WIP WIP WIP - START
-
-"Date": "dia"
-"Location": "barrio" (remap a barrios - asignando los barrios de acuerdo a cant de gente)
-"MinTemp": "temp_min'="
-"MaxTemp": "temp_max"
-"Rainfall": "mm_lluvia_dia"
-"Evaporation": "mm_evaporados_agua"
-"Sunshine": "horas_de_sol"
-"WindGustDir": "rafaga_viento_max_direccion"
-"WindGustSpeed": "rafaga_viento_max_velocidad"
-"WindDir9am": "direccion_viento_temprano"
-"WindDir3pm": "direccion_viento_tarde"
-"WindSpeed9am": "velocidad_viendo_temprano"
-"WindSpeed3pm": "velocidad_viendo_tarde"
-"Humidity9am": "humedad_temprano'
-"Humidity3pm": "humedad_tarde"
-"Pressure9am": "presion_atmosferica_temprano"
-"Pressure3pm": "presion_atmosferica_tarde"
-"Cloud9am" : "nubosidad_temprano"
-"Cloud3pm": "nubosidad_tarde"
-"Temp9am": "temperatura_temprano"
-"Temp3pm": "temperatura_tarde"
-"RainToday": "llovieron_hamburguesas_hoy"
-"RainTomorrow": "llovieron_hamburguesas_al_dia_siguiente"
 
 **dia**: dia en el cual se tomó la medición  
 **barrio**: barrio donde se tomó la medición  
@@ -94,26 +70,25 @@ WIP WIP WIP - START
 **mm_lluvia_dia**: milimetros que llovieron en el día  
 **mm_evaporados_agua**: milimetros que se evaporaron en el día  
 **horas_de_sol**: horas totales de sol en el día  
-**rafaga_viento_max_direccion**: dirección de la ráfaga de viento mas fuerte detectada en el día
-**rafaga_viento_max_velocidad**: velocidad medida en km/h de la ráfaga de viento más fuerte detectada en el día
-**direccion_viento_temprano**: dirección del viento (medicion tomada cuando Flint se levanta a la mañana)
-**direccion_viento_tarde**: dirección del viento (medicion tomada por Flint a la tardecita)
-**velocidad_viendo_temprano**: velocidad del viento medido en km/h (medicion tomada cuando Flint se levanta a la mañana)
-**velocidad_viendo_tarde**
-**humedad_temprano**
-**humedad_tarde**
-**presion_atmosferica_temprano**
-**presion_atmosferica_tarde**
-**nubosidad_temprano**
-**nubosidad_tarde**
-**temperatura_temprano**
-**temperatura_tarde**
-**llovieron_hamburguesas_hoy**
-**llovieron_hamburguesas_al_dia_siguiente**
+**rafaga_viento_max_direccion**: dirección de la ráfaga de viento mas fuerte detectada en el día  
+**rafaga_viento_max_velocidad**: velocidad medida en km/h de la ráfaga de viento más fuerte detectada en el día  
+**direccion_viento_temprano**: dirección del viento (medicion tomada cuando Flint se levanta a la mañana)  
+**direccion_viento_tarde**: dirección del viento (medicion tomada por Flint a la tardecita)  
+**velocidad_viendo_temprano**: velocidad del viento medido en km/h (medicion tomada cuando Flint se levanta a la mañana)  
+**velocidad_viendo_tarde**: velocidad del viento medido en km/h (medicion tomada por Flint a la tardecita)  
+**humedad_temprano**: porcentaje de humedad (medicion tomada cuando Flint se levanta a la mañana)  
+**humedad_tarde**: porcentaje de humedad (medicion tomada por Flint a la tardecita)  
+**presion_atmosferica_temprano**: presion atmosférica (hectopascales) (medicion tomada cuando Flint se levanta a la mañana)  
+**presion_atmosferica_tarde**: presion atmosférica (hectopascales) (medicion tomada por Flint a la tardecita)  
+**nubosidad_temprano**: nubosidad en el cielo (de 0 a 8) (medicion tomada cuando Flint se levanta a la mañana)  
+**nubosidad_tarde**: nubosidad en el cielo (de 0 a 8) (medicion tomada por Flint a la tardecita)  
+**temperatura_temprano**: temperatura (en grados centigrados) (medicion tomada cuando Flint se levanta a la mañana)  
+**temperatura_tarde**: temperatura (en grados centigrados) (medicion tomada por Flint a la tardecita)  
+**llovieron_hamburguesas_hoy**: booleano registrando si cayeron hamburguesas ese día  
+**llovieron_hamburguesas_al_dia_siguiente**: booleano registrando si cayeron hamburguesas el dia siguiente (variable tarjet)  
 
-WIP WIP WIP - END
 
-Nota1: algunos campos en la encuesta **pueden estar vacíos**.  
+Nota1: algunos campos en la encuesta **pueden estar vacíos**.   
 
 El link de los datos se encuentra en: https://docs.google.com/spreadsheets/d/<TODO>
 
