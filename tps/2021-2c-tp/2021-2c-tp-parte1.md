@@ -91,8 +91,8 @@ y otro con graficos y analisis adicionales que no son importantes para la reuni√
 Nota1: algunos campos en la encuesta **pueden estar vac√≠os**.   
 
 Los datos se encuentra en: 
-- https://docs.google.com/spreadsheets/d/1_UOBwK54OwNDK3TUCqw6aoc85XlRRSjEuEupLutTQUY
-- https://docs.google.com/spreadsheets/d/1P_Uawy4eriH7YNWuiCO3ghgMGbxnKbLaCh6Qp0rNrYs
+- https://docs.google.com/spreadsheets/d/1gvZ03uAL6THwd04Y98GtIj6SeAHiKyQY5UisuuyFSUs
+- https://docs.google.com/spreadsheets/d/1wduqo5WyYmCpaGnE81sLNGU0VSodIekMfpmEwU0fGqs
 
 
 ### Fecha de Entrega
