@@ -10,7 +10,7 @@ Pero él sospecha que la máquina tiene un patron por lo cual ha estado recolect
 de la máquina y otras variables. Nos ha pedido ayuda para lograr entender esos datos (él está ocupado 
 tratando de encontrar la manera de desactivar la máquina)
 
-Estos datos consisten en una serie de atributos climáticos por dia y si la máquina se activó al dia siguiente o no.
+Dado que Flint sospecha que la lluvia de hamburguesas se ve afectada por los mismos fenomenos que la lluvia real, los datos consisten en una serie de atributos climáticos por dia y si la máquina se activó al dia siguiente o no.
 
 Flint quiere utilizar la información recolectada para poder predecir si al dia siguiente la máquina se va a activar o no
 y poder preparar medidas para contrarrestar a las hamburguesas del cielo.
