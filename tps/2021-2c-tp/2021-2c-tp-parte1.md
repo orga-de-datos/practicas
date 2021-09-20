@@ -3,8 +3,8 @@
 
 ### Introducción:
 Flint Lockwood es un científico loco que ha estado trabajando en una máquina que hace llover hamburguesas, 
-lamentablemente la máquina se ha vuelto loca y Flint no puede controlar cuando la máquina se activa
-produciendo asi que lluevan hamburguesas.
+lamentablemente la máquina se ha vuelto loca y Flint no puede controlar cuando la máquina se activa,
+produciendo así, que lluevan hamburguesas.
 
 Pero él sospecha que la máquina tiene un patron por lo cual ha estado recolectando datos del comportamiento
 de la máquina y otras variables. Nos ha pedido ayuda para lograr entender esos datos (él está ocupado 
