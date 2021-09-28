@@ -28,7 +28,7 @@ Si bien Flint quiere empezar a usar técnicas avanzadas de predicción e intelig
 todavía tiene desconfianza en las mismas (dada la experiencia traumática que esta teniendo en este momento)
 por lo que inicialmente no quieren nada complicado sino una serie muy simple
 de decisiones lógicas que les permitan en poco tiempo hacer una primera ronda de predicciones. Se
-espera que este código simple (baseline) tenga una accuracy aceptable (mayor a ??%) y que esté basada y justificada
+espera que este código simple (baseline) tenga una accuracy aceptable (mayor a 80%) y que esté basada y justificada
 en la investigación previa.
 
 
