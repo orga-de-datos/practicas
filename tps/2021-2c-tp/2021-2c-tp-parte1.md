@@ -65,8 +65,8 @@ y otro con gráficos y análisis adicionales que no son importantes para la reun
 
 - **dia**: dia en el cual se tomó la medición
 - **barrio**: barrio donde se tomó la medición
-- **temp_min**: temperatura máxima registrada en el día
-- **temp_max**: temperatura mínima registrada en el día
+- **temp_min**: temperatura mínima registrada en el día
+- **temp_max**: temperatura máxima registrada en el día
 - **mm_lluvia_dia**: milímetros que llovieron en el día
 - **mm_evaporados_agua**: milímetros que se evaporaron en el día
 - **horas_de_sol**: horas totales de sol en el día
@@ -74,8 +74,8 @@ y otro con gráficos y análisis adicionales que no son importantes para la reun
 - **rafaga_viento_max_velocidad**: velocidad medida en km/h de la ráfaga de viento más fuerte detectada en el día
 - **direccion_viento_temprano**: dirección del viento (medición tomada cuando Flint se levanta a la mañana)
 - **direccion_viento_tarde**: dirección del viento (medición tomada por Flint a la tardecita)
-- **velocidad_viendo_temprano**: velocidad del viento medido en km/h (medición tomada cuando Flint se levanta a la mañana)
-- **velocidad_viendo_tarde**: velocidad del viento medido en km/h (medición tomada por Flint a la tardecita)
+- **velocidad_viento_temprano**: velocidad del viento medido en km/h (medición tomada cuando Flint se levanta a la mañana)
+- **velocidad_viento_tarde**: velocidad del viento medido en km/h (medición tomada por Flint a la tardecita)
 - **humedad_temprano**: porcentaje de humedad (medición tomada cuando Flint se levanta a la mañana)
 - **humedad_tarde**: porcentaje de humedad (medición tomada por Flint a la tardecita)
 - **presion_atmosferica_temprano**: presión atmosférica (hectopascales) (medición tomada cuando Flint se levanta a la mañana)
