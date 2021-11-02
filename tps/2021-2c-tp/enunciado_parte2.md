@@ -1,12 +1,12 @@
 # Introducción
 Luego de la presentación del informe y el baseline, Flint Lockwood quiere profundizar la capacidad de predicción. Gracias al éxito 
-logrado en la primera campaña él tiene más confianza en ustedes y sus “algoritmos” y está ansiosa por probar 
+logrado en la primera campaña él tiene más confianza en ustedes y sus “algoritmos” y está ansioso por probar 
 las avanzadas técnicas de inteligencia artificial de las que todo el mundo habla.
 
 
 ## Tarea
 Flint Lockwood está muy interesado en utilizar algoritmos de machine learning desde que escuchó 
-que otros scientificos lo utilizan para pronosticar otros experimentos fallidos. Con su conocimiento al respecto exige 
+que otros científicos lo utilizan para pronosticar otros experimentos fallidos. Con su conocimiento al respecto exige 
 que probemos varios modelos (al menos 5 tipos distintos) reportando cual de todos fue el mejor (según la métrica AUC-ROC), 
 también pretende que utilicemos técnicas para buscar la mejor configuración de hiperparámetros, que intentemos hacer al 
 menos un ensamble, que utilicemos cross-validation para comparar los modelos y que presentemos varias métricas del modelo final:  
@@ -19,7 +19,7 @@ menos un ensamble, que utilicemos cross-validation para comparar los modelos y q
 Flint también sabe los dilemas que resultan de llevar un prototipo a producción, por lo que nos pidió 
 encarecidamente que dejemos muy explícitos los pasos de pre-procesamiento/feature engineering que usamos en cada 
 modelo, y que dejemos toda la lógica del preprocesado en un archivo python llamado preprocesing.py en donde van a 
-estar todas las funciones utilizadas para preprocesamiento, de hecho, él espera que apliquemos al menos dos tecnicas
+estar todas las funciones utilizadas para preprocesamiento, de hecho, él espera que apliquemos al menos dos técnicas
 de preprocesamiento distintos por cada tipo de modelo y espera que si dos modelos tienen el mismo preprocesado 
 entonces usen la misma función en preprocessing.py.  
 
@@ -51,10 +51,10 @@ el tiene pensado chequear las métricas de estas predicciones minutos antes de p
 
 **(CONCLUSIÓN)**
 Finalmente luego de poner las tablas TABLA 1 y TABLA 2, nos piden que lleguemos a una conclusión sobre qué modelo 
-recomendamos y por qué y que lo comparemos con respecto al baseline que anteriormente implementamos. Tambien quiere 
-que agreguemos un pequeño analisis de que modelo elegiriamos si se necesitase tener la menor cantidad de falsos positivos
-o si necesitan tener una lista de todos los que potencialmente son de valor adquisitivo sin preocuparse demasiado 
-si metemos en la misma personas que realmente no tienen alto valor adquisitivo.
+recomendamos y por qué y que lo comparemos con respecto al baseline que anteriormente implementamos. También quiere 
+que agreguemos un pequeño análisis de qué modelo elegiríamos si se necesitase tener la menor cantidad de falsos positivos
+o si necesitan tener una lista de todos los días que potencialmente lloverán hamburguesas al día siguiente sin preocuparse demasiado 
+si metemos en la misma días que realmente no llovieron hamburguesas al día siguiente.
 
 
 ## Notas Técnicas:
@@ -67,17 +67,17 @@ línea del archivo se tiene:
 - Las predicciones de cada modelo se deberan guardar en el directorio parte_2/predicciones
 
 ## Fecha de entrega:
-- Entrega codigo: 8 de Diciembre (inclusive, hasta las 23:59)
+- Entrega código: 8 de Diciembre (inclusive, hasta las 23:59)
 - Defensa oral del tp: 14 de Diciembre (misma modalidad por turnos de la anterior parte)
 
 ## Forma de entrega:
-- Deberan cargar todo el trabajo en git y solo re tomará como valido los cambios subidos hasta la fecha de entrega mencionada anteriormente.
+- Deberán cargar todo el trabajo en git y sólo se tomarán como validos los cambios subidos hasta la fecha de entrega mencionada anteriormente.
 
 ## Consideraciones sobre uso de Git:
-(disclaimer: pongo está seccion a modo abodago por hay cada uno que me viene con algunas cosas que no se pueden creer)
-- Todo progreso que se vaya realizando debera ser subido a git, no se considerará una entrega valida si suben el codigo pocos dias antes de la fecha de entrega (mas precisamente si solo suben el codigo 2 dias antes de la fecha de entrega).
-- TODOS deberan realizar aportes al git, si un alumno no realiza aporte alguno este perdera automaticamente la cursada.
-- Se podra usar el historial de commits para validar o no si un alumno participo en la elaboracion del tp y si el corrector lo considera, podria perder la cursada por no haber aportado significativamente al mismo (nota: no esperamos que sea un 50%-50% perfecto, pero vamos a mirar que no sea una distribucion muy desigual).
+(disclaimer: pongo esta seccion a modo abogado)
+- Todo progreso que se vaya realizando debera ser subido a git, no se considerará una entrega valida si suben el código pocos dias antes de la fecha de entrega (más precisamente si solo suben el codigo 2 días antes de la fecha de entrega).
+- TODOS deberan realizar aportes al git, si un alumno no realiza aporte alguno este perderá automáticamente la cursada.
+- Se podra usar el historial de commits para validar o no si un alumno participo en la elaboracion del tp y si el corrector lo considera, podría perder la cursada por no haber aportado significativamente al mismo (nota: no esperamos que sea un 50%-50% perfecto, pero vamos a mirar que no sea una distribucion muy desigual).
 
 Nota: entre la entrega y la defensa oral se pueden llegar a pedir correcciones para antes de la defensa oral de 
 considerarse necesarias.
