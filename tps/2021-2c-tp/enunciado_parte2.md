@@ -67,8 +67,17 @@ línea del archivo se tiene:
 - Las predicciones de cada modelo se deberan guardar en el directorio parte_2/predicciones
 
 ## Fecha de entrega:
-- Entrega: 8 de Diciembre (inclusive, hasta las 23:59)
+- Entrega codigo: 8 de Diciembre (inclusive, hasta las 23:59)
 - Defensa oral del tp: 14 de Diciembre (misma modalidad por turnos de la anterior parte)
+
+## Forma de entrega:
+- Deberan cargar todo el trabajo en git y solo re tomará como valido los cambios subidos hasta la fecha de entrega mencionada anteriormente.
+
+## Consideraciones sobre uso de Git:
+(disclaimer: pongo está seccion a modo abodago por hay cada uno que me viene con algunas cosas que no se pueden creer)
+- Todo progreso que se vaya realizando debera ser subido a git, no se considerará una entrega valida si suben el codigo pocos dias antes de la fecha de entrega (mas precisamente si solo suben el codigo 2 dias antes de la fecha de entrega).
+- TODOS deberan realizar aportes al git, si un alumno no realiza aporte alguno este perdera automaticamente la cursada.
+- Se podra usar el historial de commits para validar o no si un alumno participo en la elaboracion del tp y si el corrector lo considera, podria perder la cursada por no haber aportado significativamente al mismo (nota: no esperamos que sea un 50%-50% perfecto, pero vamos a mirar que no sea una distribucion muy desigual).
 
 Nota: entre la entrega y la defensa oral se pueden llegar a pedir correcciones para antes de la defensa oral de 
 considerarse necesarias.
