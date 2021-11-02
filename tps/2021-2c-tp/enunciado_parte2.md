@@ -60,7 +60,7 @@ si metemos en la misma días que realmente no llovieron hamburguesas al día sig
 ## Notas Técnicas:
 - El formato esperado para las predicciones realizadas en cada .csv es igual al del archivo de ejemplo https://docs.google.com/spreadsheets/d/1jc4bfOyp80opnBnTBupqXnJajyF3a9NVuS9_c8XR7zU en donde por cada 
 línea del archivo se tiene:  
-\<id\> \<tiene_alto_valor_adquisitivo\>  
+\<id\> \<llovieron_hamburguesas_al_dia_siguiente\>  
 - Todos los notebooks deben poder ser ejecutados de principio a fin por su corrector produciendo los mismos resultados
 - Todas las dependencias de librerías deben estar en un requirements.txt
 - La entrega se tiene que realizar en el mismo repositorio de la primera entrega, en una carpeta llamada parte_2
@@ -74,7 +74,7 @@ línea del archivo se tiene:
 - Deberán cargar todo el trabajo en git y sólo se tomarán como validos los cambios subidos hasta la fecha de entrega mencionada anteriormente.
 
 ## Consideraciones sobre uso de Git:
-(disclaimer: pongo esta seccion a modo abogado)
+(disclaimer: pongo esta sección a modo abogado)
 - Todo progreso que se vaya realizando debera ser subido a git, no se considerará una entrega valida si suben el código pocos dias antes de la fecha de entrega (más precisamente si solo suben el codigo 2 días antes de la fecha de entrega).
 - TODOS deberan realizar aportes al git, si un alumno no realiza aporte alguno este perderá automáticamente la cursada.
 - Se podra usar el historial de commits para validar o no si un alumno participo en la elaboracion del tp y si el corrector lo considera, podría perder la cursada por no haber aportado significativamente al mismo (nota: no esperamos que sea un 50%-50% perfecto, pero vamos a mirar que no sea una distribucion muy desigual).
