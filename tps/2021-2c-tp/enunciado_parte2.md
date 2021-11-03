@@ -44,10 +44,10 @@ En donde :
 En concordancia con lo anterior, se espera que cada Nombre Modelo este en un notebook separado con el nombre
 \<Nombre Modelo\>.ipynb y que dentro del mismo esté de forma clara la llamada a los preprocesados, su entrenamiento, 
 la evaluación del mismo y finalmente una predicción en formato csv de un archivo nuevo localizado
-en: https://docs.google.com/spreadsheets/d/1ObsojtXfzvwicsFieGINPx500oGbUoaVTERTc69pzxE  
+en: https://docs.google.com/spreadsheets/d/1mR_JNN0-ceiB5qV42Ff9hznz0HtWaoPF3B9zNGoNPY8 ( nota: este archivo no es considerado parte del test-holdout set ).  
 El director nos pide que por cada modelo listado en la tabla, hagamos las predicciones de este archivo y en la entrega junto con los notebook 
 también entreguemos todas las predicciones. El nombre del archivo con las predicciones tiene que ser \<Nombre Modelo\>.csv, 
-el tiene pensado chequear las métricas de estas predicciones minutos antes de pagarnos ( esperemos que no nos cague  👀 ).
+él tiene pensado chequear las métricas de estas predicciones minutos antes de pagarnos ( esperemos que no nos cague  👀 ).
 
 **(CONCLUSIÓN)**
 Finalmente luego de poner las tablas TABLA 1 y TABLA 2, nos piden que lleguemos a una conclusión sobre qué modelo 
@@ -58,9 +58,8 @@ si metemos en la misma días que realmente no llovieron hamburguesas al día sig
 
 
 ## Notas Técnicas:
-- El formato esperado para las predicciones realizadas en cada .csv es igual al del archivo de ejemplo https://docs.google.com/spreadsheets/d/1jc4bfOyp80opnBnTBupqXnJajyF3a9NVuS9_c8XR7zU en donde por cada 
-línea del archivo se tiene:  
-\<id\> \<llovieron_hamburguesas_al_dia_siguiente\>  
+- El formato esperado para las predicciones realizadas en cada .csv es igual al del archivo de ejemplo https://docs.google.com/spreadsheets/d/10OMoC-burgWUYjgxMZPgGNy512Z8vu8x-fBaYf3KAsU en donde por cada 
+línea del archivo se tiene dos columnas:  \<id\> \<llovieron_hamburguesas_al_dia_siguiente\>  
 - Todos los notebooks deben poder ser ejecutados de principio a fin por su corrector produciendo los mismos resultados
 - Todas las dependencias de librerías deben estar en un requirements.txt
 - La entrega se tiene que realizar en el mismo repositorio de la primera entrega, en una carpeta llamada parte_2
