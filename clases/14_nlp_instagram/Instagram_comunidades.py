@@ -7,9 +7,9 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.6.0
+#       jupytext_version: 1.11.1
 #   kernelspec:
-#     display_name: Python 3 (venv)
+#     display_name: Python 3
 #     language: python
 #     name: python3
 # ---
@@ -74,6 +74,8 @@ dataPeriodistmoDep = pd.read_csv(
 )
 dataPeriodistmoDep["User Name"].unique()
 
+dataPeriodistmoDep.shape
+
 dataotrosDeportistas = pd.read_csv(
     "https://drive.google.com/uc?export=download&id=17-k6vXfQ34T02Mb5-BK-DaezStkj5aRB"
 )
@@ -98,6 +100,138 @@ data = pd.concat(
 print(data.shape)
 data.head()
 # -
+
+# ## Bag of Words
+
+# En esta parte vamos a comparar la importancia de cada token según el grupo de cuentas para estimar que palabras tienen mas "importancia" en cada uno.
+#
+# Para eso primero estimamos el BOW de los grupos que queremos analizar, en este primero caso, recetas general vs recetas fit.
+
+# +
+data['Description'] = data['Description'].fillna('')
+texts2 = list(data[(data['User Name'].isin(dataRecetas["User Name"])) | (data['User Name'].isin(dataRecetasFit["User Name"]))]['Description'])
+
+# Cuento los terminos
+count_vect = CountVectorizer(ngram_range = (1,3), max_df = 0.8, min_df = 0.01, stop_words=stopwords.words('spanish'), lowercase=True)
+x_counts = count_vect.fit_transform(texts2)
+# -
+
+# Luego estimamos los coeficientes BOW de cada uno, para eso sumamos todos los coeficientes de cada grupo de cuentas y escalamos los mismos entre 1 y 0
+
+import numpy as np
+datafiltered = data[(data['User Name'].isin(dataRecetas["User Name"])) | (data['User Name'].isin(dataRecetasFit["User Name"]))]
+coefficients1 = np.sum(x_counts.toarray()[datafiltered['User Name'].isin(dataRecetas["User Name"])], axis=0)
+coefficients2 = np.sum(x_counts.toarray()[datafiltered['User Name'].isin(dataRecetasFit["User Name"])], axis=0)
+
+# +
+
+coefficients1 = np.interp(coefficients1, (coefficients1.min(), coefficients1.max()), (0, +1))
+coefficients2 = np.interp(coefficients2, (coefficients2.min(), coefficients2.max()), (0, +1))
+
+# -
+
+# Finalmente, hacemos un scatter plot, donde cada punto es un token y esta posicionado según su score en recetas general y recetas Fit. Siendo el eje X las general y el Y las FIT.
+
+from matplotlib import pyplot as plt
+import matplotlib.lines as mlines
+fig, ax = plt.subplots(dpi=(150))
+ax.scatter(coefficients1, coefficients2, s=5)
+for i, txt in enumerate(count_vect.get_feature_names()):
+    if(coefficients1[i] > 0.3 or coefficients2[i] > 0.3 ):
+        ax.annotate(txt, (coefficients1[i], coefficients2[i]), fontsize=6)
+line = mlines.Line2D([0, 1], [0, 1], color='red')
+line = mlines.Line2D([0, 1], [0, 1], color='red')
+transform = ax.transAxes
+line.set_transform(transform)
+ax.add_line(line)
+plt.ylabel("Recetas Fit")
+plt.xlabel("Recetas comunes")
+plt.title('Importancia de cada token')
+plt.show()
+
+# Podemos ver que palabras como manteca, chocolate, dulceo azúcar tienen muchísima importancia dentro del grupo de recetas comunes mientras que muy poco en las recetas Fit y lo mismo pero al reves sucede con "saludable".
+#
+# Repetimos lo mismo pero comparando entre otros grupos
+
+# +
+data['Description'] = data['Description'].fillna('')
+texts2 = list(data[(data['User Name'].isin(dataFit["User Name"])) | (data['User Name'].isin(dataRecetasFit["User Name"]))]['Description'])
+
+# Cuento los terminos
+count_vect = CountVectorizer(ngram_range = (1,3), max_df = 0.8, min_df = 0.01, stop_words=stopwords.words('spanish'), lowercase=True)
+x_counts = count_vect.fit_transform(texts2)
+# -
+
+datafiltered = data[(data['User Name'].isin(dataFit["User Name"])) | (data['User Name'].isin(dataRecetasFit["User Name"]))]
+
+import numpy as np
+coefficients1 = np.sum(x_counts.toarray()[datafiltered['User Name'].isin(dataFit["User Name"])], axis=0)
+coefficients2 = np.sum(x_counts.toarray()[datafiltered['User Name'].isin(dataRecetasFit["User Name"])], axis=0)
+
+# +
+
+coefficients1 = np.interp(coefficients1, (coefficients1.min(), coefficients1.max()), (0, +1))
+coefficients2 = np.interp(coefficients2, (coefficients2.min(), coefficients2.max()), (0, +1))
+
+# -
+
+from matplotlib import pyplot as plt
+import matplotlib.lines as mlines
+fig, ax = plt.subplots(dpi=(150))
+ax.scatter(coefficients1, coefficients2, s=5)
+for i, txt in enumerate(count_vect.get_feature_names()):
+    if(coefficients1[i] > 0.3 or coefficients2[i] > 0.3 ):
+        ax.annotate(txt, (coefficients1[i], coefficients2[i]), fontsize=6)
+line = mlines.Line2D([0, 1], [0, 1], color='red')
+line = mlines.Line2D([0, 1], [0, 1], color='red')
+transform = ax.transAxes
+line.set_transform(transform)
+ax.add_line(line)
+plt.ylabel("Recetas Fit")
+plt.xlabel("Cuentas Fit")
+plt.title('Importancia de cada token')
+plt.show()
+
+# +
+data['Description'] = data['Description'].fillna('')
+texts2 = list(data[(data['User Name'].isin(dataFit["User Name"])) | (data['User Name'].isin(dataJugadoresArg["User Name"]))]['Description'])
+
+# Cuento los terminos
+count_vect = CountVectorizer(ngram_range = (1,3), max_df = 0.8, min_df = 0.01, stop_words=stopwords.words('spanish'), lowercase=True)
+x_counts = count_vect.fit_transform(texts2)
+# -
+
+datafiltered = data[(data['User Name'].isin(dataFit["User Name"])) | (data['User Name'].isin(dataJugadoresArg["User Name"]))]
+
+import numpy as np
+coefficients1 = np.sum(x_counts.toarray()[datafiltered['User Name'].isin(dataFit["User Name"])], axis=0)
+coefficients2 = np.sum(x_counts.toarray()[datafiltered['User Name'].isin(dataJugadoresArg["User Name"])], axis=0)
+
+# +
+
+coefficients1 = np.interp(coefficients1, (coefficients1.min(), coefficients1.max()), (0, +1))
+coefficients2 = np.interp(coefficients2, (coefficients2.min(), coefficients2.max()), (0, +1))
+
+# -
+
+from matplotlib import pyplot as plt
+import matplotlib.lines as mlines
+fig, ax = plt.subplots(dpi=(150))
+ax.scatter(coefficients1, coefficients2, s=5)
+for i, txt in enumerate(count_vect.get_feature_names()):
+    if(coefficients1[i] > 0.3 or coefficients2[i] > 0.3 ):
+        ax.annotate(txt, (coefficients1[i], coefficients2[i]), fontsize=6)
+line = mlines.Line2D([0, 1], [0, 1], color='red')
+line = mlines.Line2D([0, 1], [0, 1], color='red')
+transform = ax.transAxes
+line.set_transform(transform)
+ax.add_line(line)
+plt.ylabel("Futbol")
+plt.xlabel("Cuentas Fit")
+plt.title('Importancia de cada token')
+plt.show()
+
+# ## TF - IDF
 
 # Ahora agruparemos por cuenta todos los posts, concatenando todos los textos de los posts por cada usuario.
 
@@ -156,8 +290,6 @@ numberOfPosts_minimo = 10
 print(len(usuarios.numberOfPosts), sum(usuarios.numberOfPosts > numberOfPosts_minimo))
 
 usuarios_mini = usuarios[usuarios.numberOfPosts > numberOfPosts_minimo]
-
-# ## TF - IDF
 
 import nltk
 
@@ -272,19 +404,19 @@ usuarios_mini["comunidad"].value_counts().head(10)
 
 # Veamos ahora que usuarios componen cada uno de estas comunidades (las que tienen mas de 2 usuarios)
 
-usuarios_mini[usuarios_mini.comunidad == 7].sort_values(
+usuarios_mini[usuarios_mini.comunidad == 23].sort_values(
     "mean_Likes", ascending=False
 ).User_Name.head(10)
 
-usuarios_mini[usuarios_mini.comunidad == 1].sort_values(
+usuarios_mini[usuarios_mini.comunidad == 2].sort_values(
     "mean_Likes", ascending=False
 ).User_Name.head(10)
 
-usuarios_mini[usuarios_mini.comunidad == 19].sort_values(
+usuarios_mini[usuarios_mini.comunidad == 16].sort_values(
     "mean_Likes", ascending=False
 ).User_Name.head(10)
 
-usuarios_mini[usuarios_mini.comunidad == 27].sort_values(
+usuarios_mini[usuarios_mini.comunidad == 30].sort_values(
     "mean_Likes", ascending=False
 ).User_Name.head(10)
 
@@ -306,4 +438,6 @@ pos = nx.spring_layout(G, k=0.3)
 nx.draw(G, node_color=color_map, with_labels=True, pos=pos)
 plt.show()
 
-G.nodes[47]['User_Name']
+G.nodes[45]['User_Name']
+
+
