@@ -168,13 +168,15 @@ df
 
 df['Skin color'].replace({"-": None}, inplace=True)
 
+df[df["Skin color"] != "-"]
+
 df['Skin color']
 
 # ## Eliminar filas con nulos
 
 df
 
-df = df.dropna(subset=['Skin color'])
+df = df.dropna(subset=['Skin color'], )
 df
 
 # # Unir información de distintas tablas
@@ -185,13 +187,22 @@ df.merge(df, left_on='Skin color', right_on='Skin color')[['Race_x', 'Race_y']]
 
 # Tenemos duplicados!
 
-df.merge(df, left_on='Skin color', right_on='Skin color')[['Race_x', 'Race_y']]
+# +
+df2 = df.copy()
+
+df.merge(df2, left_on='Skin color', right_on='Skin color', )[['Race_x', 'Race_y']]
+# -
+
+df1 = pd.DataFrame({"a":[2,2,3], "b":[4,5,6]})
+df2 = pd.DataFrame({"c":[2,3,4], "b":[11,12,13]})
+df1.merge(df2, left_on="a", right_on="c", how="outer")
+df1.merge(df2, left_index=True, right_index=True, how="outer")
 
 # Tenemos que sacar los que son iguales en ambas columnas!
 
 same_skin_color = df.merge(df, left_on='Skin color', right_on='Skin color')[
     ['Race_x', 'Race_y']
-].drop_duplicates()
+]#.drop_duplicates()
 same_skin_color[same_skin_color.Race_x != same_skin_color.Race_y]
 
 # +
@@ -235,6 +246,8 @@ same_skin_color[
 df_1 = pd.DataFrame({'col_1': range(1, 10), 'col_2': range(1, 10)})
 df_2 = pd.DataFrame({'col_1': range(11, 20), 'col_2': range(11, 20)})
 
+df_2
+
 df_1.pipe(len)
 
 df_2.pipe(len)
@@ -258,6 +271,8 @@ df = df.reset_index()
 df
 
 df.groupby("Race")
+
+callable(list)
 
 df.groupby("Race").agg(list)
 
@@ -299,6 +314,8 @@ df.Race.value_counts(normalize=True)
 over5 = df.Race.value_counts(normalize=True) > 0.05
 mutants_over5 = df.Race.value_counts()[over5]
 
+mutants_over5
+
 # Teniendo la indexacion, veamos como resolverlo con `isin`
 
 df[df.Race.isin(mutants_over5.index)].head(5)
@@ -322,6 +339,7 @@ pd.pivot_table(
     },
 )
 
+# + [markdown] jp-MarkdownHeadingCollapsed=true tags=[]
 # # Checkpoint
 #
 # Desde el siguiente snippet:
@@ -332,6 +350,7 @@ pd.pivot_table(
 # ```
 #
 # Encontrar el promedio de altura por raza, considerando solo los personajes _buenos_.
+# -
 
 # # Sobre vistas y columnas
 
@@ -345,6 +364,8 @@ def alignment_to_numeric(alignment):
 
 df_marvel['numeric_alineation'] = df_marvel.Alignment.apply(alignment_to_numeric)
 # -
+
+df_marvel
 
 df_marvel = df[df.Publisher == 'Marvel Comics'].copy()
 
@@ -365,6 +386,8 @@ df.sort_values(by=['Height', 'Weight'], ascending=False)
 # # Operaciones de strings
 
 df.name.apply(lambda x: x.lower())
+
+df.name.str.lower()
 
 # Entre [otras](https://pandas.pydata.org/pandas-docs/stable/user_guide/text.html)
 
