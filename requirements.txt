@@ -10,6 +10,7 @@ isort==4.3.21
 jupyterlab>=3.0.0
 jupytext==1.6.0
 keras==2.3.1
+lightfm==1.16
 lightgbm==3.0.0
 matplotlib==3.3.2
 miceforest==2.0.3
@@ -22,6 +23,7 @@ progressbar2
 python-louvain==0.14
 requests==2.24.0
 scikit-learn==0.23.2
+scikit-surprise==1.1.1
 seaborn==0.11.0
 tensorflow>=2.4.0
 torch==1.4.0
