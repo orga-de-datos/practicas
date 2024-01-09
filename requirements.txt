@@ -12,10 +12,10 @@ jupytext==1.6.0
 keras==2.3.1
 lightgbm==3.0.0
 matplotlib==3.3.2
-miceforest==2.0.3
+miceforest==2.0.6
 nltk
 pandas==1.1.4
-pandas-profiling==2.8.0
+pandas-profiling==3.0.0
 plotly==4.12.0
 pre-commit==2.8.2
 progressbar2
